@@ -12,15 +12,18 @@
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 # A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with REANA; if not, see <http://www.gnu.org/licenses>.
+# You should have received a copy of the GNU General Public License along with
+# REANA; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
+# Suite 330, Boston, MA 02111-1307, USA.
 #
 # In applying this license, CERN does not waive the privileges and immunities
 # granted to it by virtue of its status as an Intergovernmental Organization or
 # submit itself to any jurisdiction.
 
-"""REANA-commons."""
+"""REANA-Commons."""
 
 from __future__ import absolute_import, print_function
 
-__all__ = ('__version__')
+from .version import __version__
+
+__all__ = ('__version__', )
