@@ -62,7 +62,11 @@ setup_requires = [
     'pytest-runner>=2.7',
 ]
 
-install_requires = []
+install_requires = [
+    'psycopg2-binary>=2.6.1'
+    'SQLAlchemy>=1.2.7',
+    'sqlalchemy-utils>=0.31.0',
+]
 
 packages = find_packages()
 

@@ -27,8 +27,8 @@ from __future__ import absolute_import
 import enum
 import uuid
 
-from sqlalchemy import Column, Enum, ForeignKey, String, \
-    Integer, UniqueConstraint
+from sqlalchemy import (Column, Enum, ForeignKey, Integer, String,
+                        UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import JSONType, UUIDType
@@ -57,15 +57,15 @@ class UserOrganization(Base):
     __tablename__ = 'user_organizations'
 
     user_id = Column(UUIDType, ForeignKey('user.id_'), primary_key=True)
-    organization_name = Column(String(255), ForeignKey('organization.name'),
-                               primary_key=True,)
+    name = Column(String(255), ForeignKey('organization.name'),
+                  primary_key=True,)
 
 
 class Organization(Base, Timestamp):
     __tablename__ = 'organization'
 
     id_ = Column(UUIDType, primary_key=True, default=str(uuid.uuid4()))
-    name = Column(String(255), primary_key=True)
+    name = Column(String(255), primary_key=True, unique=True)
     # database_uri = Column(String(255))
 
 
@@ -107,15 +107,15 @@ class Workflow(Base, Timestamp):
         self.parameters = parameters
         self.type_ = type_
         self.logs = logs or ''
-        self.run_number = 1
-        # last_workflow = Workflow.query.filter_by(
-        #     name=name,
-        #     owner_id=owner_id).\
-        #     order_by(Workflow.run_number.desc()).first()
-        # if not last_workflow:
-        #     self.run_number = 1
-        # else:
-        #     self.run_number = last_workflow.run_number + 1
+        from .database import Session
+        last_workflow = Session.query(Workflow).filter_by(
+            name=name,
+            owner_id=owner_id).\
+            order_by(Workflow.run_number.desc()).first()
+        if not last_workflow:
+            self.run_number = 1
+        else:
+            self.run_number = last_workflow.run_number + 1
 
     def __repr__(self):
         """Workflow string represetantion."""
