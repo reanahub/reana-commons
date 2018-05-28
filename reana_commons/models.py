@@ -40,7 +40,7 @@ Base = declarative_base()
 class User(Base, Timestamp):
     """User table"""
 
-    __tablename__ = 'user'
+    __tablename__ = 'user_'
 
     id_ = Column(UUIDType, primary_key=True)
     api_key = Column(String(length=120))
@@ -56,7 +56,7 @@ class UserOrganization(Base):
     """Relationship between Users and Organizations."""
     __tablename__ = 'user_organizations'
 
-    user_id = Column(UUIDType, ForeignKey('user.id_'), primary_key=True)
+    user_id = Column(UUIDType, ForeignKey('user_.id_'), primary_key=True)
     name = Column(String(255), ForeignKey('organization.name'),
                   primary_key=True,)
 
@@ -86,7 +86,7 @@ class Workflow(Base, Timestamp):
     run_number = Column(Integer)
     workspace_path = Column(String(255))
     status = Column(Enum(WorkflowStatus), default=WorkflowStatus.created)
-    owner_id = Column(UUIDType, ForeignKey('user.id_'))
+    owner_id = Column(UUIDType, ForeignKey('user_.id_'))
     specification = Column(JSONType)
     parameters = Column(JSONType)
     type_ = Column(String(30))
