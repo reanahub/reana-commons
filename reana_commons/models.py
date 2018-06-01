@@ -45,7 +45,7 @@ class User(Base, Timestamp):
     id_ = Column(UUIDType, primary_key=True)
     api_key = Column(String(length=120))
     email = Column(String(length=255))
-    workflows = relationship("Workflow", backref="user")
+    workflows = relationship("Workflow", backref="user_")
 
     def __repr__(self):
         """User string represetantion."""
