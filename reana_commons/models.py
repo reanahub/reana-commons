@@ -27,8 +27,8 @@ from __future__ import absolute_import
 import enum
 import uuid
 
-from sqlalchemy import (Column, Enum, ForeignKey, Integer, String,
-                        UniqueConstraint, Boolean)
+from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer, String,
+                        UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import JSONType, UUIDType
@@ -181,7 +181,8 @@ class Job(Base, Timestamp):
 
     __tablename__ = 'job'
 
-    id_ = Column(UUIDType, primary_key=True)
+    id_ = Column(UUIDType, unique=True, primary_key=True,
+                 default=str(uuid.uuid4()))
     workflow_uuid = Column(UUIDType, primary_key=True)
     status = Column(String(30))
     job_type = Column(String(30))
@@ -194,28 +195,7 @@ class Job(Base, Timestamp):
     restart_count = Column(Integer)
     max_restart_count = Column(Integer)
     deleted = Column(Boolean)
-    logs = Column(String)
-    __table_args__ = UniqueConstraint('id_', 'workflow_uuid',
-                                      name='_job_workflow_uc'),
-
-    def __init__(self, id_, workflow_uuid, status, job_type, cvmfs_mounts,
-                 shared_file_system, docker_img, experiment, cmd, env_vars,
-                 restart_count, max_restart_count, deleted, logs=None):
-        """Initialize job table."""
-        self.id_ = id_
-        self.workflow_uuid = workflow_uuid
-        self.status = status
-        self.job_type = job_type
-        self.cvmfs_mounts = cvmfs_mounts
-        self.shared_file_system = shared_file_system
-        self.docker_img = docker_img
-        self.experiment = experiment
-        self.cmd = cmd
-        self.env_vars = env_vars
-        self.restart_count = restart_count
-        self.max_restart_count = max_restart_count
-        self.deleted = deleted
-        self.logs = logs
+    logs = Column(String, nullable=True)
 
 
 class Run(Base, Timestamp):
@@ -223,13 +203,13 @@ class Run(Base, Timestamp):
 
     __tablename__ = 'run'
 
-    id_ = Column(UUIDType, unique=True, primary_key=True)
+    id_ = Column(UUIDType, unique=True, primary_key=True,
+                 default=str(uuid.uuid4()))
     workflow_uuid = Column(UUIDType, primary_key=True)
     run_number = Column(Integer)
+    current_command = Column(String(1024))
     current_step = Column(Integer)
     total_steps = Column(Integer)
-    __table_args__ = UniqueConstraint('id_', 'workflow_uuid',
-                                      name='_run_workflow_uc'),
 
 
 class RunJobs(Base):
@@ -239,5 +219,3 @@ class RunJobs(Base):
 
     run_id = Column(UUIDType, ForeignKey('run.id_'), primary_key=True)
     job_id = Column(UUIDType, ForeignKey('job.id_'), primary_key=True)
-    __table_args__ = UniqueConstraint('run_id', 'job_id',
-                                      name='_run_job_uc'),
