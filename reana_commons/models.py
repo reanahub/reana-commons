@@ -28,7 +28,7 @@ import enum
 import uuid
 
 from sqlalchemy import (Column, Enum, ForeignKey, Integer, String,
-                        UniqueConstraint)
+                        UniqueConstraint, Boolean)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import JSONType, UUIDType
@@ -40,12 +40,12 @@ Base = declarative_base()
 class User(Base, Timestamp):
     """User table"""
 
-    __tablename__ = 'user'
+    __tablename__ = 'user_'
 
     id_ = Column(UUIDType, primary_key=True)
     api_key = Column(String(length=120))
     email = Column(String(length=255))
-    workflows = relationship("Workflow", backref="user")
+    workflows = relationship("Workflow", backref="user_")
 
     def __repr__(self):
         """User string represetantion."""
@@ -56,7 +56,7 @@ class UserOrganization(Base):
     """Relationship between Users and Organizations."""
     __tablename__ = 'user_organizations'
 
-    user_id = Column(UUIDType, ForeignKey('user.id_'), primary_key=True)
+    user_id = Column(UUIDType, ForeignKey('user_.id_'), primary_key=True)
     name = Column(String(255), ForeignKey('organization.name'),
                   primary_key=True,)
 
@@ -86,7 +86,7 @@ class Workflow(Base, Timestamp):
     run_number = Column(Integer)
     workspace_path = Column(String(255))
     status = Column(Enum(WorkflowStatus), default=WorkflowStatus.created)
-    owner_id = Column(UUIDType, ForeignKey('user.id_'))
+    owner_id = Column(UUIDType, ForeignKey('user_.id_'))
     specification = Column(JSONType)
     parameters = Column(JSONType)
     type_ = Column(String(30))
@@ -174,3 +174,43 @@ class Workflow(Base, Timestamp):
             #     'An error occurred while updating workflow: {0}'.
             #     format(str(e)))
             raise e
+
+
+class Job(Base, Timestamp):
+    """Job table."""
+
+    __tablename__ = 'job'
+
+    id_ = Column(UUIDType, primary_key=True)
+    workflow_uuid = Column(UUIDType, primary_key=True)
+    status = Column(String(30))
+    job_type = Column(String(30))
+    cvmfs_mounts = Column(String(256))
+    shared_file_system = Column(Boolean)
+    docker_img = Column(String(256))
+    experiment = Column(String(256))
+    cmd = Column(String(1024))
+    env_vars = Column(String(1024))
+    restart_count = Column(Integer)
+    max_restart_count = Column(Integer)
+    deleted = Column(Boolean)
+    logs = Column(String)
+
+    def __init__(self, id_, workflow_uuid, status, job_type, cvmfs_mounts,
+                 shared_file_system, docker_img, experiment, cmd, env_vars,
+                 restart_count, max_restart_count, deleted, logs=None):
+        """Initialize job table."""
+        self.id_ = id_
+        self.workflow_uuid = workflow_uuid
+        self.status = status
+        self.job_type = job_type
+        self.cvmfs_mounts = cvmfs_mounts
+        self.shared_file_system = shared_file_system
+        self.docker_img = docker_img
+        self.experiment = experiment
+        self.cmd = cmd
+        self.env_vars = env_vars
+        self.restart_count = restart_count
+        self.max_restart_count = max_restart_count
+        self.deleted = deleted
+        self.logs = logs

@@ -26,5 +26,6 @@ import os
 
 SQLALCHEMY_DATABASE_URI = \
     os.getenv('REANA_SQLALCHEMY_DATABASE_URI',
-              'sqlite:////reana/reana.db')
+              'postgresql+psycopg2://reana:reana'
+              '@dinosmbp.dyndns.cern.ch:5432/reana')
 """SQLAlchemy database location."""
