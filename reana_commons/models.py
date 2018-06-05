@@ -199,3 +199,16 @@ class RunJobs(Base):
     id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
     run_id = Column(UUIDType, ForeignKey('run.id_'))
     job_id = Column(UUIDType, ForeignKey('job.id_'))
+
+
+class JobCache(Base, Timestamp):
+    """Job Cache table."""
+
+    __tablename__ = 'job_cache'
+
+    id_ = Column(UUIDType, unique=True, primary_key=True,
+                 default=generate_uuid)
+    job_id = Column(UUIDType, ForeignKey('job.id_'), primary_key=True)
+    parameters = Column(String(1024))
+    result_path = Column(String(1024))
+    workspace_hash = Column(String(1024))

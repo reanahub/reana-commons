@@ -64,7 +64,8 @@ setup_requires = [
 
 install_requires = [
     'fs>=0.5.4',
-    'psycopg2-binary>=2.6.1'
+    'checksumdir>=1.1.4',
+    'psycopg2-binary>=2.6.1',
     'SQLAlchemy>=1.2.7',
     'sqlalchemy-utils>=0.31.0',
 ]
