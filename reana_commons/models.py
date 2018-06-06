@@ -43,7 +43,7 @@ class User(Base, Timestamp):
     __tablename__ = 'user_'
 
     id_ = Column(UUIDType, primary_key=True)
-    api_key = Column(String(length=120))
+    api_key = Column(String(length=255))
     email = Column(String(length=255))
     workflows = relationship("Workflow", backref="user_")
 

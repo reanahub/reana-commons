@@ -22,6 +22,7 @@
 """REANA commons utils."""
 
 import click
+import fs
 
 
 def click_table_printer(headers, _filter, data):
@@ -44,3 +45,13 @@ def click_table_printer(headers, _filter, data):
     click.echo(formatted_output.format(*[h.upper() for h in headers]))
     for row in data:
         click.echo(formatted_output.format(*row))
+
+
+def get_user_analyses_dir(org, user):
+    """Build the analyses directory path for certain user and organization.
+
+    :param org: Organization which user is part of.
+    :param user: Working directory owner.
+    :return: Path to the user's analyses directory.
+    """
+    return fs.path.join(org, user, 'analyses')
