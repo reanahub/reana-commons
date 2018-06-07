@@ -37,12 +37,17 @@ from sqlalchemy_utils.models import Timestamp
 Base = declarative_base()
 
 
+def generate_uuid():
+    """Generate new uuid."""
+    return str(uuid.uuid4())
+
+
 class User(Base, Timestamp):
     """User table"""
 
     __tablename__ = 'user_'
 
-    id_ = Column(UUIDType, primary_key=True)
+    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
     api_key = Column(String(length=255))
     email = Column(String(length=255))
     workflows = relationship("Workflow", backref="user_")
@@ -64,7 +69,7 @@ class UserOrganization(Base):
 class Organization(Base, Timestamp):
     __tablename__ = 'organization'
 
-    id_ = Column(UUIDType, primary_key=True, default=str(uuid.uuid4()))
+    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
     name = Column(String(255), primary_key=True, unique=True)
     # database_uri = Column(String(255))
 
@@ -182,7 +187,7 @@ class Job(Base, Timestamp):
     __tablename__ = 'job'
 
     id_ = Column(UUIDType, unique=True, primary_key=True,
-                 default=str(uuid.uuid4()))
+                 default=generate_uuid)
     workflow_uuid = Column(UUIDType, primary_key=True)
     status = Column(String(30))
     job_type = Column(String(30))
@@ -204,7 +209,7 @@ class Run(Base, Timestamp):
     __tablename__ = 'run'
 
     id_ = Column(UUIDType, unique=True, primary_key=True,
-                 default=str(uuid.uuid4()))
+                 default=generate_uuid)
     workflow_uuid = Column(UUIDType, primary_key=True)
     run_number = Column(Integer)
     current_command = Column(String(1024))
