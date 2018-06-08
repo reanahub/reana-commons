@@ -21,8 +21,9 @@
 # submit itself to any jurisdiction.
 """REANA commons utils."""
 
-import click
 import fs
+
+import click
 
 
 def click_table_printer(headers, _filter, data):
