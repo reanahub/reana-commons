@@ -208,6 +208,8 @@ class Run(Base, Timestamp):
     workflow_uuid = Column(UUIDType, primary_key=True)
     run_number = Column(Integer)
     current_command = Column(String(1024))
+    current_command_idx = Column(Integer)
+    total_commands = Column(Integer)
     current_step = Column(Integer)
     total_steps = Column(Integer)
 
