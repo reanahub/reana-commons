@@ -47,9 +47,10 @@ class User(Base, Timestamp):
 
     __tablename__ = 'user_'
 
-    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
+    id_ = Column(UUIDType, primary_key=True, unique=True,
+                 default=generate_uuid)
     api_key = Column(String(length=255))
-    email = Column(String(length=255))
+    email = Column(String(length=255), unique=True, primary_key=True)
     workflows = relationship("Workflow", backref="user_")
 
     def __repr__(self):
@@ -188,7 +189,7 @@ class Job(Base, Timestamp):
 
     id_ = Column(UUIDType, unique=True, primary_key=True,
                  default=generate_uuid)
-    workflow_uuid = Column(UUIDType, primary_key=True)
+    workflow_uuid = Column(UUIDType)
     status = Column(String(30))
     job_type = Column(String(30))
     cvmfs_mounts = Column(String(256))
