@@ -213,12 +213,11 @@ class Run(Base, Timestamp):
                  default=generate_uuid)
     workflow_uuid = Column(UUIDType, primary_key=True)
     run_number = Column(Integer)
-    current_command = Column(String(1024))
-    current_command_idx = Column(Integer)
-    current_job = Column(UUIDType)
-    total_commands = Column(Integer)
-    current_step = Column(Integer)
-    total_steps = Column(Integer)
+    planned = Column(Integer)
+    submitted = Column(Integer)
+    succeeded = Column(Integer)
+    failed = Column(Integer)
+    engine_specific = Column(JSONType)
 
 
 class RunJobs(Base):
@@ -226,5 +225,6 @@ class RunJobs(Base):
 
     __tablename__ = 'run_jobs'
 
-    run_id = Column(UUIDType, ForeignKey('run.id_'), primary_key=True)
-    job_id = Column(UUIDType, ForeignKey('job.id_'), primary_key=True)
+    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
+    run_id = Column(UUIDType, ForeignKey('run.id_'))
+    job_id = Column(UUIDType, ForeignKey('job.id_'))
