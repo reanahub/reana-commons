@@ -112,15 +112,22 @@ html_theme = 'alabaster'
 #
 html_theme_options = {
     'logo': 'logo-reana.png',
-    'description': 'REANA-Commons',
+    'description': """<p>REANA-Commons is a component of the <a
+                      href="http://www.reana.io">REANA</a> reusable and
+                      reproducible research data analysis
+                      platform.</p><p>REANA-Commons provides common utilities
+                      and schemas shared by the REANA cluster
+                      components.</p>""",
     'github_user': 'reanahub',
     'github_repo': 'reana-commons',
     'github_button': False,
     'github_banner': True,
     'show_powered_by': False,
     'extra_nav_links': {
+        'REANA@DockerHub': 'https://hub.docker.com/u/reanahub/',
         'REANA@GitHub': 'https://github.com/reanahub',
-        'REANA@DockerHub': 'https://hub.docker.com/r/reanahub/',
+        'REANA@Twitter': 'https://twitter.com/reanahub',
+        'REANA@Web': 'http://www.reana.io',
     }
 }
 

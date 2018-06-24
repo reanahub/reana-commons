@@ -1,5 +1,5 @@
 ==============
- REANA Commons
+ REANA-Commons
 ==============
 
 .. image:: https://img.shields.io/travis/reanahub/reana-commons.svg
@@ -23,14 +23,15 @@
 About
 -----
 
-REANA-Commons is a component of the `REANA
-<http://reanahub.io/>`_ reusable analysis platform.
-It contains common REANA utilities and schemas.
+REANA-Commons is a component of the `REANA <http://www.reana.io/>`_ reusable and
+reproducible research data analysis platform. It provides common utilities and
+schemas shared by the REANA cluster components.
 
 Features
 --------
 
-- FIXME
+- utility functions for cluster components
+- database models and schemas
 
 Useful links
 ------------
@@ -41,4 +42,5 @@ Useful links
 - `source code <https://github.com/reanahub/reana-commons>`_
 
 For more information about the REANA reusable analysis platform, please see the
-general `REANA documentation <http://reana.readthedocs.io/>`_.
+`REANA project <http://www.reana.io>`_ home page and the general `REANA
+documentation <http://reana.readthedocs.io/>`_ pages.
