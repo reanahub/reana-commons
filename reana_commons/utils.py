@@ -22,10 +22,12 @@
 """REANA commons utils."""
 
 import hashlib
+import json
 import os
 
-import click
 import fs
+
+import click
 
 
 def click_table_printer(headers, _filter, data):
@@ -87,3 +89,11 @@ def calculate_hash_of_dir(directory, verbose=0):
     except Exception:
         return -2
     return SHAhash.hexdigest()
+
+
+def calculate_job_input_hash(job_spec, workflow_json):
+    """Calculate md5 hash of job specification and workflow json."""
+    job_md5_buffer = hashlib.md5()
+    job_md5_buffer.update(json.dumps(job_spec).encode('utf-8'))
+    job_md5_buffer.update(json.dumps(workflow_json).encode('utf-8'))
+    return job_md5_buffer.digest()
