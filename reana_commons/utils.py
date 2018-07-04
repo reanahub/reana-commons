@@ -70,14 +70,17 @@ def calculate_hash_of_dir(directory, verbose=0):
 
     try:
         for root, dirs, files in os.walk(directory):
-            for names in files:
+            for names in sorted(files):
                 filepath = os.path.join(root, names)
                 try:
                     f1 = open(filepath, 'rb')
                 except Exception:
                     # You can't open the file for some reason
                     f1.close()
-                    continue
+                    # We return -1 since we can not ensure that the file that
+                    # can not be read will not change from one execution to
+                    # another.
+                    return -1
                 while 1:
                     # Read file in as little chunks
                     buf = f1.read(4096)
@@ -87,7 +90,7 @@ def calculate_hash_of_dir(directory, verbose=0):
                 f1.close()
 
     except Exception:
-        return -2
+        return -1
     return SHAhash.hexdigest()
 
 
