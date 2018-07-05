@@ -62,7 +62,7 @@ def get_user_analyses_dir(org, user):
     return fs.path.join(org, user, 'analyses')
 
 
-def calculate_hash_of_dir(directory, verbose=0):
+def calculate_hash_of_dir(directory):
     """Calculate hash of directory."""
     SHAhash = hashlib.md5()
     if not os.path.exists(directory):
@@ -99,4 +99,4 @@ def calculate_job_input_hash(job_spec, workflow_json):
     job_md5_buffer = hashlib.md5()
     job_md5_buffer.update(json.dumps(job_spec).encode('utf-8'))
     job_md5_buffer.update(json.dumps(workflow_json).encode('utf-8'))
-    return job_md5_buffer.digest()
+    return job_md5_buffer.hexdigest()
