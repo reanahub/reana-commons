@@ -52,16 +52,6 @@ def click_table_printer(headers, _filter, data):
         click.echo(formatted_output.format(*row))
 
 
-def get_user_workflows_dir(org, user):
-    """Build the workflow directory path for certain user and organization.
-
-    :param org: Organization which user is part of.
-    :param user: Working directory owner.
-    :return: Path to the user's workflow directories.
-    """
-    return fs.path.join(org, user, 'workflows')
-
-
 def calculate_hash_of_dir(directory, file_list=None):
     """Calculate hash of directory."""
     SHAhash = hashlib.md5()
@@ -114,3 +104,19 @@ def calculate_file_access_time(workflow_workspace):
             filepath = os.path.join(subdir, file)
             access_times[filepath] = os.stat(filepath).st_atime
     return access_times
+
+
+def build_workspace_path(user_id, workflow_id=None):
+    """Builds user's workspace relative path.
+
+    :param user_id: Owner of the workspace.
+    :param workflow_id: Optional parameter, if provided gives the path to the
+        workflow workspace instead of just the path to the user workspace.
+    :return: String that represents the workspace the OS independent path.
+        i.e. users/0000/workflows/0034
+    """
+    workspace_path = os.path.join('users', str(user_id), 'workflows')
+    if workflow_id:
+        workspace_path = os.path.join(workspace_path, str(workflow_id))
+
+    return workspace_path

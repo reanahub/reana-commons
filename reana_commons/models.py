@@ -34,6 +34,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy_utils import JSONType, UUIDType
 from sqlalchemy_utils.models import Timestamp
 
+from reana_commons.utils import build_workspace_path
+
 Base = declarative_base()
 
 
@@ -56,6 +58,13 @@ class User(Base, Timestamp):
     def __repr__(self):
         """User string represetantion."""
         return '<User %r>' % self.id_
+
+    def get_user_workspace(self):
+        """Build user's workspace directory path.
+
+        :return: Path to the user's workspace directory.
+        """
+        return build_workspace_path(self.id_)
 
 
 class UserOrganization(Base):
@@ -90,7 +99,6 @@ class Workflow(Base, Timestamp):
     id_ = Column(UUIDType, primary_key=True)
     name = Column(String(255))
     run_number = Column(Integer)
-    workspace_path = Column(String(2048))
     status = Column(Enum(WorkflowStatus), default=WorkflowStatus.created)
     owner_id = Column(UUIDType, ForeignKey('user_.id_'))
     specification = Column(JSONType)
@@ -100,13 +108,11 @@ class Workflow(Base, Timestamp):
     __table_args__ = UniqueConstraint('name', 'owner_id', 'run_number',
                                       name='_user_workflow_run_uc'),
 
-    def __init__(self, id_, name, workspace_path,
-                 owner_id, specification, parameters, type_,
+    def __init__(self, id_, name, owner_id, specification, parameters, type_,
                  logs, status=WorkflowStatus.created):
         """Initialize workflow model."""
         self.id_ = id_
         self.name = name
-        self.workspace_path = workspace_path
         self.status = status
         self.owner_id = owner_id
         self.specification = specification
@@ -126,6 +132,13 @@ class Workflow(Base, Timestamp):
     def __repr__(self):
         """Workflow string represetantion."""
         return '<Workflow %r>' % self.id_
+
+    def get_workspace(self):
+        """Build workflow directory path.
+
+        :return: Path to the workflow workspace directory.
+        """
+        return build_workspace_path(self.owner_id, self.id_)
 
     @staticmethod
     def update_workflow_status(db_session, workflow_uuid, status,
