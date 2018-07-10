@@ -62,16 +62,19 @@ def get_user_analyses_dir(org, user):
     return fs.path.join(org, user, 'analyses')
 
 
-def calculate_hash_of_dir(directory):
+def calculate_hash_of_dir(directory, file_list=None):
     """Calculate hash of directory."""
     SHAhash = hashlib.md5()
     if not os.path.exists(directory):
         return -1
 
     try:
-        for root, dirs, files in os.walk(directory):
-            for names in sorted(files):
-                filepath = os.path.join(root, names)
+        for subdir, dirs, files in os.walk(directory):
+            for file in files:
+                filepath = os.path.join(subdir, file)
+                if file_list is not None:
+                    if filepath not in file_list:
+                        continue
                 try:
                     f1 = open(filepath, 'rb')
                 except Exception:
@@ -88,7 +91,6 @@ def calculate_hash_of_dir(directory):
                         break
                     SHAhash.update(hashlib.md5(buf).hexdigest().encode())
                 f1.close()
-
     except Exception:
         return -1
     return SHAhash.hexdigest()
@@ -96,7 +98,19 @@ def calculate_hash_of_dir(directory):
 
 def calculate_job_input_hash(job_spec, workflow_json):
     """Calculate md5 hash of job specification and workflow json."""
+    if 'workflow_workspace' in job_spec:
+        del job_spec['workflow_workspace']
     job_md5_buffer = hashlib.md5()
     job_md5_buffer.update(json.dumps(job_spec).encode('utf-8'))
     job_md5_buffer.update(json.dumps(workflow_json).encode('utf-8'))
     return job_md5_buffer.hexdigest()
+
+
+def calculate_file_access_time(workflow_workspace):
+    """Calculate access times of files in workspace."""
+    access_times = {}
+    for subdir, dirs, files in os.walk(workflow_workspace):
+        for file in files:
+            filepath = os.path.join(subdir, file)
+            access_times[filepath] = os.stat(filepath).st_atime
+    return access_times

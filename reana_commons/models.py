@@ -212,3 +212,4 @@ class JobCache(Base, Timestamp):
     parameters = Column(String(1024))
     result_path = Column(String(1024))
     workspace_hash = Column(String(1024))
+    access_times = Column(JSONType)
