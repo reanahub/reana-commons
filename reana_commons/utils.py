@@ -19,7 +19,7 @@
 # In applying this license, CERN does not waive the privileges and immunities
 # granted to it by virtue of its status as an Intergovernmental Organization or
 # submit itself to any jurisdiction.
-"""REANA commons utils."""
+"""REANA-Commons utils."""
 
 import hashlib
 import json
@@ -52,14 +52,14 @@ def click_table_printer(headers, _filter, data):
         click.echo(formatted_output.format(*row))
 
 
-def get_user_analyses_dir(org, user):
-    """Build the analyses directory path for certain user and organization.
+def get_user_workflows_dir(org, user):
+    """Build the workflow directory path for certain user and organization.
 
     :param org: Organization which user is part of.
     :param user: Working directory owner.
-    :return: Path to the user's analyses directory.
+    :return: Path to the user's workflow directories.
     """
-    return fs.path.join(org, user, 'analyses')
+    return fs.path.join(org, user, 'workflows')
 
 
 def calculate_hash_of_dir(directory, file_list=None):
