@@ -67,23 +67,6 @@ class User(Base, Timestamp):
         return build_workspace_path(self.id_)
 
 
-class UserOrganization(Base):
-    """Relationship between Users and Organizations."""
-    __tablename__ = 'user_organizations'
-
-    user_id = Column(UUIDType, ForeignKey('user_.id_'), primary_key=True)
-    name = Column(String(255), ForeignKey('organization.name'),
-                  primary_key=True,)
-
-
-class Organization(Base, Timestamp):
-    __tablename__ = 'organization'
-
-    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
-    name = Column(String(255), primary_key=True, unique=True)
-    # database_uri = Column(String(255))
-
-
 class WorkflowStatus(enum.Enum):
     created = 0
     running = 1
