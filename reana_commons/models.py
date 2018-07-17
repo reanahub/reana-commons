@@ -49,7 +49,7 @@ class User(Base, Timestamp):
 
     id_ = Column(UUIDType, primary_key=True, unique=True,
                  default=generate_uuid)
-    api_key = Column(String(length=255))
+    access_token = Column(String(length=255))
     email = Column(String(length=255), unique=True, primary_key=True)
     workflows = relationship("Workflow", backref="user_")
 
