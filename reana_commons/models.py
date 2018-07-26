@@ -169,6 +169,8 @@ class Job(Base, Timestamp):
     max_restart_count = Column(Integer)
     deleted = Column(Boolean)
     logs = Column(String, nullable=True)
+    prettified_cmd = Column(String(1000))
+    name = Column(String(256))
 
 
 class Run(Base, Timestamp):
