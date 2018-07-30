@@ -88,6 +88,13 @@ class Workflow(Base, Timestamp):
     parameters = Column(JSONType)
     type_ = Column(String(30))
     logs = Column(String)
+    run_number = Column(Integer)
+    jobs_planned = Column(Integer)
+    jobs_processing = Column(Integer)
+    jobs_succeeded = Column(Integer)
+    jobs_failed = Column(Integer)
+    engine_specific = Column(JSONType)
+
     __table_args__ = UniqueConstraint('name', 'owner_id', 'run_number',
                                       name='_user_workflow_run_uc'),
 
@@ -171,32 +178,6 @@ class Job(Base, Timestamp):
     logs = Column(String, nullable=True)
     prettified_cmd = Column(String(1000))
     name = Column(String(256))
-
-
-class Run(Base, Timestamp):
-    """Run table."""
-
-    __tablename__ = 'run'
-
-    id_ = Column(UUIDType, unique=True, primary_key=True,
-                 default=generate_uuid)
-    workflow_uuid = Column(UUIDType, primary_key=True)
-    run_number = Column(Integer)
-    planned = Column(Integer)
-    submitted = Column(Integer)
-    succeeded = Column(Integer)
-    failed = Column(Integer)
-    engine_specific = Column(JSONType)
-
-
-class RunJobs(Base):
-    """Run jobs table."""
-
-    __tablename__ = 'run_jobs'
-
-    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
-    run_id = Column(UUIDType, ForeignKey('run.id_'))
-    job_id = Column(UUIDType, ForeignKey('job.id_'))
 
 
 class JobCache(Base, Timestamp):
