@@ -28,7 +28,7 @@ import enum
 import uuid
 
 from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer, String,
-                        UniqueConstraint)
+                        UniqueConstraint, DateTime)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import JSONType, UUIDType
@@ -88,6 +88,8 @@ class Workflow(Base, Timestamp):
     parameters = Column(JSONType)
     type_ = Column(String(30))
     logs = Column(String)
+    run_started_at = Column(DateTime)
+    run_finished_at = Column(DateTime)
     run_number = Column(Integer)
     jobs_planned = Column(Integer)
     jobs_processing = Column(Integer)
@@ -154,6 +156,15 @@ class Workflow(Base, Timestamp):
             db_session.commit()
         except Exception as e:
             raise e
+
+
+class WorkflowJobs(Base):
+    """Run jobs table."""
+
+    __tablename__ = 'workflow_jobs'
+    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
+    workflow_id = Column(UUIDType, ForeignKey('workflow.id_'))
+    job_id = Column(UUIDType, ForeignKey('job.id_'))
 
 
 class Job(Base, Timestamp):
