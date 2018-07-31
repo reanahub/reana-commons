@@ -27,8 +27,8 @@ from __future__ import absolute_import
 import enum
 import uuid
 
-from sqlalchemy import (Boolean, Column, Enum, ForeignKey, Integer, String,
-                        UniqueConstraint, DateTime)
+from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
+                        String, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import JSONType, UUIDType
@@ -91,10 +91,12 @@ class Workflow(Base, Timestamp):
     run_started_at = Column(DateTime)
     run_finished_at = Column(DateTime)
     run_number = Column(Integer)
-    jobs_planned = Column(Integer)
-    jobs_processing = Column(Integer)
-    jobs_succeeded = Column(Integer)
-    jobs_failed = Column(Integer)
+    job_progress = Column(JSONType, default=dict)
+    # job_progress = {
+    #  jobs_total = {total: job_number}
+    #  jobs_running = {job_ids: [], total: c}
+    #  jobs_finished = {job_ids: [], total: c}
+    #  jobs_failed = {job_ids: [], total: c}}
     engine_specific = Column(JSONType)
 
     __table_args__ = UniqueConstraint('name', 'owner_id', 'run_number',
