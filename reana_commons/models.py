@@ -160,15 +160,6 @@ class Workflow(Base, Timestamp):
             raise e
 
 
-class WorkflowJobs(Base):
-    """Run jobs table."""
-
-    __tablename__ = 'workflow_jobs'
-    id_ = Column(UUIDType, primary_key=True, default=generate_uuid)
-    workflow_id = Column(UUIDType, ForeignKey('workflow.id_'))
-    job_id = Column(UUIDType, ForeignKey('job.id_'))
-
-
 class Job(Base, Timestamp):
     """Job table."""
 
