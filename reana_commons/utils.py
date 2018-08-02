@@ -104,19 +104,3 @@ def calculate_file_access_time(workflow_workspace):
             filepath = os.path.join(subdir, file)
             access_times[filepath] = os.stat(filepath).st_atime
     return access_times
-
-
-def build_workspace_path(user_id, workflow_id=None):
-    """Builds user's workspace relative path.
-
-    :param user_id: Owner of the workspace.
-    :param workflow_id: Optional parameter, if provided gives the path to the
-        workflow workspace instead of just the path to the user workspace.
-    :return: String that represents the workspace the OS independent path.
-        i.e. users/0000/workflows/0034
-    """
-    workspace_path = os.path.join('users', str(user_id), 'workflows')
-    if workflow_id:
-        workspace_path = os.path.join(workspace_path, str(workflow_id))
-
-    return workspace_path
