@@ -19,6 +19,7 @@
 # In applying this license, CERN does not waive the privileges and immunities
 # granted to it by virtue of its status as an Intergovernmental Organization or
 # submit itself to any jurisdiction.
+"""REANA-Commons module to manage AMQP connections on REANA."""
 
 import json
 import logging
@@ -33,6 +34,7 @@ class Publisher:
     """Progress publisher to MQ."""
 
     def __init__(self):
+        """Initialise the Publisher class."""
         self.broker_credentials = pika.PlainCredentials(BROKER_USER,
                                                         BROKER_PASS)
         self._params = pika.connection.ConnectionParameters(
@@ -69,6 +71,7 @@ class Publisher:
             self._publish(msg)
 
     def close(self):
+        """Close AMQP connection."""
         if self._conn and self._conn.is_open:
             logging.debug('Publisher: closing queue connection')
             self._conn.close()

@@ -25,9 +25,8 @@ import hashlib
 import json
 import os
 
-import fs
-
 import click
+import fs
 
 
 def click_table_printer(headers, _filter, data):

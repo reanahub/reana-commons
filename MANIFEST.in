@@ -24,6 +24,7 @@ include *.rst
 include *.sh
 include *.yaml
 include pytest.ini
+prune docs/_build
 recursive-include reana_commons *.py
 recursive-include docs *.py
 recursive-include docs *.png

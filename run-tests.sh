@@ -20,7 +20,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization or
 # submit itself to any jurisdiction.
 
-#pydocstyle reana_commons && \
+pydocstyle reana_commons && \
 isort -rc -c -df **/*.py && \
 check-manifest --ignore ".travis-*" && \
 sphinx-build -qnNW docs docs/_build/html && \
