@@ -1,10 +1,13 @@
 Changes
 =======
 
-Version FIXME
+Version 0.3.0 (2018-08-10)
 --------------------------
 
 - Initial public release.
+- Provides basic AMQP pub/sub methods for REANA components.
+- Utilities for caching used in different REANA components.
+- Click formatting helpers.
 
 .. admonition:: Please beware
 
