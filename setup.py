@@ -63,8 +63,10 @@ setup_requires = [
 ]
 
 install_requires = [
-    'fs>=0.5.4',
     'checksumdir>=1.1.4',
+    'click>=6.7',
+    'fs>=0.5.4',
+    'pika>=0.12.0',
 ]
 
 packages = find_packages()
