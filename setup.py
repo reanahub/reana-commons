@@ -66,6 +66,7 @@ install_requires = [
     'checksumdir>=1.1.4',
     'click>=6.7',
     'fs>=0.5.4',
+    'jsonschema>=2.6.0',
     'pika>=0.12.0',
 ]
 
