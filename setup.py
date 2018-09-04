@@ -63,11 +63,11 @@ setup_requires = [
 ]
 
 install_requires = [
-    'checksumdir>=1.1.4',
-    'click>=6.7',
-    'fs>=0.5.4',
-    'jsonschema>=2.6.0',
-    'pika>=0.12.0',
+    'checksumdir>=1.1.4,<1.2',
+    'click>=6.7,<7.0',
+    'fs>=0.5.4,<2.2',
+    'jsonschema>=2.6.0,<2.7',
+    'pika>=0.12.0,<0.13',
 ]
 
 packages = find_packages()
@@ -103,6 +103,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
