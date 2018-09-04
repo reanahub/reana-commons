@@ -26,7 +26,6 @@ import json
 import os
 
 import click
-import fs
 
 
 def click_table_printer(headers, _filter, data):

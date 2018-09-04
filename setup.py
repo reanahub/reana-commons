@@ -65,7 +65,6 @@ setup_requires = [
 install_requires = [
     'checksumdir>=1.1.4,<1.2',
     'click>=6.7,<7.0',
-    'fs>=0.5.4,<2.2',
     'jsonschema>=2.6.0,<2.7',
     'pika>=0.12.0,<0.13',
 ]
