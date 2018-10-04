@@ -49,6 +49,7 @@ setup_requires = [
 ]
 
 install_requires = [
+    'bravado>=9.0.6,<10.2',
     'checksumdir>=1.1.4,<1.2',
     'click>=6.7,<7.0',
     'jsonschema>=2.6.0,<2.7',
