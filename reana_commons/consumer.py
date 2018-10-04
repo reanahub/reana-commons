@@ -7,51 +7,47 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA-Commons module to manage AMQP consuming on REANA."""
 
-import pika
+from kombu import Connection, Exchange, Queue
+from kombu.mixins import ConsumerMixin
 
-from .config import BROKER_PASS, BROKER_PORT, BROKER_URL, BROKER_USER
+from reana_commons.config import (BROKER, MQ_DEFAULT_EXCHANGE,
+                                  MQ_DEFAULT_QUEUE, MQ_DEFAULT_ROUTING_KEY,
+                                  MQ_DEFAULT_SERIALIZER)
 
 
-class Consumer:
-    """Base MQ Consumer."""
+class REANABaseConsumer(ConsumerMixin):
+    """Base RabbitMQ consumer."""
 
-    def __init__(self, queue):
-        """Constructor."""
-        self.broker_credentials = pika.PlainCredentials(BROKER_USER,
-                                                        BROKER_PASS)
-        self._params = pika.connection.ConnectionParameters(
-            BROKER_URL, BROKER_PORT, '/', self.broker_credentials)
-        self._conn = None
-        self._channel = None
-        self._queue = queue
+    def __init__(self, connection=None, queues=None):
+        """Construct a REANAConsumer.
 
-    def connect(self):
-        """Connect to MQ channel."""
-        if not self._conn or self._conn.is_closed:
-            self._conn = pika.BlockingConnection(self._params)
-            self._channel = self._conn.channel()
-            self._channel.basic_qos(prefetch_count=1)
-            self._channel.queue_declare(queue=self._queue)
+        :param connection: kombu.Connection object.
+        :param queues: List of queues names the consumer will subscribe to.
+        """
+        self.queues = queues or self._build_default_queues()
+        self.connection = connection or Connection(BROKER)
 
-    def on_message(self, channel, method_frame, header_frame, body):
-        """On new message event handler."""
-        # this method should be overriden by the inheriting class
-        pass
+    def _build_default_exchange(self):
+        """."""
+        exchange = Exchange(MQ_DEFAULT_EXCHANGE, type='direct')
+        return exchange
 
-    def consume(self):
-        """Start consuming incoming messages."""
-        while True:
-            self.connect()
-            self._channel.basic_consume(self.on_message, self._queue)
-            try:
-                self._channel.start_consuming()
-            except KeyboardInterrupt:
-                self._channel.stop_consuming()
-                self._conn.close()
-            except pika.exceptions.ConnectionClosedByBroker:
-                # Uncomment this to make the example not attempt recovery
-                # from server-initiated connection closure, including
-                # when the node is stopped cleanly
-                # except pika.exceptions.ConnectionClosedByBroker:
-                #     pass
-                continue
+    def _build_default_queues(self):
+        default_queue = Queue(MQ_DEFAULT_QUEUE,
+                              exchange=self._build_default_exchange(),
+                              routing_key=MQ_DEFAULT_ROUTING_KEY)
+        return [default_queue]
+
+    def get_consumers(self, Consumer, channel):
+        """Implement providing kombu.Consumers with queues/callbacks."""
+        # return [Consumer(queues=self.queues,
+        #                  callbacks=[self.on_message],
+        #                  accept=[MQ_DEFAULT_SERIALIZER]))]
+        raise NotImplementedError('Implement this method to map which'
+                                  'callbacks are connected with which queues')
+
+    def on_message(self, body, message):
+        """Implement this method to manipulate the data received."""
+        # print('Got message: {0}'.format(body))
+        # message.ack()
+        raise NotImplementedError('Implement this method to react to events.')
