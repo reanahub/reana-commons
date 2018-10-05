@@ -55,3 +55,62 @@ class BaseAPIClient(object):
         with open(spec_file_path) as f:
             json_spec = json.load(f)
         return json_spec
+
+
+class JobControllerAPIClient(BaseAPIClient):
+    """REANA-Job-Controller http client class."""
+
+    def submit(self,
+               experiment='',
+               image='',
+               cmd='',
+               prettified_cmd='',
+               workflow_workspace='',
+               job_name=''):
+        """Submit a job to RJC API.
+
+        :param name: Name of the job.
+        :param experiment: Experiment the job belongs to.
+        :param image: Identifier of the Docker image which will run the job.
+        :param cmd: String which represents the command to execute. It can be
+            modified by the workflow engine i.e. prepending ``cd /some/dir/``.
+        :prettified_cmd: Original command submitted by the user.
+        :return: Returns a dict with the ``job_id``.
+        """
+        job_spec = {
+            'experiment': experiment,
+            'docker_img': image,
+            'cmd': cmd,
+            'prettified_cmd': prettified_cmd,
+            'env_vars': {},
+            'workflow_workspace': workflow_workspace,
+            'job_name': job_name,
+        }
+
+        response, http_response = self._client.jobs.create_job(job=job_spec).\
+            result()
+        return response
+
+    def check_status(self, job_id):
+        """Check status of a job."""
+        response, http_response = self._client.jobs.get_job(job_id=job_id).\
+            result()
+        return response
+
+    def get_logs(self, job_id):
+        """Get logs of a job."""
+        response, http_response = self._client.jobs.get_logs(job_id=job_id).\
+            result()
+        return http_response.text
+
+    def check_if_cached(self, job_spec, step, workflow_workspace):
+        """Check if job result is in cache."""
+        try:
+            response, http_response = self._client.job_cache.check_if_cached(
+                job_spec=json.dumps(job_spec),
+                workflow_json=json.dumps(step),
+                workflow_workspace=workflow_workspace).\
+                result()
+            return http_response
+        except ConnectionError:
+            return self.check_if_cached(job_spec, step, workflow_workspace)
