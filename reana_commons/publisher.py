@@ -10,54 +10,59 @@
 import json
 import logging
 
-import pika
+from kombu import Connection, Exchange, Queue
 
-from .config import (BROKER_PASS, BROKER_PORT, BROKER_URL, BROKER_USER,
-                     EXCHANGE, ROUTING_KEY, STATUS_QUEUE)
+from .config import (BROKER, BROKER_PASS, BROKER_PORT, BROKER_URL, BROKER_USER,
+                     EXCHANGE, MQ_DEFAULT_EXCHANGE, MQ_DEFAULT_QUEUE,
+                     MQ_DEFAULT_ROUTING_KEY, MQ_DEFAULT_SERIALIZER,
+                     MQ_PRODUCER_MAX_RETRIES, ROUTING_KEY, STATUS_QUEUE)
 
 
-class Publisher:
+class WorkflowStatusPublisher():
     """Progress publisher to MQ."""
 
-    def __init__(self):
+    def __init__(self, connection=None, routing_key=None, exchange=None):
         """Initialise the Publisher class."""
-        self.broker_credentials = pika.PlainCredentials(BROKER_USER,
-                                                        BROKER_PASS)
-        self._params = pika.connection.ConnectionParameters(
-            BROKER_URL, BROKER_PORT, '/', self.broker_credentials)
-        self._conn = None
-        self._channel = None
+        self._routing_key = routing_key or MQ_DEFAULT_ROUTING_KEY
+        self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE,
+                                  type='direct')
+        self._queue = Queue(MQ_DEFAULT_QUEUE, exchange=MQ_DEFAULT_EXCHANGE,
+                            routing_key=self._routing_key)
+        self._connection = connection or Connection(BROKER)
+        self.producer = self._producer()
 
-    def connect(self):
-        """Connect to MQ channel."""
-        if not self._conn or self._conn.is_closed:
-            self._conn = pika.BlockingConnection(self._params)
-            self._channel = self._conn.channel()
-            self._channel.queue_declare(queue=STATUS_QUEUE)
+    def _producer(self):
+        """Instantiate the ``kombu.Producer``."""
+        return self._connection.Producer(serializer=MQ_DEFAULT_SERIALIZER)
+
+    def __error_callback(self, exception, interval):
+        """."""
+        logging.error('Error while publishing {}'.format(
+            exception))
+        logging.info('Retry in %s seconds.', interval)
 
     def _publish(self, msg):
-        self._channel.basic_publish(exchange=EXCHANGE,
-                                    routing_key=ROUTING_KEY,
-                                    body=json.dumps(msg))
-        logging.debug('Publisher: message sent: %s', msg)
+        """."""
+        connection = self._connection.clone()
+        publish = connection.ensure(self.producer, self.producer.publish,
+                                    errback=self.__error_callback,
+                                    max_retries=MQ_PRODUCER_MAX_RETRIES)
+        publish(json.dumps(msg), exchange=self._exchange,
+                routing_key=self._routing_key, declare=[self._queue])
 
     def publish_workflow_status(self, workflow_uuid, status,
                                 logs='', message=None):
-        """Publish msg, reconnecting if necessary."""
-        try:
-            msg = {"workflow_uuid": workflow_uuid,
-                   "logs": logs,
-                   "status": status,
-                   "message": message}
-            self._publish(msg)
-        except pika.exceptions.ConnectionClosed:
-            logging.debug('Publisher: ConnectionClosed, reconnecting.')
-            print('Publisher: ConnectionClosed, reconnecting.')
-            self.connect()
-            self._publish(msg)
+        """."""
+        msg = {
+            "workflow_uuid": workflow_uuid,
+            "logs": logs,
+            "status": status,
+            "message": message
+        }
+        self._publish(msg)
+        logging.debug('Publisher: message sent: %s', msg)
 
     def close(self):
-        """Close AMQP connection."""
-        if self._conn and self._conn.is_open:
-            logging.debug('Publisher: closing queue connection')
-            self._conn.close()
+        """Close connection."""
+        logging.debug('Publisher: closing queue connection')
+        self._connection.release()

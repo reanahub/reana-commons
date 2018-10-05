@@ -21,6 +21,7 @@
 
 """REANA-Commons message queue publisher tests."""
 
+import json
 import threading
 from unittest.mock import ANY, patch
 
@@ -29,6 +30,7 @@ from kombu import Connection, Exchange, Queue
 from kombu.exceptions import OperationalError
 
 from conftest import REANABaseConsumerTestIMPL
+from reana_commons.publisher import WorkflowStatusPublisher
 
 
 def test_consume_msg(in_memory_queue_connection, default_queue,
@@ -57,3 +59,71 @@ def test_server_server_unreachable(default_queue):
         # it to 1.
         consumer.connect_max_retries = 1
         consumer.run()
+
+
+def test_workflow_status_publish(in_memory_queue_connection, default_queue):
+    """."""
+    with patch.object(REANABaseConsumerTestIMPL,
+                      'on_message') as mock_on_message:
+        consumer = REANABaseConsumerTestIMPL(
+            connection=in_memory_queue_connection,
+            queues=[default_queue])
+        workflow_status_publisher = WorkflowStatusPublisher(
+            connection=in_memory_queue_connection)
+        workflow_id = 'test'
+        status = 1
+        message = {
+            'progress': {
+                'total':
+                {'total': 1,
+                 'job_ids': []},
+            }}
+        workflow_status_publisher.publish_workflow_status(workflow_id,
+                                                          status,
+                                                          message=message)
+        workflow_status_publisher.close()
+        expected = json.dumps({
+            'workflow_uuid': workflow_id,
+            'logs': '',
+            'status': status,
+            'message': message
+        })
+        consumer_generator = consumer.consume(limit=1)
+        next(consumer_generator)
+        mock_on_message.assert_called_once_with(
+            expected, ANY)
+
+
+def test_workflow_status_publish_multiple(in_memory_queue_connection,
+                                          default_queue):
+    """."""
+    with patch.object(REANABaseConsumerTestIMPL,
+                      'on_message') as mock_on_message:
+        consumer = REANABaseConsumerTestIMPL(
+            connection=in_memory_queue_connection,
+            queues=[default_queue])
+        workflow_status_publisher = WorkflowStatusPublisher(
+            connection=in_memory_queue_connection)
+        num_messages = 10
+        for i in range(num_messages):
+            workflow_id = 'test{}'.format(i)
+            status = 1
+            message = {
+                'progress': {
+                    'total':
+                    {'total': 1,
+                     'job_ids': []},
+                }}
+            workflow_status_publisher.publish_workflow_status(workflow_id,
+                                                              status,
+                                                              message=message)
+        workflow_status_publisher.close()
+        consumer_generator = consumer.consume(limit=num_messages)
+        while True:
+            try:
+                next(consumer_generator)
+            except StopIteration:
+                # no more items to consume in the queue
+                break
+
+        assert mock_on_message.call_count == 10

@@ -29,13 +29,21 @@ BROKER = os.getenv('RABBIT_MQ', 'amqp://{0}:{1}@{2}//'.format(BROKER_USER,
 """RabbitMQ connection string."""
 
 STATUS_QUEUE = 'jobs-status'
-"""Name of the queue where to publish/consume from."""
 
 EXCHANGE = ''
-"""RabbitMQ exchange."""
 
 ROUTING_KEY = 'jobs-status'
+
+MQ_DEFAULT_SERIALIZER = 'json'
+"""Default serializing format (to consume/produce)."""
+MQ_DEFAULT_EXCHANGE = ''
+"""RabbitMQ exchange."""
+MQ_DEFAULT_QUEUE = 'jobs-status'
+"""Name of the queue where to publish/consume from."""
+MQ_DEFAULT_ROUTING_KEY = 'jobs-status'
 """RabbitMQ routing key."""
+MQ_PRODUCER_MAX_RETRIES = 3
+"""Max retries to send a message."""
 
 OPENAPI_SPECS = {
     'reana-workflow-controller': (

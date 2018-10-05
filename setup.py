@@ -53,7 +53,7 @@ install_requires = [
     'checksumdir>=1.1.4,<1.2',
     'click>=6.7,<7.0',
     'jsonschema>=2.6.0,<2.7',
-    'kombu>=4.2.1,<4.3',
+    'kombu>=4.2.0,<5.0',
 ]
 
 packages = find_packages()
