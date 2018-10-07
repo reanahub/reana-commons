@@ -2,26 +2,23 @@
  REANA-Commons
 ==============
 
-.. image:: https://img.shields.io/travis/reanahub/reana-commons.svg
-      :target: https://travis-ci.org/reanahub/reana-commons
-
 .. image:: https://img.shields.io/pypi/pyversions/reana-commons.svg
       :target: https://pypi.org/pypi/reana-commons
 
-.. image:: https://img.shields.io/coveralls/reanahub/reana-commons.svg
-      :target: https://coveralls.io/r/reanahub/reana-commons
+.. image:: https://img.shields.io/travis/reanahub/reana-commons.svg
+      :target: https://travis-ci.org/reanahub/reana-commons
 
 .. image:: https://readthedocs.org/projects/docs/badge/?version=latest
       :target: https://reana-commons.readthedocs.io/en/latest/?badge=latest
 
-.. image:: https://badge.waffle.io/reanahub/reana.svg?label=Status%3A%20ready%20for%20work&title=Issues%20ready%20for%20work
-      :target: https://waffle.io/reanahub/reana
+.. image:: https://img.shields.io/coveralls/reanahub/reana-commons.svg
+      :target: https://coveralls.io/r/reanahub/reana-commons
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
       :target: https://gitter.im/reanahub/reana?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 
 .. image:: https://img.shields.io/github/license/reanahub/reana-commons.svg
-      :target: https://github.com/reanahub/reana-commons/blob/master/COPYING
+      :target: https://github.com/reanahub/reana-commons/blob/master/LICENSE
 
 About
 -----
