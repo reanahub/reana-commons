@@ -48,7 +48,7 @@ class BaseAPIClient(object):
         spec_file_path = os.path.join(
             pkg_resources.
             resource_filename(
-                self.component,
+                'reana_commons',
                 'openapi_connections'),
             spec_file)
 
