@@ -26,7 +26,8 @@ class WorkflowStatusPublisher():
         self._routing_key = routing_key or MQ_DEFAULT_ROUTING_KEY
         self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE,
                                   type='direct')
-        self._queue = Queue(MQ_DEFAULT_QUEUE, exchange=MQ_DEFAULT_EXCHANGE,
+        self._queue = Queue(MQ_DEFAULT_QUEUE, durable=False,
+                            exchange=MQ_DEFAULT_EXCHANGE,
                             routing_key=self._routing_key)
         self._connection = connection or Connection(BROKER)
         self.producer = self._producer()

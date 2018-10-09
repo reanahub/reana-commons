@@ -18,7 +18,7 @@ from reana_commons.config import (BROKER, MQ_DEFAULT_EXCHANGE,
 class REANABaseConsumer(ConsumerMixin):
     """Base RabbitMQ consumer."""
 
-    def __init__(self, connection=None, queues=None):
+    def __init__(self, connection=None, queues=None, default_serializer=None):
         """Construct a REANAConsumer.
 
         :param connection: kombu.Connection object.
@@ -26,6 +26,7 @@ class REANABaseConsumer(ConsumerMixin):
         """
         self.queues = queues or self._build_default_queues()
         self.connection = connection or Connection(BROKER)
+        self.default_serializer = default_serializer or MQ_DEFAULT_SERIALIZER
 
     def _build_default_exchange(self):
         """."""
@@ -34,6 +35,7 @@ class REANABaseConsumer(ConsumerMixin):
 
     def _build_default_queues(self):
         default_queue = Queue(MQ_DEFAULT_QUEUE,
+                              durable=False,
                               exchange=self._build_default_exchange(),
                               routing_key=MQ_DEFAULT_ROUTING_KEY)
         return [default_queue]
