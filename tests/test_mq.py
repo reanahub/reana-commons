@@ -29,29 +29,27 @@ import pytest
 from kombu import Connection, Exchange, Queue
 from kombu.exceptions import OperationalError
 
-from conftest import REANABaseConsumerTestIMPL
 from reana_commons.publisher import WorkflowStatusPublisher
 
 
-def test_consume_msg(in_memory_queue_connection, default_queue,
-                     default_producer):
+def test_consume_msg(ConsumerBaseOnMessageMock, in_memory_queue_connection,
+                     default_queue, default_in_memory_producer,
+                     consume_queue):
     """Test message is consumed from the queue."""
-    with patch.object(REANABaseConsumerTestIMPL,
-                      'on_message') as mock_on_message:
-        consumer = REANABaseConsumerTestIMPL(
-            connection=in_memory_queue_connection,
-            queues=[default_queue])
-        default_producer.publish({'hello': 'REANA'}, declare=[default_queue])
-        consumer_generator = consumer.consume(limit=1)
-        next(consumer_generator)
-        mock_on_message.assert_called_once_with(
-            {'hello': 'REANA'}, ANY)
+    consumer = ConsumerBaseOnMessageMock(
+        connection=in_memory_queue_connection,
+        queues=[default_queue])
+    default_in_memory_producer.publish({'hello': 'REANA'},
+                                       declare=[default_queue])
+    consume_queue(consumer, limit=1)
+    consumer.on_message.assert_called_once_with(
+        {'hello': 'REANA'}, ANY)
 
 
-def test_server_server_unreachable(default_queue):
-    """Test message is consumed from the queue."""
+def test_server_server_unreachable(ConsumerBase, default_queue):
+    """Test consumer never starts because server is unreachable."""
     unreachable_connection = Connection('amqp://unreachable:5672')
-    consumer = REANABaseConsumerTestIMPL(connection=unreachable_connection)
+    consumer = ConsumerBase(connection=unreachable_connection)
     with pytest.raises(OperationalError):
         # Typically we will leave by default the connection max retires since
         # the REANABaseConsumer takes care of recovering connection through
@@ -61,69 +59,33 @@ def test_server_server_unreachable(default_queue):
         consumer.run()
 
 
-def test_workflow_status_publish(in_memory_queue_connection, default_queue):
-    """."""
-    with patch.object(REANABaseConsumerTestIMPL,
-                      'on_message') as mock_on_message:
-        consumer = REANABaseConsumerTestIMPL(
-            connection=in_memory_queue_connection,
-            queues=[default_queue])
-        workflow_status_publisher = WorkflowStatusPublisher(
-            connection=in_memory_queue_connection)
-        workflow_id = 'test'
-        status = 1
-        message = {
-            'progress': {
-                'total':
-                {'total': 1,
-                 'job_ids': []},
-            }}
-        workflow_status_publisher.publish_workflow_status(workflow_id,
-                                                          status,
-                                                          message=message)
-        workflow_status_publisher.close()
-        expected = json.dumps({
-            'workflow_uuid': workflow_id,
-            'logs': '',
-            'status': status,
-            'message': message
-        })
-        consumer_generator = consumer.consume(limit=1)
-        next(consumer_generator)
-        mock_on_message.assert_called_once_with(
-            expected, ANY)
-
-
-def test_workflow_status_publish_multiple(in_memory_queue_connection,
-                                          default_queue):
-    """."""
-    with patch.object(REANABaseConsumerTestIMPL,
-                      'on_message') as mock_on_message:
-        consumer = REANABaseConsumerTestIMPL(
-            connection=in_memory_queue_connection,
-            queues=[default_queue])
-        workflow_status_publisher = WorkflowStatusPublisher(
-            connection=in_memory_queue_connection)
-        num_messages = 10
-        for i in range(num_messages):
-            workflow_id = 'test{}'.format(i)
-            status = 1
-            message = {
-                'progress': {
-                    'total':
-                    {'total': 1,
-                     'job_ids': []},
-                }}
-            workflow_status_publisher.publish_workflow_status(workflow_id,
-                                                              status,
-                                                              message=message)
-        workflow_status_publisher.close()
-        consumer_generator = consumer.consume(limit=num_messages)
-        while True:
-            try:
-                next(consumer_generator)
-            except StopIteration:
-                # no more items to consume in the queue
-                break
-
-        assert mock_on_message.call_count == 10
+def test_workflow_status_publish(ConsumerBaseOnMessageMock,
+                                 in_memory_queue_connection, default_queue,
+                                 consume_queue):
+    """Test WorkflowStatusPublisher."""
+    consumer = ConsumerBaseOnMessageMock(
+        connection=in_memory_queue_connection,
+        queues=[default_queue])
+    workflow_status_publisher = WorkflowStatusPublisher(
+        connection=in_memory_queue_connection)
+    workflow_id = 'test'
+    status = 1
+    message = {
+        'progress': {
+            'total':
+            {'total': 1,
+                'job_ids': []},
+        }}
+    workflow_status_publisher.publish_workflow_status(workflow_id,
+                                                      status,
+                                                      message=message)
+    workflow_status_publisher.close()
+    expected = json.dumps({
+        'workflow_uuid': workflow_id,
+        'logs': '',
+        'status': status,
+        'message': message
+    })
+    consume_queue(consumer, limit=1)
+    consumer.on_message.assert_called_once_with(
+        expected, ANY)
