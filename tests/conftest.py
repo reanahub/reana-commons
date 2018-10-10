@@ -29,19 +29,18 @@ from unittest.mock import ANY, patch
 import pytest
 from kombu import Connection, Exchange, Producer, Queue
 
-from reana_commons.config import (MQ_DEFAULT_EXCHANGE, MQ_DEFAULT_QUEUE,
-                                  MQ_DEFAULT_ROUTING_KEY,
-                                  MQ_DEFAULT_SERIALIZER)
-from reana_commons.consumer import REANABaseConsumer
+from reana_commons.config import (MQ_DEFAULT_EXCHANGE, MQ_DEFAULT_FORMAT,
+                                  MQ_DEFAULT_QUEUE, MQ_DEFAULT_ROUTING_KEY)
+from reana_commons.consumer import BaseConsumer
 
 
-class _REANABaseConsumerTestIMPL(REANABaseConsumer):
+class _BaseConsumerTestIMPL(BaseConsumer):
     """Test implementation of a REANAConsumer class."""
 
     def get_consumers(self, Consumer, channel):
         """Sample get consumers method."""
         return [Consumer(queues=self.queues, callbacks=[self.on_message],
-                         accept=[self.default_serializer])]
+                         accept=[self.message_default_format])]
 
     def on_message(self, body, message):
         """Sample on message method."""
@@ -50,13 +49,13 @@ class _REANABaseConsumerTestIMPL(REANABaseConsumer):
 
 @pytest.fixture
 def ConsumerBase():
-    """REANABaseConsumer implementation fixture."""
-    return _REANABaseConsumerTestIMPL
+    """BaseConsumer implementation fixture."""
+    return _BaseConsumerTestIMPL
 
 
 @pytest.fixture
 def ConsumerBaseOnMessageMock(ConsumerBase):
-    """REANABaseConsumer implementation fixture with ``on_message`` mocked."""
+    """BaseConsumer implementation fixture with ``on_message`` mocked."""
     with patch.object(ConsumerBase, 'on_message'):
         yield ConsumerBase
 
@@ -65,7 +64,13 @@ def ConsumerBaseOnMessageMock(ConsumerBase):
 def consume_queue():
     """Provides a callable to consume a queue."""
     def _consume_queue(consumer, limit=None):
-        """."""
+        """Consume AMQP queue.
+
+        :param consumer: A :class:`kombu.Consumer` to consume from.
+        :param limit: Integer which represents how many items to consume
+            from the queue, if not specified, the consume method will run
+            uninterruptedly.
+        """
         consumer_generator = consumer.consume(limit=limit)
         while True:
             try:
@@ -85,23 +90,21 @@ def in_memory_queue_connection():
 
 @pytest.fixture
 def default_exchange():
-    """Default ``kombu.Exchange`` created from configuration."""
-    exchange = Exchange(MQ_DEFAULT_EXCHANGE, type='direct')
-    return exchange
+    """Default :class:`kombu.Exchange` created from configuration."""
+    return Exchange(MQ_DEFAULT_EXCHANGE, type='direct')
 
 
 @pytest.fixture
 def default_queue(default_exchange):
-    """Default ``kombu.Queue`` created from configuration."""
-    queue = Queue(MQ_DEFAULT_QUEUE, exchange=default_exchange,
-                  routing_key=MQ_DEFAULT_ROUTING_KEY)
-    return queue
+    """Default :class:`kombu.Queue` created from configuration."""
+    return Queue(MQ_DEFAULT_QUEUE, exchange=default_exchange,
+                 routing_key=MQ_DEFAULT_ROUTING_KEY)
 
 
 @pytest.fixture
 def default_in_memory_producer(in_memory_queue_connection, default_exchange):
-    """``kombu.Producer`` connected to in memory queue.."""
+    """:class:`kombu.Producer` connected to in memory queue.."""
     return in_memory_queue_connection.Producer(
         exchange=default_exchange,
         routing_key=MQ_DEFAULT_ROUTING_KEY,
-        serializer=MQ_DEFAULT_SERIALIZER)
+        serializer=MQ_DEFAULT_FORMAT)

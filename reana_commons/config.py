@@ -10,38 +10,35 @@
 
 import os
 
-BROKER_URL = os.getenv('RABBIT_MQ_URL',
-                       'message-broker.default.svc.cluster.local')
-"""RabbitMQ server host name."""
+MQ_URL = os.getenv('RABBIT_MQ_URL',
+                   'message-broker.default.svc.cluster.local')
+"""Message queue (RabbitMQ) server host name."""
 
-BROKER_USER = os.getenv('RABBIT_MQ_USER', 'test')
-"""RabbitMQ user name."""
+MQ_USER = os.getenv('RABBIT_MQ_USER', 'test')
+"""Message queue (RabbitMQ) user name."""
 
-BROKER_PASS = os.getenv('RABBIT_MQ_PASS', '1234')
-"""RabbitMQ password."""
+MQ_PASS = os.getenv('RABBIT_MQ_PASS', '1234')
+"""Message queue (RabbitMQ) password."""
 
-BROKER_PORT = os.getenv('RABBIT_MQ_PORT', 5672)
-"""RabbitMQ service port."""
+MQ_PORT = os.getenv('RABBIT_MQ_PORT', 5672)
+"""Message queue (RabbitMQ) service port."""
 
-BROKER = os.getenv('RABBIT_MQ', 'amqp://{0}:{1}@{2}//'.format(BROKER_USER,
-                                                              BROKER_PASS,
-                                                              BROKER_URL))
-"""RabbitMQ connection string."""
+MQ_CONNECTION_STRING = os.getenv('RABBIT_MQ', 'amqp://{0}:{1}@{2}//'.format(
+    MQ_USER, MQ_PASS, MQ_URL))
+"""Message queue (RabbitMQ) connection string."""
 
-STATUS_QUEUE = 'jobs-status'
-
-EXCHANGE = ''
-
-ROUTING_KEY = 'jobs-status'
-
-MQ_DEFAULT_SERIALIZER = 'json'
+MQ_DEFAULT_FORMAT = 'json'
 """Default serializing format (to consume/produce)."""
+
 MQ_DEFAULT_EXCHANGE = ''
-"""RabbitMQ exchange."""
+"""Message queue (RabbitMQ) exchange."""
+
 MQ_DEFAULT_QUEUE = 'jobs-status'
 """Name of the queue where to publish/consume from."""
+
 MQ_DEFAULT_ROUTING_KEY = 'jobs-status'
-"""RabbitMQ routing key."""
+"""Message queue (RabbitMQ) routing key."""
+
 MQ_PRODUCER_MAX_RETRIES = 3
 """Max retries to send a message."""
 

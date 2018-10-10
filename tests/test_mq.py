@@ -46,13 +46,13 @@ def test_consume_msg(ConsumerBaseOnMessageMock, in_memory_queue_connection,
         {'hello': 'REANA'}, ANY)
 
 
-def test_server_server_unreachable(ConsumerBase, default_queue):
+def test_server_unreachable(ConsumerBase, default_queue):
     """Test consumer never starts because server is unreachable."""
     unreachable_connection = Connection('amqp://unreachable:5672')
     consumer = ConsumerBase(connection=unreachable_connection)
     with pytest.raises(OperationalError):
         # Typically we will leave by default the connection max retires since
-        # the REANABaseConsumer takes care of recovering connection through
+        # the BaseConsumer takes care of recovering connection through
         # ``kombu.mixins.ConsumerMixin`` but for the sake of the test we set
         # it to 1.
         consumer.connect_max_retries = 1

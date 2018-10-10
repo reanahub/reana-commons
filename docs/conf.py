@@ -202,3 +202,8 @@ texinfo_documents = [
      author, 'reana', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+# Intersphinx configuration
+intersphinx_mapping = {
+    'kombu': ('http://docs.celeryproject.org/projects/kombu/en/latest/', None),
+}
