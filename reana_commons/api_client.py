@@ -26,15 +26,15 @@ import os
 
 import pkg_resources
 from bravado.client import SwaggerClient
+from reana_commons.config import OPENAPI_SPECS
 
 
 class BaseAPIClient(object):
     """REANA API client code."""
 
-    def __init__(self, component, server_data, http_client=None):
-        """Create a OpenAPI client for a REANA component."""
-        self.component = component
-        server_url, spec_file = server_data
+    def __init__(self, service, http_client=None):
+        """Create an OpenAPI client."""
+        server_url, spec_file = OPENAPI_SPECS[service]
         json_spec = self._get_spec(spec_file)
         self._client = SwaggerClient.from_spec(
             json_spec,
@@ -49,7 +49,7 @@ class BaseAPIClient(object):
             pkg_resources.
             resource_filename(
                 'reana_commons',
-                'openapi_connections'),
+                'openapi_specifications'),
             spec_file)
 
         with open(spec_file_path) as f:

@@ -36,3 +36,20 @@ EXCHANGE = ''
 
 ROUTING_KEY = 'jobs-status'
 """RabbitMQ routing key."""
+
+OPENAPI_SPECS = {
+    'reana-workflow-controller': (
+        'http://{address}:{port}'.format(
+            address=os.getenv('WORKFLOW_CONTROLLER_SERVICE_HOST', '0.0.0.0'),
+            port=os.getenv('WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP', '5000')),
+        'reana_workflow_controller.json'),
+    'reana-server': (
+        os.getenv('REANA_SERVER_URL', None),
+        'reana_server.json'),
+    'reana-job-controller': (
+        'http://{address}:{port}'.format(
+            address=os.getenv('JOB_CONTROLLER_SERVICE_HOST', '0.0.0.0'),
+            port=os.getenv('JOB_CONTROLLER_SERVICE_PORT_HTTP', '5000')),
+        'reana_job_controller.json')
+}
+"""REANA Workflow Controller address."""
