@@ -26,6 +26,9 @@ import os
 
 import pkg_resources
 from bravado.client import SwaggerClient
+from bravado.exception import (HTTPBadRequest, HTTPInternalServerError,
+                               HTTPNotFound)
+
 from reana_commons.config import OPENAPI_SPECS
 
 
@@ -89,28 +92,43 @@ class JobControllerAPIClient(BaseAPIClient):
 
         response, http_response = self._client.jobs.create_job(job=job_spec).\
             result()
+        if http_response.status_code == 400:
+            raise HTTPBadRequest('Bad request to create a job. Error: {}'.
+                                 format(http_response.data))
+        elif http_response.status_code == 500:
+            raise HTTPInternalServerError('Internal Server Error. Error: {}'.
+                                          format(http_response.data))
         return response
 
     def check_status(self, job_id):
         """Check status of a job."""
         response, http_response = self._client.jobs.get_job(job_id=job_id).\
             result()
+        if http_response.status_code == 404:
+            raise HTTPNotFound('The given job ID was not found. Error: {}'.
+                               format(http_response.data))
         return response
 
     def get_logs(self, job_id):
         """Get logs of a job."""
         response, http_response = self._client.jobs.get_logs(job_id=job_id).\
             result()
+        if http_response.status_code == 404:
+            raise HTTPNotFound('The given job ID was not found. Error: {}'.
+                               format(http_response.data))
         return http_response.text
 
     def check_if_cached(self, job_spec, step, workflow_workspace):
         """Check if job result is in cache."""
-        try:
-            response, http_response = self._client.job_cache.check_if_cached(
-                job_spec=json.dumps(job_spec),
-                workflow_json=json.dumps(step),
-                workflow_workspace=workflow_workspace).\
-                result()
-            return http_response
-        except ConnectionError:
-            return self.check_if_cached(job_spec, step, workflow_workspace)
+        response, http_response = self._client.job_cache.check_if_cached(
+            job_spec=json.dumps(job_spec),
+            workflow_json=json.dumps(step),
+            workflow_workspace=workflow_workspace).\
+            result()
+        if http_response.status_code == 400:
+            raise HTTPBadRequest('Bad request to check cache. Error: {}'.
+                                 format(http_response.data))
+        elif http_response.status_code == 500:
+            raise HTTPInternalServerError('Internal Server Error. Error: {}'.
+                                          format(http_response.data))
+        return http_response
