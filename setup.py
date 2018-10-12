@@ -77,6 +77,7 @@ setup(
     url='https://github.com/reanahub/reana-commons',
     packages=['reana_commons', ],
     zip_safe=False,
+    include_package_data=True,
     install_requires=install_requires,
     extras_require=extras_require,
     setup_requires=setup_requires,
