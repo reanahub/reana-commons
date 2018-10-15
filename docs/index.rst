@@ -9,8 +9,8 @@
    :numbered:
 
    introduction
-   api
    configuration
+   api
    contributing
    changes
    license
