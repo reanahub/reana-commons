@@ -21,12 +21,15 @@ from .config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
 class WorkflowStatusPublisher():
     """Progress publisher to MQ."""
 
-    def __init__(self, connection=None, routing_key=None, exchange=None):
+    def __init__(self, connection=None, queue=None, routing_key=None,
+                 exchange=None):
         """Initialise the Publisher class.
 
         :param connection: A :class:`kombu.Connection`, if not provided a
             :class:`kombu.Connection` with the default configuration will
             be instantiated.
+        :param queue: String which represents the queue the messages will
+            be sent to.
         :param routing_key: String which represents the routing key which
             will be used to send the messages, if not provided default
             routing key will be used.
@@ -37,8 +40,8 @@ class WorkflowStatusPublisher():
         self._routing_key = routing_key or MQ_DEFAULT_ROUTING_KEY
         self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE,
                                   type='direct')
-        self._queue = Queue(MQ_DEFAULT_QUEUE, durable=False,
-                            exchange=MQ_DEFAULT_EXCHANGE,
+        self._queue = Queue(queue or MQ_DEFAULT_QUEUE, durable=False,
+                            exchange=self._exchange,
                             routing_key=self._routing_key)
         self._connection = connection or Connection(MQ_CONNECTION_STRING)
         self.producer = self._build_producer()

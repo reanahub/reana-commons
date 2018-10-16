@@ -23,11 +23,11 @@
 
 import json
 import threading
-from unittest.mock import ANY, patch
 
 import pytest
 from kombu import Connection, Exchange, Queue
 from kombu.exceptions import OperationalError
+from mock import ANY, patch
 
 from reana_commons.publisher import WorkflowStatusPublisher
 
@@ -67,7 +67,10 @@ def test_workflow_status_publish(ConsumerBaseOnMessageMock,
         connection=in_memory_queue_connection,
         queues=[default_queue])
     workflow_status_publisher = WorkflowStatusPublisher(
-        connection=in_memory_queue_connection)
+        connection=in_memory_queue_connection,
+        routing_key=default_queue.routing_key,
+        exchange=default_queue.exchange.name,
+        queue=default_queue.name)
     workflow_id = 'test'
     status = 1
     message = {
