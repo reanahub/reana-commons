@@ -1,10 +1,13 @@
 Changes
 =======
 
-Version 0.4.0 (XXXX-XX-XX)
+Version 0.4.0 (2018-11-06)
 --------------------------
 
-- FIXME
+- Aggregates OpenAPI specifications of REANA components.
+- Improves AMQP re-connection handling. Switches from ``pika`` to ``kombu``.
+- Enhances test suite and increases code coverage.
+- Changes license to MIT.
 
 Version 0.3.1 (2018-09-04)
 --------------------------
