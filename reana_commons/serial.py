@@ -52,7 +52,7 @@ serial_workflow_schema = {
 }
 
 
-def serial_load(workflow_file, specification, parameters=None):
+def serial_load(workflow_file, specification, parameters=None, original=None):
     """Validate and return a expanded REANA Serial workflow specification.
 
     :param workflow_file: A specification file compliant with
@@ -66,21 +66,26 @@ def serial_load(workflow_file, specification, parameters=None):
         with open(workflow_file, 'r') as f:
             specification = json.loads(f.read())
 
-    expanded_specification = _expand_parameters(specification, parameters)
+    expanded_specification = _expand_parameters(specification,
+                                                parameters,
+                                                original)
 
     validate(specification, serial_workflow_schema)
 
     return expanded_specification
 
 
-def _expand_parameters(specification, parameters):
+def _expand_parameters(specification, parameters, original=None):
     """Expand parameters inside comands for Serial workflow specifications.
 
     :param specification: Full valid Serial workflow specification.
     :param parameters: Parameters to be extended on a Serial specification.
-    :returns: A copy of the specification with expanded parameters (all
-        $varname and ${varname} will be expanded with their value). Otherwise
-        an error will be thrown if the parameters can not be expanded.
+    :param original: Flag which, determins type of specifications to return.
+    :returns: If 'original' parameter is set, a copy of the specification
+        whithout expanded parametrers will be returned. If 'original' is not
+        set, a copy of the specification with expanded parameters (all $varname
+        and ${varname} will be expanded with their value). Otherwise an error
+        will be thrown if the parameters can not be expanded.
     :raises: jsonschema.ValidationError
     """
     expanded_specification = deepcopy(specification)
@@ -91,7 +96,12 @@ def _expand_parameters(specification, parameters):
             for command_num, command in enumerate(step['commands']):
                 current_step['commands'][command_num] = \
                     Template(command).substitute(parameters)
-        return expanded_specification
+        # if call is done from client, original==True and original
+        # specifications withtout applied parameters are returned.
+        if original:
+            return specification
+        else:
+            return expanded_specification
     except KeyError as e:
         raise ValidationError('Workflow parameter(s) could not '
                               'be expanded. Please take a look '
