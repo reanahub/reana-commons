@@ -97,10 +97,11 @@
   "info": {
     "description": "REANA Job Controller API",
     "title": "reana-job-controller",
-    "version": "0.3.2"
+    "version": "0.4.0"
   },
   "parameters": {},
   "paths": {
+    "/apispec": {},
     "/job_cache": {
       "get": {
         "description": "This resource takes a job specification and the workflow json, and checks if the job to be created, already exists in the cache.",
@@ -154,6 +155,7 @@
     "/jobs": {
       "get": {
         "description": "This resource is not expecting parameters and it will return a list representing all active jobs in JSON format.",
+        "operationId": "get_jobs",
         "produces": [
           "application/json"
         ],
@@ -299,6 +301,49 @@
           }
         },
         "summary": "Returns details about a given job."
+      }
+    },
+    "/jobs/{job_id}/": {
+      "delete": {
+        "consumes": [
+          "application/json"
+        ],
+        "description": "This resource expects the `job_id` of the job to be deleted.",
+        "operationId": "delete_job",
+        "parameters": [
+          {
+            "description": "Required. ID of the job to be deleted.",
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "204": {
+            "description": "Request accepted. A request to delete the job has been sent to the\n  computing backend."
+          },
+          "404": {
+            "description": "Request failed. The given job ID does not seem to exist.",
+            "examples": {
+              "application/json": {
+                "message": "The job cdcf48b1-c2f3-4693-8230-b066e088444c doesn't exist"
+              }
+            }
+          },
+          "502": {
+            "description": "Request failed. Something went wrong while calling the computing backend.",
+            "examples": {
+              "application/json": {
+                "message": "Connection to computing backend failed: [reason]"
+              }
+            }
+          }
+        },
+        "summary": "Deletes a given job."
       }
     },
     "/jobs/{job_id}/logs": {
