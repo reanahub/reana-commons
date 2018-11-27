@@ -10,6 +10,7 @@
 
 import json
 import os
+import shutil
 from hashlib import md5
 
 import click
@@ -88,3 +89,34 @@ def calculate_file_access_time(workflow_workspace):
             file_path = os.path.join(subdir, file)
             access_times[file_path] = os.stat(file_path).st_atime
     return access_times
+
+
+def copy_openapi_specs(output_path, component):
+    """Copy generated and validated openapi specs to reana-commons module."""
+    if component == 'reana-server':
+        file = 'reana_server.json'
+    elif component == 'reana-workflow-controller':
+        file = 'reana_workflow_controller.json'
+    elif component == 'reana-job-controller':
+        file = 'reana_job_controller.json'
+    if os.environ.get('REANA_SRCDIR'):
+        reana_srcdir = os.environ.get('REANA_SRCDIR')
+    else:
+        reana_srcdir = os.path.join('..')
+    try:
+        reana_commons_specs_path = os.path.join(
+            reana_srcdir,
+            'reana-commons',
+            'reana_commons',
+            'openapi_specifications')
+        if os.path.exists(reana_commons_specs_path):
+            if os.path.isfile(output_path):
+                shutil.copy(output_path,
+                            os.path.join(reana_commons_specs_path,
+                                         file))
+                # copy openapi specs file as well to docs
+                shutil.copy(output_path,
+                            os.path.join('docs', 'openapi.json'))
+    except Exception as e:
+        click.echo('Something went wrong, could not copy openapi '
+                   'specifications to reana-commons \n{0}'.format(e))
