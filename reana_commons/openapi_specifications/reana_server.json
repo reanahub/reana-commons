@@ -425,8 +425,15 @@
             "description": "Optional flag. If set, file contents are examined.",
             "in": "query",
             "name": "brief",
-            "required": true,
+            "required": false,
             "type": "boolean"
+          },
+          {
+            "description": "Optional parameter. Sets number of context lines for workspace diff output.",
+            "in": "query",
+            "name": "context_lines",
+            "required": false,
+            "type": "string"
           },
           {
             "description": "Required. The API access_token of workflow owner.",
@@ -458,7 +465,7 @@
                   "type": "string"
                 },
                 "workspace_listing": {
-                  "type": "object"
+                  "type": "string"
                 }
               },
               "type": "object"
