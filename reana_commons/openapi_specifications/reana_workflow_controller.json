@@ -535,6 +535,11 @@
           },
           {
             "description": "Required. New status.",
+            "enum": [
+              "start",
+              "stop",
+              "deleted"
+            ],
             "in": "query",
             "name": "status",
             "required": true,
