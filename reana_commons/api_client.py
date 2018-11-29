@@ -3,22 +3,8 @@
 # This file is part of REANA.
 # Copyright (C) 2018 CERN.
 #
-# REANA is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# REANA is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# REANA; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
-# Suite 330, Boston, MA 02111-1307, USA.
-#
-# In applying this license, CERN does not waive the privileges and immunities
-# granted to it by virtue of its status as an Intergovernmental Organization or
-# submit itself to any jurisdiction.
+# REANA is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
 """REANA REST API base client."""
 
 import json
@@ -30,6 +16,7 @@ from bravado.exception import (HTTPBadRequest, HTTPInternalServerError,
                                HTTPNotFound)
 
 from reana_commons.config import OPENAPI_SPECS
+from reana_commons.errors import MissingAPIClientConfiguration
 
 
 class BaseAPIClient(object):
@@ -37,14 +24,24 @@ class BaseAPIClient(object):
 
     def __init__(self, service, http_client=None):
         """Create an OpenAPI client."""
+        self._load_config_from_env()
         server_url, spec_file = OPENAPI_SPECS[service]
         json_spec = self._get_spec(spec_file)
         self._client = SwaggerClient.from_spec(
             json_spec,
             http_client=http_client,
             config={'also_return_response': True})
+        if server_url is None:
+            raise MissingAPIClientConfiguration(
+                'Configuration to connect to {} is missing.'.format(service)
+            )
         self._client.swagger_spec.api_url = server_url
         self.server_url = server_url
+
+    def _load_config_from_env(self):
+        """Override configuration from environment."""
+        OPENAPI_SPECS['reana-server'] = (os.getenv('REANA_SERVER_URL'),
+                                         'reana_server.json')
 
     def _get_spec(self, spec_file):
         """Get json specification from package data."""
@@ -132,3 +129,10 @@ class JobControllerAPIClient(BaseAPIClient):
             raise HTTPInternalServerError('Internal Server Error. Error: {}'.
                                           format(http_response.data))
         return http_response
+
+
+def get_current_api_client(component):
+    """Return current state of the search extension."""
+    rwc_api_client = BaseAPIClient(component)
+
+    return rwc_api_client._client
