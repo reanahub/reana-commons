@@ -34,14 +34,15 @@ def test_calculate_hash_of_dir(sample_workflow_workspace):
     """Test calculate_hash_of_dir."""
     non_existing_dir_hash = calculate_hash_of_dir('a/b/c')
     assert non_existing_dir_hash == -1
-    dir_hash = calculate_hash_of_dir(sample_workflow_workspace)
+    sample_workflow_workspace_path = next(sample_workflow_workspace('sample'))
+    dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path)
     assert dir_hash == '8d287a3e2240b1762862d485a424363c'
-    include_only_path = os.path.join(sample_workflow_workspace,
+    include_only_path = os.path.join(sample_workflow_workspace_path,
                                      'code', 'worldpopulation.ipynb')
-    hash_of_single_file = calculate_hash_of_dir(sample_workflow_workspace,
+    hash_of_single_file = calculate_hash_of_dir(sample_workflow_workspace_path,
                                                 [include_only_path])
     assert hash_of_single_file == '18ce945e21ab4db472525abe1e0f8080'
-    empty_dir_hash = calculate_hash_of_dir(sample_workflow_workspace,
+    empty_dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path,
                                            [])
     md5_hash = md5()
     assert empty_dir_hash == md5_hash.hexdigest()
@@ -60,7 +61,8 @@ def test_calculate_job_input_hash():
 
 def test_calculate_file_access_time(sample_workflow_workspace):
     """Test calculate_file_access_time."""
-    access_times = calculate_file_access_time(sample_workflow_workspace)
-    all_file_paths = list(Path(sample_workflow_workspace).rglob("*.*"))
+    sample_workflow_workspace_path = next(sample_workflow_workspace('sample'))
+    access_times = calculate_file_access_time(sample_workflow_workspace_path)
+    all_file_paths = list(Path(sample_workflow_workspace_path).rglob("*.*"))
     for file_path in all_file_paths:
         assert str(file_path) in access_times

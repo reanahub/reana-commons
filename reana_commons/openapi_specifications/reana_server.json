@@ -422,6 +422,7 @@
             "type": "string"
           },
           {
+            "default": false,
             "description": "Optional flag. If set, file contents are examined.",
             "in": "query",
             "name": "brief",
@@ -429,6 +430,7 @@
             "type": "boolean"
           },
           {
+            "default": "5",
             "description": "Optional parameter. Sets number of context lines for workspace diff output.",
             "in": "query",
             "name": "context_lines",
