@@ -56,6 +56,8 @@ install_requires = [
     'click>=7.0,<8.0',
     'jsonschema[format]>=2.6.0,<2.7',
     'kombu>=4.2.0,<5.0',
+    'kubernetes>=6.0.0',
+    'Werkzeug==0.14.1',
 ]
 
 packages = find_packages()
