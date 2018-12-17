@@ -11,8 +11,10 @@ import logging
 
 from celery import shared_task
 from celery.task.control import revoke
+from kubernetes.client.rest import ApiException
 
 from reana_commons.api_client import JobControllerAPIClient
+from reana_commons.k8s.api_client import current_k8s_corev1_api_client
 
 log = logging.getLogger(__name__)
 
@@ -46,4 +48,10 @@ def stop_workflow(workflow_uuid, job_list):
 
 def reana_ready():
     """Check if reana can start new workflows."""
+    try:
+        import wdb
+        wdb.set_trace()
+        current_k8s_corev1_api_client.read_node_status('minikube')
+    except ApiException as e:
+        print(str(e))
     return True

@@ -21,7 +21,8 @@ from .config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
 class BasePublisher():
     """Base publisher to MQ."""
 
-    def __init__(self, queue, routing_key, connection=None, exchange=None):
+    def __init__(self, queue, routing_key, connection=None,
+                 exchange=None, durable=False):
         """Initialise the BasePublisher class.
 
         :param connection: A :class:`kombu.Connection`, if not provided a
@@ -40,7 +41,7 @@ class BasePublisher():
         self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE,
                                   type='direct')
         self._queue = Queue(queue,
-                            durable=False,
+                            durable=durable,
                             exchange=self._exchange,
                             routing_key=self._routing_key)
         self._connection = connection or Connection(MQ_CONNECTION_STRING)
@@ -87,9 +88,12 @@ class WorkflowStatusPublisher(BasePublisher):
     """Progress publisher to MQ."""
 
     def __init__(self):
+        """Constructor."""
+        queue = 'jobs-status'
         super(WorkflowStatusPublisher, self).__init__(
-            'jobs-status',
-            MQ_DEFAULT_QUEUES['jobs-status']['routing_key'])
+            queue,
+            MQ_DEFAULT_QUEUES[queue]['routing_key'],
+            durable=MQ_DEFAULT_QUEUES[queue]['durable'])
 
     def publish_workflow_status(self, workflow_uuid, status,
                                 logs='', message=None):
@@ -116,9 +120,12 @@ class WorkflowSubmissionPublisher(BasePublisher):
     """Workflow submission publisher."""
 
     def __init__(self):
+        """Constructor."""
+        queue = 'workflow-submission'
         super(WorkflowSubmissionPublisher, self).__init__(
-            'workflow-submission',
-            MQ_DEFAULT_QUEUES['workflow-submission']['routing_key'])
+            queue,
+            MQ_DEFAULT_QUEUES[queue]['routing_key'],
+            durable=MQ_DEFAULT_QUEUES[queue]['durable'])
 
     def publish_workflow_submission(self,
                                     user_id,
@@ -126,7 +133,7 @@ class WorkflowSubmissionPublisher(BasePublisher):
                                     parameters):
         """Publish workflow submission parameters."""
         msg = {
-            "user_id": user_id,
+            "user": user_id,
             "workflow_id_or_name": workflow_id_or_name,
             "parameters": parameters
         }
