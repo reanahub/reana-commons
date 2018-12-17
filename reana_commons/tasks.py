@@ -42,3 +42,8 @@ def stop_workflow(workflow_uuid, job_list):
             workflow_uuid
         ))
         log.error(e)
+
+
+def reana_ready():
+    """Check if reana can start new workflows."""
+    return True

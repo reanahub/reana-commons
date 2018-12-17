@@ -13,17 +13,16 @@ import logging
 from kombu import Connection, Exchange, Queue
 
 from .config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
-                     MQ_DEFAULT_FORMAT, MQ_DEFAULT_QUEUE,
-                     MQ_DEFAULT_ROUTING_KEY, MQ_PASS, MQ_PORT,
+                     MQ_DEFAULT_FORMAT, MQ_DEFAULT_QUEUES,
+                     MQ_PASS, MQ_PORT,
                      MQ_PRODUCER_MAX_RETRIES, MQ_URL, MQ_USER)
 
 
-class WorkflowStatusPublisher():
-    """Progress publisher to MQ."""
+class BasePublisher():
+    """Base publisher to MQ."""
 
-    def __init__(self, connection=None, queue=None, routing_key=None,
-                 exchange=None):
-        """Initialise the Publisher class.
+    def __init__(self, queue, routing_key, connection=None, exchange=None):
+        """Initialise the BasePublisher class.
 
         :param connection: A :class:`kombu.Connection`, if not provided a
             :class:`kombu.Connection` with the default configuration will
@@ -37,10 +36,11 @@ class WorkflowStatusPublisher():
             be delivered to, if not provided, it will be instantiated with
             the default configuration.
         """
-        self._routing_key = routing_key or MQ_DEFAULT_ROUTING_KEY
+        self._routing_key = routing_key
         self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE,
                                   type='direct')
-        self._queue = Queue(queue or MQ_DEFAULT_QUEUE, durable=False,
+        self._queue = Queue(queue,
+                            durable=False,
                             exchange=self._exchange,
                             routing_key=self._routing_key)
         self._connection = connection or Connection(MQ_CONNECTION_STRING)
@@ -75,6 +75,21 @@ class WorkflowStatusPublisher():
                                     max_retries=MQ_PRODUCER_MAX_RETRIES)
         publish(json.dumps(msg), exchange=self._exchange,
                 routing_key=self._routing_key, declare=[self._queue])
+        logging.debug('Publisher: message sent: %s', msg)
+
+    def close(self):
+        """Close connection."""
+        logging.debug('Publisher: closing queue connection')
+        self._connection.release()
+
+
+class WorkflowStatusPublisher(BasePublisher):
+    """Progress publisher to MQ."""
+
+    def __init__(self):
+        super(WorkflowStatusPublisher, self).__init__(
+            'jobs-status',
+            MQ_DEFAULT_QUEUES['jobs-status']['routing_key'])
 
     def publish_workflow_status(self, workflow_uuid, status,
                                 logs='', message=None):
@@ -95,9 +110,24 @@ class WorkflowStatusPublisher():
             "message": message
         }
         self._publish(msg)
-        logging.debug('Publisher: message sent: %s', msg)
 
-    def close(self):
-        """Close connection."""
-        logging.debug('Publisher: closing queue connection')
-        self._connection.release()
+
+class WorkflowSubmissionPublisher(BasePublisher):
+    """Workflow submission publisher."""
+
+    def __init__(self):
+        super(WorkflowSubmissionPublisher, self).__init__(
+            'workflow-submission',
+            MQ_DEFAULT_QUEUES['workflow-submission']['routing_key'])
+
+    def publish_workflow_submission(self,
+                                    user_id,
+                                    workflow_id_or_name,
+                                    parameters):
+        """Publish workflow submission parameters."""
+        msg = {
+            "user_id": user_id,
+            "workflow_id_or_name": workflow_id_or_name,
+            "parameters": parameters
+        }
+        self._publish(msg)

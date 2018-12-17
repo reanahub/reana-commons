@@ -17,21 +17,22 @@ from reana_commons.config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
 class BaseConsumer(ConsumerMixin):
     """Base RabbitMQ consumer."""
 
-    def __init__(self, connection=None, queues=None,
+    def __init__(self,  queue=None, connection=None,
                  message_default_format=None):
         """Construct a BaseConsumer.
 
         :param connection: A :class:`kombu.Connection`, if not provided a
             :class:`kombu.Connection` with the default configuration will
             be instantiated.
-        :param queues: List of :class:`kombu.Queue` where the messages will
-            be consumed from, if not provided, it will be instantiated with
-            the default configuration.
+        :param queue: Name or :class:`kombu.Queue` where the messages will
+            be consumed from.
         :param message_default_format: Defines the format the consuemer is
             configured to deserialize the messages to.
         """
         self.exchange = self._build_default_exchange()
-        self.queues = queues or self._build_default_queues()
+        if not isinstance(queue, Queue):
+            queue = Queue(queue, **MQ_DEFAULT_QUEUES[queue])
+        self.queue = queue
         self.connection = connection or Connection(MQ_CONNECTION_STRING)
         self.message_default_format = message_default_format or \
             MQ_DEFAULT_FORMAT
@@ -39,16 +40,6 @@ class BaseConsumer(ConsumerMixin):
     def _build_default_exchange(self):
         """Build :class:`kombu.Exchange` with default values."""
         return Exchange(MQ_DEFAULT_EXCHANGE, type='direct')
-
-    def _build_default_queues(self):
-        """Build :class:`kombu.Queue` with default values."""
-        created_queues = []
-        for QUEUE in MQ_DEFAULT_QUEUES:
-            created_queues.append(
-                Queue(QUEUE,
-                      **MQ_DEFAULT_QUEUES[QUEUE])
-            )
-        return created_queues
 
     def get_consumers(self, Consumer, channel):
         """Map consumers to specific queues.
