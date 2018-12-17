@@ -11,8 +11,7 @@ from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
 from reana_commons.config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
-                                  MQ_DEFAULT_FORMAT, MQ_DEFAULT_QUEUE,
-                                  MQ_DEFAULT_ROUTING_KEY)
+                                  MQ_DEFAULT_FORMAT, MQ_DEFAULT_QUEUES)
 
 
 class BaseConsumer(ConsumerMixin):
@@ -31,6 +30,7 @@ class BaseConsumer(ConsumerMixin):
         :param message_default_format: Defines the format the consuemer is
             configured to deserialize the messages to.
         """
+        self.exchange = self._build_default_exchange()
         self.queues = queues or self._build_default_queues()
         self.connection = connection or Connection(MQ_CONNECTION_STRING)
         self.message_default_format = message_default_format or \
@@ -42,11 +42,13 @@ class BaseConsumer(ConsumerMixin):
 
     def _build_default_queues(self):
         """Build :class:`kombu.Queue` with default values."""
-        default_queue = Queue(MQ_DEFAULT_QUEUE,
-                              durable=False,
-                              exchange=self._build_default_exchange(),
-                              routing_key=MQ_DEFAULT_ROUTING_KEY)
-        return [default_queue]
+        created_queues = []
+        for QUEUE in MQ_DEFAULT_QUEUES:
+            created_queues.append(
+                Queue(QUEUE,
+                      **MQ_DEFAULT_QUEUES[QUEUE])
+            )
+        return created_queues
 
     def get_consumers(self, Consumer, channel):
         """Map consumers to specific queues.

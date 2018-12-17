@@ -33,11 +33,16 @@ MQ_DEFAULT_FORMAT = 'json'
 MQ_DEFAULT_EXCHANGE = ''
 """Message queue (RabbitMQ) exchange."""
 
-MQ_DEFAULT_QUEUE = 'jobs-status'
-"""Name of the queue where to publish/consume from."""
-
-MQ_DEFAULT_ROUTING_KEY = 'jobs-status'
-"""Message queue (RabbitMQ) routing key."""
+MQ_DEFAULT_QUEUES = {'jobs-status':
+                     {'routing_key': 'jobs-status',
+                      'exchange': MQ_DEFAULT_EXCHANGE,
+                      'durable': False},
+                     'workflow-submission':
+                     {'routing_key': 'workflow-submission',
+                      'exchange': MQ_DEFAULT_EXCHANGE,
+                      'durable': True}
+                    }
+"""Default message queues."""
 
 MQ_PRODUCER_MAX_RETRIES = 3
 """Max retries to send a message."""
