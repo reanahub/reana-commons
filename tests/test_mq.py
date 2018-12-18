@@ -38,7 +38,7 @@ def test_consume_msg(ConsumerBaseOnMessageMock, in_memory_queue_connection,
     """Test message is consumed from the queue."""
     consumer = ConsumerBaseOnMessageMock(
         connection=in_memory_queue_connection,
-        queues=[default_queue])
+        queue=default_queue)
     default_in_memory_producer.publish({'hello': 'REANA'},
                                        declare=[default_queue])
     consume_queue(consumer, limit=1)
@@ -65,7 +65,7 @@ def test_workflow_status_publish(ConsumerBaseOnMessageMock,
     """Test WorkflowStatusPublisher."""
     consumer = ConsumerBaseOnMessageMock(
         connection=in_memory_queue_connection,
-        queues=[default_queue])
+        queue=default_queue)
     workflow_status_publisher = WorkflowStatusPublisher(
         connection=in_memory_queue_connection,
         routing_key=default_queue.routing_key,
