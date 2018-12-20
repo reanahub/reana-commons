@@ -66,7 +66,8 @@ class JobControllerAPIClient(BaseAPIClient):
                cmd='',
                prettified_cmd='',
                workflow_workspace='',
-               job_name=''):
+               job_name='',
+               cvmfs_mounts=None):
         """Submit a job to RJC API.
 
         :param name: Name of the job.
@@ -85,6 +86,7 @@ class JobControllerAPIClient(BaseAPIClient):
             'env_vars': {},
             'workflow_workspace': workflow_workspace,
             'job_name': job_name,
+            'cvmfs_mounts': cvmfs_mounts
         }
 
         response, http_response = self._client.jobs.create_job(job=job_spec).\
