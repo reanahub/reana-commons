@@ -86,13 +86,16 @@ class BasePublisher():
 class WorkflowStatusPublisher(BasePublisher):
     """Progress publisher to MQ."""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Constructor."""
         queue = 'jobs-status'
-        super(WorkflowStatusPublisher, self).__init__(
-            queue,
-            MQ_DEFAULT_QUEUES[queue]['routing_key'],
-            durable=MQ_DEFAULT_QUEUES[queue]['durable'])
+        if 'queue' not in kwargs:
+            kwargs['queue'] = 'jobs-status'
+        if 'routing_key' not in kwargs:
+            kwargs['routing_key'] = MQ_DEFAULT_QUEUES[queue]['routing_key']
+        if 'durable' not in kwargs:
+            kwargs['durable'] = MQ_DEFAULT_QUEUES[queue]['durable']
+        super(WorkflowStatusPublisher, self).__init__(**kwargs)
 
     def publish_workflow_status(self, workflow_uuid, status,
                                 logs='', message=None):
@@ -118,13 +121,14 @@ class WorkflowStatusPublisher(BasePublisher):
 class WorkflowSubmissionPublisher(BasePublisher):
     """Workflow submission publisher."""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Constructor."""
         queue = 'workflow-submission'
         super(WorkflowSubmissionPublisher, self).__init__(
             queue,
             MQ_DEFAULT_QUEUES[queue]['routing_key'],
-            durable=MQ_DEFAULT_QUEUES[queue]['durable'])
+            durable=MQ_DEFAULT_QUEUES[queue]['durable'],
+            **kwargs)
 
     def publish_workflow_submission(self,
                                     user_id,

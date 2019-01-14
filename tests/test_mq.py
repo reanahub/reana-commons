@@ -49,7 +49,8 @@ def test_consume_msg(ConsumerBaseOnMessageMock, in_memory_queue_connection,
 def test_server_unreachable(ConsumerBase, default_queue):
     """Test consumer never starts because server is unreachable."""
     unreachable_connection = Connection('amqp://unreachable:5672')
-    consumer = ConsumerBase(connection=unreachable_connection)
+    consumer = ConsumerBase(queue=default_queue,
+                            connection=unreachable_connection)
     with pytest.raises(OperationalError):
         # Typically we will leave by default the connection max retires since
         # the BaseConsumer takes care of recovering connection through
@@ -60,7 +61,8 @@ def test_server_unreachable(ConsumerBase, default_queue):
 
 
 def test_workflow_status_publish(ConsumerBaseOnMessageMock,
-                                 in_memory_queue_connection, default_queue,
+                                 in_memory_queue_connection,
+                                 default_queue,
                                  consume_queue):
     """Test WorkflowStatusPublisher."""
     consumer = ConsumerBaseOnMessageMock(

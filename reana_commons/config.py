@@ -10,7 +10,6 @@
 
 import os
 
-
 MQ_URL = os.getenv('RABBIT_MQ_URL',
                    'message-broker.default.svc.cluster.local')
 """Message queue (RabbitMQ) server host name."""
@@ -65,18 +64,9 @@ OPENAPI_SPECS = {
 }
 """REANA Workflow Controller address."""
 
-K8S_MINIMUM_CAPACITY_CPU = 1
-"""Minimum allocatable cpu capacity in cluster to start new workflows."""
-
-K8S_MINIMUM_CAPACITY_MEMORY = 1000000
-"""Minimum allocatable memory capacity in cluster to start new workflows."""
-
-K8S_MINIMUM_CAPACITY_PODS = 109
-"""Minimum allocatable pod capacity in cluster to start new workflows."""
-
-K8S_MAXIMUM_CONCURRENT_JOBS = 1
+K8S_MAXIMUM_CONCURRENT_JOBS = 10
 """Upper limit on concurrent jobs running in the cluster."""
 
 REANA_READY_CONDITIONS = {'reana_commons.tasks':
-                             ['check_predefined_conditions',
-                              'check_running_job_count']}
+                          ['check_predefined_conditions',
+                           'check_running_job_count']}
