@@ -17,7 +17,7 @@ from .config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
                      MQ_PRODUCER_MAX_RETRIES, MQ_URL, MQ_USER)
 
 
-class BasePublisher():
+class BasePublisher(object):
     """Base publisher to MQ."""
 
     def __init__(self, queue, routing_key, connection=None,
