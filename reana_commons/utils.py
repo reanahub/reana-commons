@@ -120,3 +120,19 @@ def copy_openapi_specs(output_path, component):
     except Exception as e:
         click.echo('Something went wrong, could not copy openapi '
                    'specifications to reana-commons \n{0}'.format(e))
+
+
+def get_workflow_status_change_verb(status):
+    """Give the correct verb conjugation depending on status tense.
+
+    :param status: String which represents the status the workflow changed to.
+    """
+    verb = ''
+    if status.endswith('ing'):
+        verb = 'is'
+    elif status.endswith('ed'):
+        verb = 'has been'
+    else:
+        raise ValueError('Unrecognised status {}'.format(status))
+
+    return verb
