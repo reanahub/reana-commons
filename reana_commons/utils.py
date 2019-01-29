@@ -136,3 +136,39 @@ def get_workflow_status_change_verb(status):
         raise ValueError('Unrecognised status {}'.format(status))
 
     return verb
+
+
+def build_progress_message(total=None,
+                           running=None,
+                           finished=None,
+                           failed=None,
+                           cached=None):
+    """Build the progress message with correct formatting."""
+    progress_message = {}
+    if total:
+        progress_message['total'] = total
+    if running:
+        progress_message['running'] = running
+    if finished:
+        progress_message['finished'] = finished
+    if failed:
+        progress_message['failed'] = failed
+    if cached:
+        progress_message['cached'] = cached
+    return progress_message
+
+
+def build_caching_info_message(job_spec,
+                               job_id,
+                               workflow_workspace,
+                               workflow_json,
+                               result_path):
+    """Build the caching info message with correct formatting."""
+    caching_info_message = {
+        "job_spec": job_spec,
+        "job_id": job_id,
+        "workflow_workspace": workflow_workspace,
+        "workflow_json": workflow_json,
+        "result_path": result_path
+    }
+    return caching_info_message

@@ -8,6 +8,7 @@
 
 """REANA Commons configuration."""
 
+import logging
 import os
 
 MQ_URL = os.getenv('RABBIT_MQ_URL',
@@ -70,3 +71,13 @@ K8S_MAXIMUM_CONCURRENT_JOBS = 10
 REANA_READY_CONDITIONS = {'reana_commons.tasks':
                           ['check_predefined_conditions',
                            'check_running_job_count']}
+
+REANA_ENGINE_LOG_LEVEL = os.getenv('ENGINE_LOG_LEVEL', logging.DEBUG)
+"""Level of verbosity for engine logs."""
+
+REANA_ENGINE_LOG_FORMAT = os.getenv('ENGINE_LOG_FORMAT',
+                                    '%(asctime)s - '
+                                    '%(name)s - '
+                                    '%(levelname)s - '
+                                    '%(message)s')
+"""Format of engine logs."""
