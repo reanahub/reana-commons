@@ -179,7 +179,15 @@ def get_workspace_disk_usage(workspace, summarize=False):
     """Retrieve disk usage information of a workspace."""
     command = ['du', '-ha']
     if summarize:
-        command.append('-s')
+        command.append('-S')
     command.append(workspace)
-    disk_usage_info = subprocess.check_output(command)
-    return disk_usage_info
+    disk_usage_info = subprocess.check_output(command).decode().split()
+    # create pairs of (size, filename)
+    filesize_pairs = list(zip(disk_usage_info[::2], disk_usage_info[1::2]))
+    filesizes = []
+    for filesize_pair in filesize_pairs:
+        size, name = filesize_pair
+        # trim workspace path in every file name
+        filesizes.append({'name': name[len(workspace):],
+                          'size': size})
+    return filesizes
