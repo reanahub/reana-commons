@@ -11,6 +11,7 @@
 import json
 import os
 import shutil
+import subprocess
 from hashlib import md5
 
 import click
@@ -172,3 +173,13 @@ def build_caching_info_message(job_spec,
         "result_path": result_path
     }
     return caching_info_message
+
+
+def get_workspace_disk_usage(workspace, summarize=False):
+    """Retrieve disk usage information of a workspace."""
+    command = ['du', '-ha']
+    if summarize:
+        command.append('-s')
+    command.append(workspace)
+    disk_usage_info = subprocess.check_output(command)
+    return disk_usage_info
