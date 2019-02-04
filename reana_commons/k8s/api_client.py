@@ -25,7 +25,9 @@ def create_api_client(api='BatchV1'):
     k8s_config.load_incluster_config()
     api_configuration = client.Configuration()
     api_configuration.verify_ssl = False
-    if api == 'CoreV1':
+    if api == 'extensions/v1beta1':
+        api_client = client.ExtensionsV1beta1Api()
+    elif api == 'CoreV1':
         api_client = client.CoreV1Api()
     else:
         api_client = client.BatchV1Api()
@@ -33,6 +35,7 @@ def create_api_client(api='BatchV1'):
 
 
 current_k8s_batchv1_api_client = LocalProxy(create_api_client)
-
 current_k8s_corev1_api_client = LocalProxy(partial(create_api_client,
                                                    api='CoreV1'))
+current_k8s_extensions_v1beta1 = LocalProxy(partial(create_api_client,
+                                                    api='extensions/v1beta1'))
