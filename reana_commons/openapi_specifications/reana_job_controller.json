@@ -161,10 +161,7 @@
                 "jobs": {
                   "1612a779-f3fa-4344-8819-3d12fa9b9d90": {
                     "cmd": "date",
-                    "cvmfs_mounts": [
-                      "atlas.cern.ch",
-                      "atlas-condb.cern.ch"
-                    ],
+                    "cvmfs_mounts": "[\"atlas.cern.ch\", \"atlas-condb.cern.ch\"]",
                     "docker_img": "busybox",
                     "experiment": "atlas",
                     "job_id": "1612a779-f3fa-4344-8819-3d12fa9b9d90",
@@ -174,10 +171,7 @@
                   },
                   "2e4bbc1d-db5e-4ee0-9701-6e2b1ba55c20": {
                     "cmd": "date",
-                    "cvmfs_mounts": [
-                      "atlas.cern.ch",
-                      "atlas-condb.cern.ch"
-                    ],
+                    "cvmfs_mounts": "[\"atlas.cern.ch\", \"atlas-condb.cern.ch\"]",
                     "docker_img": "busybox",
                     "experiment": "atlas",
                     "job_id": "2e4bbc1d-db5e-4ee0-9701-6e2b1ba55c20",
@@ -268,10 +262,7 @@
               "application/json": {
                 "job": {
                   "cmd": "date",
-                  "cvmfs_mounts": [
-                    "atlas.cern.ch",
-                    "atlas-condb.cern.ch"
-                  ],
+                  "cvmfs_mounts": "[\"atlas.cern.ch\", \"atlas-condb.cern.ch\"]",
                   "docker_img": "busybox",
                   "experiment": "atlas",
                   "job_id": "cdcf48b1-c2f3-4693-8230-b066e088c6ac",
