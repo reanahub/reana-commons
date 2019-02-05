@@ -67,7 +67,7 @@ class JobControllerAPIClient(BaseAPIClient):
                prettified_cmd='',
                workflow_workspace='',
                job_name='',
-               cvmfs_mounts=None):
+               cvmfs_mounts=False):
         """Submit a job to RJC API.
 
         :param name: Name of the job.
@@ -76,6 +76,8 @@ class JobControllerAPIClient(BaseAPIClient):
         :param cmd: String which represents the command to execute. It can be
             modified by the workflow engine i.e. prepending ``cd /some/dir/``.
         :prettified_cmd: Original command submitted by the user.
+        :workflow_workspace: Path to the workspace of the workflow.
+        :cvmfs_mounts: Boolean flag to mount CVMFS volumes in job pods.
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {

@@ -81,3 +81,27 @@ REANA_ENGINE_LOG_FORMAT = os.getenv('ENGINE_LOG_FORMAT',
                                     '%(levelname)s - '
                                     '%(message)s')
 """Format of engine logs."""
+
+CVMFS_REPOSITORIES = {
+    'alice.cern.ch': 'alice',
+    'alice-ocdb.cern.ch': 'alice-ocdb',
+    'ams.cern.ch': 'ams',
+    'atlas.cern.ch': 'atlas',
+    'atlas-condb.cern.ch': 'atlas-condb',
+    'atlas-nightlies.cern.ch': 'atlas-nightlies',
+    'cms.cern.ch': 'cms',
+    'cms-ib.cern.ch': 'cms-ib',
+    'compass.cern.ch': 'compass',
+    'compass-condb.cern.ch': 'compass-condb',
+    'cvmfs-config.cern.ch': 'cvmfs-config',
+    'fcc.cern.ch': 'fcc',
+    'geant4.cern.ch': 'geant4',
+    'ilc.desy.de': 'ilc-desy',
+    'lhcb.cern.ch': 'lhcb',
+    'lhcb-condb.cern.ch': 'lhcb-condb',
+    'na61.cern.ch': 'na61',
+    'na62.cern.ch': 'na62',
+    'projects.cern.ch': 'projects',
+    'sft.cern.ch': 'sft'
+}
+"""CVMFS repositories available for mounting."""
