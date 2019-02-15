@@ -105,3 +105,22 @@ CVMFS_REPOSITORIES = {
     'sft.cern.ch': 'sft'
 }
 """CVMFS repositories available for mounting."""
+
+REANA_CVMFS_PVC_TEMPLATE = {
+    "metadata":
+        {"name": ""},
+    "spec":
+        {"accessModes": ["ReadOnlyMany"],
+         "storageClassName": "",
+         "resources": {"requests": {"storage": "1G"}}}
+}
+"""CVMFS persistent volume claim template."""
+
+REANA_CVMFS_SC_TEMPLATE = {
+    "metadata":
+        {"name": ""},
+    "provisioner": "csi-cvmfsplugin",
+    "parameters":
+        {"repository": ""}
+}
+"""CVMFS storage claim template."""
