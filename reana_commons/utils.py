@@ -177,9 +177,11 @@ def build_caching_info_message(job_spec,
 
 def get_workspace_disk_usage(workspace, summarize=False):
     """Retrieve disk usage information of a workspace."""
-    command = ['du', '-ha']
+    command = ['du', '-h']
     if summarize:
-        command.append('-S')
+        command.append('-s')
+    else:
+        command.append('-a')
     command.append(workspace)
     disk_usage_info = subprocess.check_output(command).decode().split()
     # create pairs of (size, filename)
