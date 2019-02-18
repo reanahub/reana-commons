@@ -227,8 +227,8 @@ def create_cvmfs_storage_class(cvmfs_volume):
                 render_cvmfs_sc(cvmfs_volume)
             )
     except ApiException as e:
-        if e.status == 409:
-            pass
+        if e.status != 409:
+            raise e
 
 
 def create_cvmfs_persistent_volume_claim(cvmfs_volume):
@@ -240,5 +240,5 @@ def create_cvmfs_persistent_volume_claim(cvmfs_volume):
                 render_cvmfs_pvc(cvmfs_volume)
             )
     except ApiException as e:
-        if e.status == 409:
-            pass
+        if e.status != 409:
+            raise e
