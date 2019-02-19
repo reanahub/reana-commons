@@ -15,12 +15,9 @@ import subprocess
 from hashlib import md5
 
 import click
-from kubernetes.client.rest import ApiException
 
 from reana_commons.config import (CVMFS_REPOSITORIES, REANA_CVMFS_PVC_TEMPLATE,
                                   REANA_CVMFS_SC_TEMPLATE)
-from reana_commons.k8s.api_client import (current_k8s_corev1_api_client,
-                                          current_k8s_storagev1_api_client)
 
 
 def click_table_printer(headers, _filter, data):
@@ -221,6 +218,9 @@ def render_cvmfs_sc(cvmfs_volume):
 
 def create_cvmfs_storage_class(cvmfs_volume):
     """Create CVMFS storage class."""
+    from kubernetes.client.rest import ApiException
+    from reana_commons.k8s.api_client import current_k8s_storagev1_api_client
+
     try:
         current_k8s_storagev1_api_client.\
             create_storage_class(
@@ -233,6 +233,9 @@ def create_cvmfs_storage_class(cvmfs_volume):
 
 def create_cvmfs_persistent_volume_claim(cvmfs_volume):
     """Create CVMFS persistent volume claim."""
+    from kubernetes.client.rest import ApiException
+    from reana_commons.k8s.api_client import current_k8s_corev1_api_client
+
     try:
         current_k8s_corev1_api_client.\
             create_namespaced_persistent_volume_claim(
