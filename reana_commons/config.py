@@ -124,3 +124,6 @@ REANA_CVMFS_SC_TEMPLATE = {
         {"repository": ""}
 }
 """CVMFS storage claim template."""
+
+INTERACTIVE_SESSION_TYPES = ['jupyter']
+"""List of supported interactive systems."""
