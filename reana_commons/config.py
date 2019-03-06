@@ -127,3 +127,6 @@ REANA_CVMFS_SC_TEMPLATE = {
 
 INTERACTIVE_SESSION_TYPES = ['jupyter']
 """List of supported interactive systems."""
+
+REANA_STORAGE_BACKEND = os.getenv('REANA_STORAGE_BACKEND', 'LOCAL')
+"""Storage backend deployed in current REANA cluster."""
