@@ -133,3 +133,6 @@ REANA_STORAGE_BACKEND = os.getenv('REANA_STORAGE_BACKEND', 'LOCAL')
 
 REANA_WORKFLOW_UMASK = 0o0002
 """Umask used for workflow worksapce."""
+
+K8S_DEFAULT_NAMESPACE = "default"
+"""Kubernetes workflow runtime default namespace"""

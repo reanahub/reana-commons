@@ -61,6 +61,7 @@ class JobControllerAPIClient(BaseAPIClient):
     """REANA-Job-Controller http client class."""
 
     def submit(self,
+               workflow_uuid='',
                experiment='',
                image='',
                cmd='',
@@ -88,7 +89,8 @@ class JobControllerAPIClient(BaseAPIClient):
             'env_vars': {},
             'workflow_workspace': workflow_workspace,
             'job_name': job_name,
-            'cvmfs_mounts': cvmfs_mounts
+            'cvmfs_mounts': cvmfs_mounts,
+            'workflow_uuid': workflow_uuid
         }
 
         response, http_response = self._client.jobs.create_job(job=job_spec).\
