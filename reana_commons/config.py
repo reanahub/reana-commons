@@ -72,15 +72,13 @@ REANA_READY_CONDITIONS = {'reana_commons.tasks':
                           ['check_predefined_conditions',
                            'check_running_job_count']}
 
-REANA_ENGINE_LOG_LEVEL = os.getenv('ENGINE_LOG_LEVEL', logging.DEBUG)
-"""Level of verbosity for engine logs."""
+REANA_LOG_LEVEL = logging.getLevelName(os.getenv('REANA_LOG_LEVEL', 'ERROR'))
+"""Log verbosity level for REANA components."""
 
-REANA_ENGINE_LOG_FORMAT = os.getenv('ENGINE_LOG_FORMAT',
-                                    '%(asctime)s - '
-                                    '%(name)s - '
-                                    '%(levelname)s - '
-                                    '%(message)s')
-"""Format of engine logs."""
+REANA_LOG_FORMAT = os.getenv('REANA_LOG_FORMAT',
+                             '%(asctime)s | %(name)s | %(threadName)s | '
+                             '%(levelname)s | %(message)s')
+"""REANA components log format."""
 
 CVMFS_REPOSITORIES = {
     'alice.cern.ch': 'alice',
