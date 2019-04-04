@@ -11,7 +11,7 @@ import json
 import os
 
 import pkg_resources
-from bravado.client import SwaggerClient
+from bravado.client import RequestsClient, SwaggerClient
 from bravado.exception import (HTTPBadRequest, HTTPInternalServerError,
                                HTTPNotFound)
 
@@ -29,7 +29,7 @@ class BaseAPIClient(object):
         json_spec = self._get_spec(spec_file)
         self._client = SwaggerClient.from_spec(
             json_spec,
-            http_client=http_client,
+            http_client=RequestsClient(ssl_verify=False),
             config={'also_return_response': True})
         if server_url is None:
             raise MissingAPIClientConfiguration(

@@ -53,7 +53,7 @@ setup_requires = [
 ]
 
 install_requires = [
-    'bravado>=9.0.6,<10.2',
+    'bravado>=10.2,<10.4',
     'celery>=4.1.0,<4.3',
     'checksumdir>=1.1.4,<1.2',
     'click>=7.0,<8.0',
