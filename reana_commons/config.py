@@ -55,7 +55,7 @@ OPENAPI_SPECS = {
             port=os.getenv('WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP', '5000')),
         'reana_workflow_controller.json'),
     'reana-server': (
-        os.getenv('REANA_SERVER_URL'),
+        os.getenv('REANA_SERVER_URL', 'http://0.0.0.0:80'),
         'reana_server.json'),
     'reana-job-controller': (
         'http://{address}:{port}'.format(
