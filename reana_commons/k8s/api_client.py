@@ -8,11 +8,13 @@
 
 """Kubernetes API Client."""
 
+import os
 from functools import partial
+
+from werkzeug.local import LocalProxy
 
 from kubernetes import client
 from kubernetes import config as k8s_config
-from werkzeug.local import LocalProxy
 
 
 def create_api_client(api='BatchV1'):
@@ -22,7 +24,10 @@ def create_api_client(api='BatchV1'):
         default BatchV1.
     :returns: Kubernetes python client object for a specific API i.e. BatchV1.
     """
-    k8s_config.load_incluster_config()
+    if "KUBERNETES_SERVICE_HOST" in os.environ:
+        k8s_config.load_incluster_config()
+    else:
+        k8s_config.load_kube_config()
     api_configuration = client.Configuration()
     api_configuration.verify_ssl = False
     if api == 'extensions/v1beta1':
