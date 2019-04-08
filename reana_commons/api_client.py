@@ -29,7 +29,7 @@ class BaseAPIClient(object):
         json_spec = self._get_spec(spec_file)
         self._client = SwaggerClient.from_spec(
             json_spec,
-            http_client=RequestsClient(ssl_verify=False),
+            http_client=http_client or RequestsClient(ssl_verify=False),
             config={'also_return_response': True})
         if server_url is None:
             raise MissingAPIClientConfiguration(
