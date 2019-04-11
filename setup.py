@@ -57,7 +57,7 @@ install_requires = [
     'celery>=4.1.0,<4.3',
     'checksumdir>=1.1.4,<1.2',
     'click>=7.0,<8.0',
-    'jsonschema[format]>=2.6.0,<2.7',
+    'jsonschema[format]>=2.6.0',
     'kombu>=4.2.0,<4.4',
     'Werkzeug>=0.14.1',
 ]
