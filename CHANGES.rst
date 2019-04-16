@@ -1,6 +1,32 @@
 Changes
 =======
 
+Version 0.5.0 (2019-04-16)
+--------------------------
+
+- Centralises log level and log format configuration.
+- Adds new utility to inspect the disk usage on a given workspace.
+  (``get_workspace_disk_usage``)
+- Introduces the module to share Celery tasks accross REANA
+  components. (``tasks.py``)
+- Introduces common Celery task to determine whether REANA can
+  execute new workflows depending on a set of conditions
+  such as running job count. (``reana_ready``, ``check_predefined_conditions``,
+  ``check_running_job_count``)
+- Allows the AMQP consumer to be configurable with multiple queues.
+- Introduces new queue for workflow submission. (``workflow-submission``)
+- Introduces new publisher for workflow submissions.
+  (``WorkflowSubmissionPublisher``)
+- Centralises Kubernetes API client configuration and initialisation.
+- Adds Kubernetes specific configuration for CVMFS volumes as utils.
+- Introduces a new method, ``copy_openapi_specs``, to automatically move
+  validated OpenAPI specifications from components to REANA Commons
+  ``openapi_specifications`` directory.
+- Centralises interactive session types.
+- Introduces central REANA errors through the ``errors.py`` module.
+- Skips SSL verification for all HTTPS requests performed with the
+  ``BaseAPIClient``.
+
 Version 0.4.0 (2018-11-06)
 --------------------------
 

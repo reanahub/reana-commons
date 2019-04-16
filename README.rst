@@ -8,7 +8,7 @@
 .. image:: https://img.shields.io/travis/reanahub/reana-commons.svg
       :target: https://travis-ci.org/reanahub/reana-commons
 
-.. image:: https://readthedocs.org/projects/docs/badge/?version=latest
+.. image:: https://readthedocs.org/projects/reana-commons/badge/?version=latest
       :target: https://reana-commons.readthedocs.io/en/latest/?badge=latest
 
 .. image:: https://img.shields.io/coveralls/reanahub/reana-commons.svg
@@ -30,8 +30,11 @@ schemas shared by the REANA cluster components.
 Features
 --------
 
+- common API clients for internal communication
+- centralised OpenAPI specifications for REANA components
+- AMQP connection management and communication
+- common Celery tasks
 - utility functions for cluster components
-- database models and schemas
 
 Useful links
 ------------

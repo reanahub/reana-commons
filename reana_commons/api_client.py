@@ -138,7 +138,7 @@ class JobControllerAPIClient(BaseAPIClient):
 
 
 def get_current_api_client(component):
-    """Return current state of the search extension."""
+    """Proxy which returns current API client for a given component."""
     rwc_api_client = BaseAPIClient(component)
 
     return rwc_api_client._client
