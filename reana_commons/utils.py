@@ -245,3 +245,13 @@ def create_cvmfs_persistent_volume_claim(cvmfs_volume):
     except ApiException as e:
         if e.status != 409:
             raise e
+
+
+def format_cmd(cmd):
+    """Return command in a valid format."""
+    if isinstance(cmd, str):
+        cmd = [cmd]
+    elif not isinstance(cmd, list):
+        raise ValueError('Command should be a list or a string and not {}'
+                         .format(type(cmd)))
+    return cmd
