@@ -12,11 +12,13 @@ import os
 from hashlib import md5
 from pathlib import Path
 
+from pytest import raises
 from pytest_reana.fixtures import sample_workflow_workspace
 
 from reana_commons.utils import (calculate_file_access_time,
                                  calculate_hash_of_dir,
-                                 calculate_job_input_hash, click_table_printer)
+                                 calculate_job_input_hash, click_table_printer,
+                                 format_cmd)
 
 
 def test_click_table_printer(capsys):
@@ -66,3 +68,12 @@ def test_calculate_file_access_time(sample_workflow_workspace):
     all_file_paths = list(Path(sample_workflow_workspace_path).rglob("*.*"))
     for file_path in all_file_paths:
         assert str(file_path) in access_times
+
+
+def test_format_cmd():
+    """Test format_cmd."""
+    test_cmd = "ls -l"
+    test_cmd_fail = 12
+    assert isinstance(format_cmd(test_cmd), list)
+    with raises(ValueError):
+        format_cmd(test_cmd_fail)

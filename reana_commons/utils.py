@@ -12,9 +12,11 @@ import json
 import os
 import shutil
 import subprocess
+import time
 from hashlib import md5
 
 import click
+import requests
 
 from reana_commons.config import (CVMFS_REPOSITORIES, REANA_CVMFS_PVC_TEMPLATE,
                                   REANA_CVMFS_SC_TEMPLATE)
@@ -245,3 +247,30 @@ def create_cvmfs_persistent_volume_claim(cvmfs_volume):
     except ApiException as e:
         if e.status != 409:
             raise e
+
+
+def format_cmd(cmd):
+    """Return command in a valid format."""
+    if isinstance(cmd, str):
+        cmd = [cmd]
+    elif not isinstance(cmd, list):
+        raise ValueError('Command should be a list or a string and not {}'
+                         .format(type(cmd)))
+    return cmd
+
+
+def check_connection_to_job_controller(port=5000):
+    """Check connection from workflow engine to job controller."""
+    url = 'http://localhost:{}/jobs'.format(port)
+    retry_counter = 0
+    while retry_counter < 5:
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                break
+        except Exception:
+            pass
+        time.sleep(10)
+        retry_counter += 1
+    else:
+        raise Exception('Job controller is not reachable.')
