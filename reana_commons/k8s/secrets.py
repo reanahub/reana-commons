@@ -14,7 +14,6 @@ import os
 
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-
 from reana_commons.config import K8S_DEFAULT_NAMESPACE
 from reana_commons.errors import (REANASecretAlreadyExists,
                                   REANASecretDoesNotExist)
@@ -26,16 +25,17 @@ log = logging.getLogger(__name__)
 class REANAUserSecretsStore(object):
     """REANA user secrets store."""
 
-    def __init__(self, user):
+    def __init__(self, user_secret_store_id):
         """Initialise the secret store object."""
-        self.user = user
+        self.user_secret_store_id = user_secret_store_id
 
     def _initialise_user_secrets_store(self):
         """Initialise an empty Kubernetes secret for a given user."""
         try:
             empty_k8s_secret = client.V1Secret(
                 api_version="v1",
-                metadata=client.V1ObjectMeta(name=str(self.user.id_)),
+                metadata=client.V1ObjectMeta(
+                    name=str(self.user_secret_store_id)),
                 data={})
             empty_k8s_secret.metadata.annotations = {
                 'secrets_types': '{}'
@@ -47,7 +47,7 @@ class REANAUserSecretsStore(object):
         except ApiException as api_e:
             log.error('Something went wrong while creating '
                       'Kubernetes secret for user {0}.'.format(
-                          str(self.user.id_)), exc_info=True)
+                          str(self.user_secret_store_id)), exc_info=True)
 
     def _update_store(self, k8s_user_secrets):
         """Update Kubernetes secret store.
@@ -56,13 +56,14 @@ class REANAUserSecretsStore(object):
                                  version of the store.
         """
         current_k8s_corev1_api_client.replace_namespaced_secret(
-            str(self.user.id_), K8S_DEFAULT_NAMESPACE, k8s_user_secrets)
+            str(self.user_secret_store_id), K8S_DEFAULT_NAMESPACE,
+            k8s_user_secrets)
 
     def _get_k8s_user_secrets_store(self):
         """Retrieve the Kubernetes secret which contains all user secrets."""
         try:
             k8s_user_secrets_store = current_k8s_corev1_api_client.\
-                read_namespaced_secret(str(self.user.id_),
+                read_namespaced_secret(str(self.user_secret_store_id),
                                        K8S_DEFAULT_NAMESPACE)
             k8s_user_secrets_store.data = k8s_user_secrets_store.data or {}
             return k8s_user_secrets_store
@@ -70,12 +71,12 @@ class REANAUserSecretsStore(object):
             if api_e.status == 404:
                 log.info('Kubernetes secret for user {0} does not '
                          'exist, creating...'.format(
-                             str(self.user.id_)))
+                             str(self.user_secret_store_id)))
                 return self._initialise_user_secrets_store()
             else:
                 log.error('Something went wrong while retrieving '
                           'Kubernetes secret for user {0}.'.format(
-                              str(self.user.id_)), exc_info=True)
+                              str(self.user_secret_store_id)), exc_info=True)
 
     def _dump_json_annotation_to_k8s_object(self, k8s_object, annotation_key,
                                             annotation_value):
@@ -132,7 +133,7 @@ class REANAUserSecretsStore(object):
         except ApiException:
             log.error('Something went wrong while adding secrets to '
                       'Kubernetes secret for user {0}.'.format(
-                          str(self.user.id_)), exc_info=True)
+                          str(self.user_secret_store_id)), exc_info=True)
 
     def get_secrets(self):
         """List all secrets for a given user."""
@@ -180,4 +181,4 @@ class REANAUserSecretsStore(object):
         except ApiException:
             log.error('Something went wrong while deleting secrets from '
                       'Kubernetes secret for user {0}.'.format(
-                          str(self.user.id_)), exc_info=True)
+                          str(self.user_secret_store_id)), exc_info=True)
