@@ -19,15 +19,7 @@ readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
 tests_require = [
-    'check-manifest>=0.25',
-    'coverage>=4.0',
-    'httpretty>=0.8',
-    'isort>=4.2.2',
-    'pydocstyle>=1.0.0',
-    'pytest-cache>=1.0',
-    'pytest-cov>=1.8.0',
-    'pytest-pep8>=1.0.6',
-    'pytest-reana==0.6.0.dev20190702',
+    'pytest-reana>=0.6.0.dev20190705,<0.7.0',
 ]
 
 extras_require = {
