@@ -134,3 +134,18 @@ REANA_WORKFLOW_UMASK = 0o0002
 
 K8S_DEFAULT_NAMESPACE = "default"
 """Kubernetes workflow runtime default namespace"""
+
+WORKFLOW_RUNTIME_USER_NAME = os.getenv(
+    'WORKFLOW_RUNTIME_USER_NAME',
+    'reana')
+"""Default OS user name for running job controller."""
+
+WORKFLOW_RUNTIME_USER_UID = os.getenv(
+    'WORKFLOW_RUNTIME_USER_UID',
+    1000)
+"""Default user id for running job controller/workflow engine apps & jobs."""
+
+WORKFLOW_RUNTIME_USER_GID = os.getenv(
+    'WORKFLOW_RUNTIME_USER_GID',
+    0)
+"""Default group id for running job controller/workflow engine apps & jobs."""

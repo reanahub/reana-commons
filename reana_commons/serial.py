@@ -31,9 +31,18 @@ serial_workflow_schema = {
                     "commands"
                 ],
                 "properties": {
+                    "name": {
+                        "$id": "#/properties/steps/properties/environment",
+                        "type": "string",
+                    },
                     "environment": {
                         "$id": "#/properties/steps/properties/environment",
                         "type": "string",
+                    },
+                    "compute_backend": {
+                        "$id": "#/properties/steps/properties/compute_backend",
+                        "type": "string",
+                        "enum": ["kubernetes", "htcondorcern"],
                     },
                     "commands": {
                         "$id": "#/properties/steps/properties/commands",

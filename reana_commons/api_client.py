@@ -68,10 +68,11 @@ class JobControllerAPIClient(BaseAPIClient):
                prettified_cmd='',
                workflow_workspace='',
                job_name='',
-               cvmfs_mounts='false'):
+               cvmfs_mounts='false',
+               compute_backend=None):
         """Submit a job to RJC API.
 
-        :param name: Name of the job.
+        :param job_name: Name of the job.
         :param experiment: Experiment the job belongs to.
         :param image: Identifier of the Docker image which will run the job.
         :param cmd: String which represents the command to execute. It can be
@@ -79,6 +80,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :prettified_cmd: Original command submitted by the user.
         :workflow_workspace: Path to the workspace of the workflow.
         :cvmfs_mounts: String with CVMFS volumes to mount in job pods.
+        :compute_backend: Job compute backend.
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {
@@ -90,8 +92,11 @@ class JobControllerAPIClient(BaseAPIClient):
             'workflow_workspace': workflow_workspace,
             'job_name': job_name,
             'cvmfs_mounts': cvmfs_mounts,
-            'workflow_uuid': workflow_uuid
+            'workflow_uuid': workflow_uuid,
         }
+
+        if compute_backend:
+            job_spec['compute_backend'] = compute_backend
 
         response, http_response = self._client.jobs.create_job(job=job_spec).\
             result()

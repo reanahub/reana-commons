@@ -7,10 +7,9 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 
 """REANA Kubernetes secrets."""
-
+import base64
 import json
 import logging
-import os
 
 from kubernetes import client
 from kubernetes.client.rest import ApiException
@@ -182,3 +181,14 @@ class REANAUserSecretsStore(object):
             log.error('Something went wrong while deleting secrets from '
                       'Kubernetes secret for user {0}.'.format(
                           str(self.user_secret_store_id)), exc_info=True)
+
+    def get_secret_value(self, name):
+        """Return secret value if secret with specified name is present."""
+        secrets = self.get_secrets()
+        secret_names = [secret['name'] for secret in secrets]
+        if name in secret_names:
+            secrets_store = self._get_k8s_user_secrets_store()
+            secret_value = \
+                base64.standard_b64decode(secrets_store.data[name]).decode()
+            return secret_value
+        return None

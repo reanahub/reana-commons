@@ -9,6 +9,7 @@
 
 
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -273,4 +274,4 @@ def check_connection_to_job_controller(port=5000):
         time.sleep(10)
         retry_counter += 1
     else:
-        raise Exception('Job controller is not reachable.')
+        logging.error('Job controller is not reachable.', exc_info=True)
