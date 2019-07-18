@@ -13,7 +13,8 @@ import logging
 
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-from reana_commons.config import K8S_DEFAULT_NAMESPACE
+from reana_commons.config import K8S_DEFAULT_NAMESPACE, \
+    REANA_USER_SECRET_MOUNT_PATH
 from reana_commons.errors import (REANASecretAlreadyExists,
                                   REANASecretDoesNotExist)
 from reana_commons.k8s.api_client import current_k8s_corev1_api_client
@@ -106,8 +107,8 @@ class REANAUserSecretsStore(object):
 
         :param secrets: Dictionary containing new secrets, where keys are
             secret names and corresponding values are dictionaries containing
-            a value and a type (which determines how the secret should be
-            mounted).
+            base64 encoded value and a type (which determines how the secret
+            should be mounted).
         :returns: Updated user secret list.
         """
         try:
@@ -147,6 +148,75 @@ class REANAUserSecretsStore(object):
                  'type': secrets_types[secret_name]})
 
         return secrets_with_types
+
+    def get_env_secrets_as_k8s_spec(self):
+        """Return a list of specification items for env type secrets for k8s.
+
+        Return all environment variable secrets as a list of Kubernetes
+         environment variable specs.
+
+        Object reference: https://github.com/kubernetes-client/python/
+        blob/master/kubernetes/docs/V1EnvVar.md.
+        """
+        all_secrets = self.get_secrets()
+        env_secrets = []
+        for secret in all_secrets:
+            name = secret['name']
+            if secret['type'] == 'env':
+                env_secrets.append(
+                    {
+                        'name': name,
+                        'valueFrom': {
+                            'secretKeyRef': {
+                                'name': self.user_secret_store_id,
+                                'key': name
+                            }
+                        }
+                    })
+        return env_secrets
+
+    def get_file_secrets_as_k8s_specs(self):
+        """Return a list of k8s specification items for file-type secrets.
+
+        API Reference: https://kubernetes.io/docs/concepts/configuration/
+        secret/#using-secrets-as-files-from-a-pod
+        """
+        all_secrets = self.get_secrets()
+        file_secrets = []
+        for secret in all_secrets:
+            name = secret['name']
+            if secret['type'] == 'file':
+                file_secrets.append({
+                    'key': name,
+                    'path': name,
+                })
+        return file_secrets
+
+    def get_file_secrets_volume_as_k8s_specs(self):
+        """Return the k8s specification item for file-type secrets.
+
+        Return the specification for Kubernetes secret store API,
+        specifying the secrets that should be mounted as files.
+
+        Object reference: https://github.com/kubernetes-client/python/
+        blob/master/kubernetes/docs/V1SecretVolumeSource.md
+        """
+        user_id = self.user_secret_store_id
+        return {
+            'name': user_id,
+            'secret': {
+                'secretName': user_id,
+                'items': self.get_file_secrets_as_k8s_specs()
+            }
+        }
+
+    def get_secrets_volume_mount_as_k8s_spec(self):
+        """Return a secret volume mount object for secret store id."""
+        return {
+            'name': self.user_secret_store_id,
+            'mountPath': REANA_USER_SECRET_MOUNT_PATH,
+            'readOnly': True
+        }
 
     def delete_secrets(self, secrets):
         """Delete one or more of users secrets.

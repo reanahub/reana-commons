@@ -150,3 +150,8 @@ WORKFLOW_RUNTIME_USER_GID = os.getenv(
     'WORKFLOW_RUNTIME_USER_GID',
     0)
 """Default group id for running job controller/workflow engine apps & jobs."""
+
+REANA_USER_SECRET_MOUNT_PATH = os.getenv(
+    'REANA_USER_SECRET_MOUNT_PATH',
+    '/etc/reana/secrets'
+)
