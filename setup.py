@@ -45,11 +45,11 @@ setup_requires = [
 
 install_requires = [
     'bravado>=10.2,<10.4',
-    'celery>=4.1.0,<4.3',
+    'celery>=4.3,<4.4',
     'checksumdir>=1.1.4,<1.2',
     'click>=7.0',
     'jsonschema[format]>=2.6.0',
-    'kombu>=4.2.0,<4.4',
+    'kombu>=4.6.0,<4.7',
     'Werkzeug>=0.14.1',
 ]
 
