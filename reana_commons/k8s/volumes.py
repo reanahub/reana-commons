@@ -79,7 +79,7 @@ def get_shared_volume(workflow_workspace, shared_volume_root):
         "mountPath": mount_path,
         "subPath": workflow_workspace_relative_to_owner}
 
-    if REANA_STORAGE_BACKEND == "CEPHFS":
+    if REANA_STORAGE_BACKEND == "cephfs":
         volume = get_k8s_cephfs_volume()
     else:
         volume = get_k8s_hostpath_volume(shared_volume_root)

@@ -126,8 +126,8 @@ REANA_CVMFS_SC_TEMPLATE = {
 INTERACTIVE_SESSION_TYPES = ['jupyter']
 """List of supported interactive systems."""
 
-REANA_STORAGE_BACKEND = os.getenv('REANA_STORAGE_BACKEND', 'LOCAL')
-"""Storage backend deployed in current REANA cluster."""
+REANA_STORAGE_BACKEND = os.getenv('REANA_STORAGE_BACKEND', 'local')
+"""Storage backend deployed in current REANA cluster ['local'|'cephfs']."""
 
 REANA_WORKFLOW_UMASK = 0o0002
 """Umask used for workflow worksapce."""
