@@ -100,7 +100,8 @@ CVMFS_REPOSITORIES = {
     'na61.cern.ch': 'na61',
     'na62.cern.ch': 'na62',
     'projects.cern.ch': 'projects',
-    'sft.cern.ch': 'sft'
+    'sft.cern.ch': 'sft',
+    'unpacked.cern.ch': 'unpacked'
 }
 """CVMFS repositories available for mounting."""
 
