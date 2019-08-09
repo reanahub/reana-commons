@@ -33,7 +33,6 @@ Features
 - common API clients for internal communication
 - centralised OpenAPI specifications for REANA components
 - AMQP connection management and communication
-- common Celery tasks
 - utility functions for cluster components
 
 Useful links

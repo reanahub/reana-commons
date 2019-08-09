@@ -5,15 +5,13 @@
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
-"""REANA common Celery tasks."""
+"""REANA common tasks."""
 
 import importlib
 import logging
 
-from celery import shared_task
 from kubernetes.client.rest import ApiException
 
-from reana_commons.api_client import JobControllerAPIClient
 from reana_commons.config import K8S_MAXIMUM_CONCURRENT_JOBS
 from reana_commons.k8s.api_client import (current_k8s_batchv1_api_client,
                                           current_k8s_corev1_api_client)
