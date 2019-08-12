@@ -155,3 +155,5 @@ REANA_USER_SECRET_MOUNT_PATH = os.getenv(
     'REANA_USER_SECRET_MOUNT_PATH',
     '/etc/reana/secrets'
 )
+"""Default mount path for user secrets which is mounted for job pod &
+   workflow engines."""
