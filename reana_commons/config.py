@@ -89,6 +89,7 @@ CVMFS_REPOSITORIES = {
     'atlas-nightlies.cern.ch': 'atlas-nightlies',
     'cms.cern.ch': 'cms',
     'cms-ib.cern.ch': 'cms-ib',
+    'cms-opendata-conddb.cern.ch': 'cms-opendata-conddb',
     'compass.cern.ch': 'compass',
     'compass-condb.cern.ch': 'compass-condb',
     'cvmfs-config.cern.ch': 'cvmfs-config',
