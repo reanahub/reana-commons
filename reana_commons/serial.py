@@ -44,6 +44,11 @@ serial_workflow_schema = {
                         "type": "string",
                         "enum": ["kubernetes", "htcondorcern"],
                     },
+                    "kerberos": {
+                        "$id": "#/properties/steps/properties/kerberos",
+                        "type": "boolean",
+                        "default": "false",
+                    },
                     "commands": {
                         "$id": "#/properties/steps/properties/commands",
                         "type": "array",

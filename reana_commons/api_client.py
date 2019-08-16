@@ -69,7 +69,8 @@ class JobControllerAPIClient(BaseAPIClient):
                workflow_workspace='',
                job_name='',
                cvmfs_mounts='false',
-               compute_backend=None):
+               compute_backend=None,
+               kerberos=False):
         """Submit a job to RJC API.
 
         :param job_name: Name of the job.
@@ -81,6 +82,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :workflow_workspace: Path to the workspace of the workflow.
         :cvmfs_mounts: String with CVMFS volumes to mount in job pods.
         :compute_backend: Job compute backend.
+        :kerberos: Decides if kerberos should be provided for job container.
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {
@@ -97,6 +99,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if compute_backend:
             job_spec['compute_backend'] = compute_backend
+
+        if kerberos:
+            job_spec['kerberos'] = kerberos
 
         response, http_response = self._client.jobs.create_job(job=job_spec).\
             result()
