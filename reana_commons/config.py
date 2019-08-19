@@ -158,3 +158,10 @@ REANA_USER_SECRET_MOUNT_PATH = os.getenv(
 )
 """Default mount path for user secrets which is mounted for job pod &
    workflow engines."""
+
+CVMFS_CMS_SITE = os.getenv(
+    'CMS_SITE',
+    "T2_CH_CERN"
+)
+"""CMS site configuration /cvmfs/cms.cern.ch/SITECONF/<CMS_SITE> to use when
+   mounting CMS CVMFS repo."""
