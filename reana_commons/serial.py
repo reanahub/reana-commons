@@ -42,7 +42,7 @@ serial_workflow_schema = {
                     "compute_backend": {
                         "$id": "#/properties/steps/properties/compute_backend",
                         "type": "string",
-                        "enum": ["kubernetes", "htcondorcern"],
+                        "enum": ["kubernetes", "htcondorcern", "slurmcern"],
                     },
                     "kerberos": {
                         "$id": "#/properties/steps/properties/kerberos",
