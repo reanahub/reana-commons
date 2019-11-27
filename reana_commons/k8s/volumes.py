@@ -12,7 +12,7 @@ import os
 
 import json
 
-from reana_commons.config import REANA_STORAGE_BACKEND
+from reana_commons.config import REANA_STORAGE_BACKEND, SHARED_VOLUME_PATH
 
 REANA_SHARED_VOLUME_NAME = "reana-shared-volume"
 REANA_CEPHFS_CLAIM_NAME = "manila-cephfs-pvc"
@@ -61,18 +61,17 @@ def get_k8s_hostpath_volume(root_path):
     }
 
 
-def get_shared_volume(workflow_workspace, shared_volume_root):
+def get_shared_volume(workflow_workspace):
     """Get shared CephFS/hostPath volume to a given job spec.
 
     :param workflow_workspace: Absolute path to the job's workflow workspace.
-    :param shared_volume_root: Root path in the underlying storage backend.
     :returns: Tuple consisting of the Kubernetes volumeMount and the volume.
     """
     workflow_workspace_relative_to_owner = workflow_workspace
     if os.path.isabs(workflow_workspace):
         workflow_workspace_relative_to_owner = \
-            os.path.relpath(workflow_workspace, shared_volume_root)
-    mount_path = os.path.join(shared_volume_root,
+            os.path.relpath(workflow_workspace, SHARED_VOLUME_PATH)
+    mount_path = os.path.join(SHARED_VOLUME_PATH,
                               workflow_workspace_relative_to_owner)
     volume_mount = {
         "name": REANA_SHARED_VOLUME_NAME,
@@ -82,6 +81,6 @@ def get_shared_volume(workflow_workspace, shared_volume_root):
     if REANA_STORAGE_BACKEND == "cephfs":
         volume = get_k8s_cephfs_volume()
     else:
-        volume = get_k8s_hostpath_volume(shared_volume_root)
+        volume = get_k8s_hostpath_volume(SHARED_VOLUME_PATH)
 
     return volume_mount, volume

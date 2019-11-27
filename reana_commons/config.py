@@ -158,3 +158,6 @@ REANA_USER_SECRET_MOUNT_PATH = os.getenv(
 )
 """Default mount path for user secrets which is mounted for job pod &
    workflow engines."""
+
+SHARED_VOLUME_PATH = os.getenv('SHARED_VOLUME_PATH', '/var/reana')
+"""Default shared volume path."""
