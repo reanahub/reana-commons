@@ -76,6 +76,18 @@
         "summary": "Get access token from GitLab"
       }
     },
+    "/api/gitlab/connect": {
+      "get": {
+        "description": "Initiate connection to GitLab to authorize accessing the authenticated user's API.",
+        "operationId": "gitlab_connect",
+        "responses": {
+          "302": {
+            "description": "Redirection to GitLab site."
+          }
+        },
+        "summary": "Initiate connection to GitLab."
+      }
+    },
     "/api/gitlab/projects": {
       "get": {
         "description": "Retrieve projects from GitLab.",
@@ -154,6 +166,55 @@
           }
         },
         "summary": "TEMPORARY displays a message about how to access a resource."
+      }
+    },
+    "/api/logout": {},
+    "/api/me": {
+      "get": {
+        "description": "This resource provides basic information about an authenticated user based on the session cookie presence.",
+        "operationId": "get_me",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "User information correspoding to the session cookie sent in the request.",
+            "examples": {
+              "application/json": {
+                "email": "user@reana.info",
+                "reana_token": "Drmhze6EPcv0fN_81Bj-nA"
+              }
+            },
+            "schema": {
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "reana_token": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Error message indicating that the uses is not authenticated.",
+            "examples": {
+              "application/json": {
+                "error": "User not logged in"
+              }
+            },
+            "schema": {
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Gets information about authenticated user."
       }
     },
     "/api/ping": {
