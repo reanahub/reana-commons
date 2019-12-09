@@ -87,7 +87,7 @@ class WorkflowStatusPublisher(BasePublisher):
     """Progress publisher to MQ."""
 
     def __init__(self, **kwargs):
-        """Constructor."""
+        """Initialise the WorkflowStatusPublisher class."""
         queue = 'jobs-status'
         if 'queue' not in kwargs:
             kwargs['queue'] = 'jobs-status'
@@ -122,7 +122,7 @@ class WorkflowSubmissionPublisher(BasePublisher):
     """Workflow submission publisher."""
 
     def __init__(self, **kwargs):
-        """Constructor."""
+        """Initialise the WorkflowSubmissionPublisher class."""
         queue = 'workflow-submission'
         super(WorkflowSubmissionPublisher, self).__init__(
             queue,
