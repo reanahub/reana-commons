@@ -33,6 +33,8 @@ def create_api_client(api='BatchV1'):
         api_client = client.StorageV1Api()
     elif api == 'AppsV1':
         api_client = client.AppsV1Api()
+    elif api == 'networking.k8s.io/v1beta1':
+        api_client = client.NetworkingV1beta1Api()
     else:
         api_client = client.BatchV1Api()
     return api_client
@@ -41,8 +43,8 @@ def create_api_client(api='BatchV1'):
 current_k8s_batchv1_api_client = LocalProxy(create_api_client)
 current_k8s_corev1_api_client = LocalProxy(partial(create_api_client,
                                                    api='CoreV1'))
-current_k8s_extensions_v1beta1 = LocalProxy(partial(create_api_client,
-                                                    api='extensions/v1beta1'))
+current_k8s_networking_v1beta1 = LocalProxy(partial(
+    create_api_client, api='networking.k8s.io/v1beta1'))
 current_k8s_storagev1_api_client = LocalProxy(partial(create_api_client,
                                                       api='StorageV1'))
 current_k8s_appsv1_api_client = LocalProxy(partial(create_api_client,

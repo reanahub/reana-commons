@@ -186,3 +186,6 @@ K8S_CERN_EOS_AVAILABLE = os.getenv('K8S_CERN_EOS_AVAILABLE')
 
 This a configuration set by the system administrators through REANA-Cluster.
 """
+
+K8S_REANA_SERVICE_ACCOUNT_NAME = os.getenv('K8S_REANA_SERVICE_ACCOUNT_NAME')
+"""REANA service account in the deployed Kubernetes cluster."""
