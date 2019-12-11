@@ -70,7 +70,8 @@ class JobControllerAPIClient(BaseAPIClient):
                job_name='',
                cvmfs_mounts='false',
                compute_backend=None,
-               kerberos=False):
+               kerberos=False,
+               kubernetes_uid=None):
         """Submit a job to RJC API.
 
         :param job_name: Name of the job.
@@ -83,10 +84,10 @@ class JobControllerAPIClient(BaseAPIClient):
         :cvmfs_mounts: String with CVMFS volumes to mount in job pods.
         :compute_backend: Job compute backend.
         :kerberos: Decides if kerberos should be provided for job container.
+        :kubernetes_uid: Overwrites the default user id in the job container.
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {
-            'experiment': experiment,
             'docker_img': image,
             'cmd': cmd,
             'prettified_cmd': prettified_cmd,
@@ -102,6 +103,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if kerberos:
             job_spec['kerberos'] = kerberos
+
+        if kubernetes_uid:
+            job_spec['kubernetes_uid'] = kubernetes_uid
 
         response, http_response = self._client.jobs.create_job(job=job_spec).\
             result()
