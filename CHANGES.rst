@@ -1,6 +1,19 @@
 Changes
 =======
 
+Version 0.6.0 (2019-12-19)
+--------------------------
+
+- Adds new API for Gitlab integration.
+- Adds new Kubernetes client API for ingresses.
+- Adds new APIs for management of user secrets.
+- Adds EOS storage Kubernetes configuration.
+- Adds HTCondor and Slurm compute backends.
+- Adds support for streaming file uploads.
+- Allows unpacked CVMFS and CMS open data volumes.
+- Adds Serial workflow step name and compute backend.
+- Adds support for Python 3.8.
+
 Version 0.5.0 (2019-04-16)
 --------------------------
 
