@@ -1,7 +1,7 @@
 Changes
 =======
 
-Version 0.6.0 (2019-12-19)
+Version 0.6.0 (2019-12-20)
 --------------------------
 
 - Adds new API for Gitlab integration.
