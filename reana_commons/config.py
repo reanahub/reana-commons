@@ -12,7 +12,7 @@ import logging
 import os
 
 MQ_URL = os.getenv('RABBIT_MQ_URL',
-                   'message-broker.default.svc.cluster.local')
+                   'reana-message-broker.default.svc.cluster.local')
 """Message queue (RabbitMQ) server host name."""
 
 MQ_USER = os.getenv('RABBIT_MQ_USER', 'test')
@@ -51,16 +51,18 @@ MQ_PRODUCER_MAX_RETRIES = 3
 OPENAPI_SPECS = {
     'reana-workflow-controller': (
         'http://{address}:{port}'.format(
-            address=os.getenv('WORKFLOW_CONTROLLER_SERVICE_HOST', '0.0.0.0'),
-            port=os.getenv('WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP', '5000')),
+            address=os.getenv('REANA_WORKFLOW_CONTROLLER_SERVICE_HOST',
+                              '0.0.0.0'),
+            port=os.getenv('REANA_WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP',
+                           '5000')),
         'reana_workflow_controller.json'),
     'reana-server': (
         os.getenv('REANA_SERVER_URL', 'http://0.0.0.0:80'),
         'reana_server.json'),
     'reana-job-controller': (
         'http://{address}:{port}'.format(
-            address=os.getenv('JOB_CONTROLLER_SERVICE_HOST', '0.0.0.0'),
-            port=os.getenv('JOB_CONTROLLER_SERVICE_PORT_HTTP', '5000')),
+            address=os.getenv('REANA_JOB_CONTROLLER_SERVICE_HOST', '0.0.0.0'),
+            port=os.getenv('REANA_JOB_CONTROLLER_SERVICE_PORT_HTTP', '5000')),
         'reana_job_controller.json')
 }
 """REANA Workflow Controller address."""
