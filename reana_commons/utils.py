@@ -181,9 +181,13 @@ def build_caching_info_message(job_spec,
     return caching_info_message
 
 
-def get_workspace_disk_usage(workspace, summarize=False):
+def get_workspace_disk_usage(workspace, summarize=False, block_size=None):
     """Retrieve disk usage information of a workspace."""
-    command = ['du', '-h']
+    command = ['du']
+    if block_size in ['b', 'k']:
+        command.append('-{}'.format(block_size))
+    else:
+        command.append('-h')
     if summarize:
         command.append('-s')
     else:
