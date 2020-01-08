@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit and manage workflows",
     "title": "REANA Workflow Controller",
-    "version": "0.5.0"
+    "version": "0.7.0.dev20191230"
   },
   "parameters": {},
   "paths": {
@@ -32,6 +32,13 @@
             "name": "verbose",
             "required": false,
             "type": "boolean"
+          },
+          {
+            "description": "Size format, either 'b' (bytes) or 'k' (kilobytes).",
+            "in": "query",
+            "name": "block_size",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [
