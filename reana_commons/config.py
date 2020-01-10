@@ -186,7 +186,8 @@ https://clouddocs.web.cern.ch/containers/tutorials/eos.html.
 K8S_CERN_EOS_AVAILABLE = os.getenv('K8S_CERN_EOS_AVAILABLE')
 """Whether EOS is available in the current cluster or not.
 
-This a configuration set by the system administrators through REANA-Cluster.
+This a configuration set by the system administrators through Helm values at
+cluster creation time.
 """
 
 K8S_REANA_SERVICE_ACCOUNT_NAME = os.getenv('K8S_REANA_SERVICE_ACCOUNT_NAME')
