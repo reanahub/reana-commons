@@ -32,6 +32,26 @@ def test_click_table_printer(capsys):
                   '\nvery_very_long_row_two\n'
 
 
+def test_click_table_printer_filter(capsys):
+    """Test click_table_printer with filter."""
+    headers = ['header_one', 'header_two']
+    sample_data = [['very_very_long_row_one', 'second_column'],
+                   ['very_very_long_row_two', 'second_column']]
+    click_table_printer(headers, [headers[1]], sample_data)
+    out, err = capsys.readouterr()
+    assert out == 'HEADER_TWO   \nsecond_column\nsecond_column\n'
+
+
+def test_click_table_printer_filter_wrong_header(capsys):
+    """Test click_table_printer with filter when header is non existing."""
+    headers = ['header_one', 'header_two']
+    sample_data = [['very_very_long_row_one', 'second_column'],
+                   ['very_very_long_row_two', 'second_column']]
+    click_table_printer(headers, ['badheader'], sample_data)
+    out, err = capsys.readouterr()
+    assert out == '\n\n\n'
+
+
 def test_calculate_hash_of_dir(sample_workflow_workspace):
     """Test calculate_hash_of_dir."""
     non_existing_dir_hash = calculate_hash_of_dir('a/b/c')

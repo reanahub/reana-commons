@@ -26,15 +26,19 @@ from reana_commons.config import (CVMFS_REPOSITORIES, REANA_CVMFS_PVC_TEMPLATE,
 def click_table_printer(headers, _filter, data):
     """Generate space separated output for click commands."""
     _filter = [h.lower() for h in _filter] + [h.upper() for h in _filter]
+    header_indexes = [i for i, item in enumerate(headers)]
+    if _filter:
+        header_indexes = \
+            [i for i, item in enumerate(headers) if item.upper() in _filter]
     headers = [h for h in headers if not _filter or h in _filter]
     # Maximum header width
     header_widths = [len(h) for h in headers]
 
     for row in data:
-        for idx in range(len(headers)):
+        for i, idx in enumerate(header_indexes):
             # If a row contains an element which is wider update maximum width
-            if header_widths[idx] < len(str(row[idx])):
-                header_widths[idx] = len(str(row[idx]))
+            if header_widths[i] < len(str(row[idx])):
+                header_widths[i] = len(str(row[idx]))
     # Prepare the format string with the maximum widths
     formatted_output_parts = ['{{:<{0}}}'.format(hw)
                               for hw in header_widths]
@@ -42,6 +46,8 @@ def click_table_printer(headers, _filter, data):
     # Print the table with the headers capitalized
     click.echo(formatted_output.format(*[h.upper() for h in headers]))
     for row in data:
+        if header_indexes:
+            row = [row[i] for i in header_indexes]
         click.echo(formatted_output.format(*row))
 
 
