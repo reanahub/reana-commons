@@ -74,7 +74,7 @@ REANA_READY_CONDITIONS = {'reana_commons.tasks':
                           ['check_predefined_conditions',
                            'check_running_job_count']}
 
-REANA_LOG_LEVEL = logging.getLevelName(os.getenv('REANA_LOG_LEVEL', 'ERROR'))
+REANA_LOG_LEVEL = logging.getLevelName(os.getenv('REANA_LOG_LEVEL', 'INFO'))
 """Log verbosity level for REANA components."""
 
 REANA_LOG_FORMAT = os.getenv('REANA_LOG_FORMAT',
