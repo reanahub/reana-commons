@@ -121,7 +121,7 @@ REANA_CVMFS_PVC_TEMPLATE = {
 REANA_CVMFS_SC_TEMPLATE = {
     "metadata":
         {"name": ""},
-    "provisioner": "csi-cvmfsplugin",
+    "provisioner": "cvmfs.csi.cern.ch",
     "parameters":
         {"repository": ""}
 }
