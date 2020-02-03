@@ -133,6 +133,9 @@ INTERACTIVE_SESSION_TYPES = ['jupyter']
 REANA_STORAGE_BACKEND = os.getenv('REANA_STORAGE_BACKEND', 'local')
 """Storage backend deployed in current REANA cluster ['local'|'cephfs']."""
 
+REANA_CEPHFS_PVC_NAME = os.getenv("REANA_CEPHFS_PVC_NAME", "reana-cephfs")
+"""Name of the shared CEPHFS PVC which will be used by all REANA jobs."""
+
 REANA_WORKFLOW_UMASK = 0o0002
 """Umask used for workflow worksapce."""
 

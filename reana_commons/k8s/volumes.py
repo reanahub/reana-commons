@@ -12,10 +12,10 @@ import os
 
 import json
 
-from reana_commons.config import REANA_STORAGE_BACKEND, SHARED_VOLUME_PATH
+from reana_commons.config import (REANA_CEPHFS_PVC_NAME,
+                                  REANA_STORAGE_BACKEND, SHARED_VOLUME_PATH)
 
 REANA_SHARED_VOLUME_NAME = "reana-shared-volume"
-REANA_CEPHFS_CLAIM_NAME = "manila-cephfs-pvc"
 
 
 def get_k8s_cephfs_volume():
@@ -26,9 +26,9 @@ def get_k8s_cephfs_volume():
     return {
         "name": REANA_SHARED_VOLUME_NAME,
         "persistentVolumeClaim": {
-            "claimName": REANA_CEPHFS_CLAIM_NAME
+            "claimName": REANA_CEPHFS_PVC_NAME
         },
-        "readOnly": "false"
+        "readOnly": False
     }
 
 
@@ -43,7 +43,7 @@ def get_k8s_cvmfs_volume(repository):
         "persistentVolumeClaim": {
             "claimName": "csi-cvmfs-{}-pvc".format(repository)
         },
-        "readOnly": "true"
+        "readOnly": True
     }
 
 
