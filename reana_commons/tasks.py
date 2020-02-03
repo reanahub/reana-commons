@@ -12,7 +12,7 @@ import logging
 
 from kubernetes.client.rest import ApiException
 
-from reana_commons.config import K8S_MAXIMUM_CONCURRENT_JOBS
+from reana_commons.config import REANA_MAX_CONCURRENT_BATCH_WORKFLOWS
 from reana_commons.k8s.api_client import (current_k8s_batchv1_api_client,
                                           current_k8s_corev1_api_client)
 
@@ -49,12 +49,13 @@ def check_predefined_conditions():
     return True
 
 
-def check_running_job_count():
-    """Check upper limit on running jobs."""
+def check_running_reana_batch_workflows_count():
+    """Check upper limit on running REANA batch workflows."""
     try:
-        job_list = current_k8s_batchv1_api_client.\
-            list_job_for_all_namespaces()
-        if len(job_list.items) > K8S_MAXIMUM_CONCURRENT_JOBS:
+        batch_workflows = current_k8s_batchv1_api_client.\
+            list_job_for_all_namespaces(
+                label_selector='reana_workflow_mode=batch')
+        if len(batch_workflows.items) >= REANA_MAX_CONCURRENT_BATCH_WORKFLOWS:
             return False
     except ApiException as e:
         log.error('Something went wrong while getting running job list.')

@@ -67,12 +67,13 @@ OPENAPI_SPECS = {
 }
 """REANA Workflow Controller address."""
 
-K8S_MAXIMUM_CONCURRENT_JOBS = 10
-"""Upper limit on concurrent jobs running in the cluster."""
+REANA_MAX_CONCURRENT_BATCH_WORKFLOWS = int(os.getenv(
+    'REANA_MAX_CONCURRENT_BATCH_WORKFLOWS', '30'))
+"""Upper limit on concurrent REANA batch workflows running in the cluster."""
 
 REANA_READY_CONDITIONS = {'reana_commons.tasks':
                           ['check_predefined_conditions',
-                           'check_running_job_count']}
+                           'check_running_reana_batch_workflows_count']}
 
 REANA_LOG_LEVEL = logging.getLevelName(os.getenv('REANA_LOG_LEVEL', 'INFO'))
 """Log verbosity level for REANA components."""
