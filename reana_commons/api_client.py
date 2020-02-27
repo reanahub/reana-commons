@@ -22,15 +22,19 @@ from reana_commons.errors import MissingAPIClientConfiguration
 class BaseAPIClient(object):
     """REANA API client code."""
 
+    _bravado_client_instance = None
+
     def __init__(self, service, http_client=None):
         """Create an OpenAPI client."""
-        self._load_config_from_env()
         server_url, spec_file = OPENAPI_SPECS[service]
         json_spec = self._get_spec(spec_file)
-        self._client = SwaggerClient.from_spec(
-            json_spec,
-            http_client=http_client or RequestsClient(ssl_verify=False),
-            config={'also_return_response': True})
+        if BaseAPIClient._bravado_client_instance is None:
+            BaseAPIClient._bravado_client_instance = SwaggerClient.from_spec(
+                json_spec,
+                http_client=http_client or RequestsClient(ssl_verify=False),
+                config={'also_return_response': True})
+        self._load_config_from_env()
+        self._client = BaseAPIClient._bravado_client_instance
         if server_url is None:
             raise MissingAPIClientConfiguration(
                 'Configuration to connect to {} is missing.'.format(service)
