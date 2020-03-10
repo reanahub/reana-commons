@@ -75,6 +75,9 @@
           "default": true,
           "type": "boolean"
         },
+        "unpacked_img": {
+          "type": "boolean"
+        },
         "workflow_uuid": {
           "type": "string"
         },
@@ -94,7 +97,7 @@
   "info": {
     "description": "REANA Job Controller API",
     "title": "reana-job-controller",
-    "version": "0.5.1"
+    "version": "0.7.0.dev20191230"
   },
   "parameters": {},
   "paths": {

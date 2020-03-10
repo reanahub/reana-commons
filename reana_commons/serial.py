@@ -39,6 +39,11 @@ serial_workflow_schema = {
                         "$id": "#/properties/steps/properties/environment",
                         "type": "string",
                     },
+                    "unpacked_image": {
+                        "$id": "#/properties/steps/properties/unpacked_image",
+                        "type": "boolean",
+                        "default": "false",
+                    },
                     "compute_backend": {
                         "$id": "#/properties/steps/properties/compute_backend",
                         "type": "string",
