@@ -59,6 +59,11 @@ serial_workflow_schema = {
                         "type": "integer",
                         "default": "None",
                     },
+                    "voms_proxy": {
+                        "$id": "#/properties/steps/properties/voms_proxy",
+                        "type": "boolean",
+                        "default": "false",
+                    },
                     "commands": {
                         "$id": "#/properties/steps/properties/commands",
                         "type": "array",

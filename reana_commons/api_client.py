@@ -85,7 +85,8 @@ class JobControllerAPIClient(BaseAPIClient):
                compute_backend=None,
                kerberos=False,
                kubernetes_uid=None,
-               unpacked_img=False):
+               unpacked_img=False,
+               voms_proxy=False):
         """Submit a job to RJC API.
 
         :param job_name: Name of the job.
@@ -98,6 +99,8 @@ class JobControllerAPIClient(BaseAPIClient):
         :cvmfs_mounts: String with CVMFS volumes to mount in job pods.
         :compute_backend: Job compute backend.
         :kerberos: Decides if kerberos should be provided for job container.
+        :voms_proxy: Decides if grid proxy should be provided for job
+            container.
         :kubernetes_uid: Overwrites the default user id in the job container.
         :unpacked_img: Decides if unpacked iamges should be used.
         :return: Returns a dict with the ``job_id``.
@@ -118,6 +121,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if kerberos:
             job_spec['kerberos'] = kerberos
+
+        if voms_proxy:
+            job_spec['voms_proxy'] = voms_proxy
 
         if kubernetes_uid:
             job_spec['kubernetes_uid'] = kubernetes_uid

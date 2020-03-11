@@ -209,7 +209,7 @@ class REANAUserSecretsStore(object):
             'name': user_id,
             'secret': {
                 'secretName': user_id,
-                'items': self.get_file_secrets_as_k8s_specs()
+                'items': self.get_file_secrets_as_k8s_specs(),
             }
         }
 
