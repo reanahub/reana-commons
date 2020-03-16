@@ -29,7 +29,7 @@ extras_require = {
     ],
     'tests': tests_require,
     'kubernetes': [
-        'kubernetes>=10.0.1,<11.0.0',
+        'kubernetes>=11.0.0,<12.0.0',
     ],
 }
 
