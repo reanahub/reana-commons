@@ -14,6 +14,7 @@ import pkg_resources
 from bravado.client import RequestsClient, SwaggerClient
 from bravado.exception import (HTTPBadRequest, HTTPInternalServerError,
                                HTTPNotFound)
+from mock import Mock
 
 from reana_commons.config import OPENAPI_SPECS
 from reana_commons.errors import MissingAPIClientConfiguration
@@ -28,7 +29,15 @@ class BaseAPIClient(object):
         """Create an OpenAPI client."""
         server_url, spec_file = OPENAPI_SPECS[service]
         json_spec = self._get_spec(spec_file)
-        if BaseAPIClient._bravado_client_instance is None:
+        current_instance = BaseAPIClient._bravado_client_instance
+        # We reinstantiate the bravado client instance if
+        # 1. The current instance doesn't exist, or
+        # 2. We're passing an http client (likely a mock), or
+        # 3. The current instance is a Mock, meaning that either we want to
+        #    use the `RequestClient` or we're passing a different mock.
+        if (current_instance is None or
+                http_client or
+                isinstance(current_instance.swagger_spec.http_client, Mock)):
             BaseAPIClient._bravado_client_instance = SwaggerClient.from_spec(
                 json_spec,
                 http_client=http_client or RequestsClient(ssl_verify=False),
