@@ -11,8 +11,46 @@
 import logging
 import os
 
-MQ_URL = os.getenv('RABBIT_MQ_URL',
-                   'reana-message-broker.default.svc.cluster.local')
+REANA_COMPONENT_PREFIX = os.getenv('REANA_COMPONENT_PREFIX', 'reana')
+"""REANA component naming prefix, i.e. my-prefix-job-controller.
+
+Useful to find the correct fully qualified name of a infrastructure component
+and to correctly create new runtime pods.
+"""
+
+REANA_COMPONENT_PREFIX_ENVIRONMENT = \
+    REANA_COMPONENT_PREFIX.upper().replace('-', '_')
+"""Environment variable friendly REANA component prefix."""
+
+REANA_COMPONENT_TYPES = [
+    'run-batch',
+    'run-session',
+    'run-job',
+    'secretsstore',
+]
+"""Type of REANA components.
+
+Note: this list is used for validation of on demand created REANA components
+names, this is why it doesn't contain REANA instrastructure components.
+
+``run-batch``: An instance of reana-workflow-engine-_
+``run-session``: An instance of an interactive session
+``run-job``: An instance of a workflow's job
+``secretsstore``: An instance of a user secret store
+"""
+
+REANA_COMPONENT_NAMING_SCHEME = os.getenv('REANA_COMPONENT_NAMING_SCHEME',
+                                          '{prefix}-{component_type}-{id}')
+"""The naming scheme the components created by REANA should follow.
+
+It is a Python format string which take as arguments:
+- ``prefix``: the ``REANA_COMPONENT_PREFIX``
+- ``component_type``: one of ``REANA_COMPONENT_TYPES``
+- ``id``: unique identifier for the component, by default UUID4.
+"""
+
+MQ_HOST = os.getenv('RABBIT_MQ_HOST',
+                    f'{REANA_COMPONENT_PREFIX}-message-broker')
 """Message queue (RabbitMQ) server host name."""
 
 MQ_USER = os.getenv('RABBIT_MQ_USER', 'test')
@@ -25,7 +63,7 @@ MQ_PORT = os.getenv('RABBIT_MQ_PORT', 5672)
 """Message queue (RabbitMQ) service port."""
 
 MQ_CONNECTION_STRING = os.getenv('RABBIT_MQ', 'amqp://{0}:{1}@{2}//'.format(
-    MQ_USER, MQ_PASS, MQ_URL))
+    MQ_USER, MQ_PASS, MQ_HOST))
 """Message queue (RabbitMQ) connection string."""
 
 MQ_DEFAULT_FORMAT = 'json'
@@ -51,18 +89,22 @@ MQ_PRODUCER_MAX_RETRIES = 3
 OPENAPI_SPECS = {
     'reana-workflow-controller': (
         'http://{address}:{port}'.format(
-            address=os.getenv('REANA_WORKFLOW_CONTROLLER_SERVICE_HOST',
-                              '0.0.0.0'),
-            port=os.getenv('REANA_WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP',
-                           '5000')),
+            address=os.getenv(
+                f'{REANA_COMPONENT_PREFIX_ENVIRONMENT}_'
+                f'WORKFLOW_CONTROLLER_SERVICE_HOST',
+                '0.0.0.0'),
+            port=os.getenv(
+                f'{REANA_COMPONENT_PREFIX_ENVIRONMENT}_'
+                f'WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP',
+                '5000')),
         'reana_workflow_controller.json'),
     'reana-server': (
         os.getenv('REANA_SERVER_URL', 'http://0.0.0.0:80'),
         'reana_server.json'),
     'reana-job-controller': (
         'http://{address}:{port}'.format(
-            address=os.getenv('REANA_JOB_CONTROLLER_SERVICE_HOST', '0.0.0.0'),
-            port=os.getenv('REANA_JOB_CONTROLLER_SERVICE_PORT_HTTP', '5000')),
+            address='0.0.0.0',
+            port='5000'),
         'reana_job_controller.json')
 }
 """REANA Workflow Controller address."""
@@ -134,7 +176,9 @@ INTERACTIVE_SESSION_TYPES = ['jupyter']
 REANA_STORAGE_BACKEND = os.getenv('REANA_STORAGE_BACKEND', 'local')
 """Storage backend deployed in current REANA cluster ['local'|'cephfs']."""
 
-REANA_CEPHFS_PVC_NAME = os.getenv("REANA_CEPHFS_PVC_NAME", "reana-cephfs")
+REANA_SHARED_PVC_NAME = os.getenv(
+    "REANA_SHARED_PVC_NAME",
+    f"{REANA_COMPONENT_PREFIX}-shared-persistent-volume")
 """Name of the shared CEPHFS PVC which will be used by all REANA jobs."""
 
 REANA_WORKFLOW_UMASK = 0o0002

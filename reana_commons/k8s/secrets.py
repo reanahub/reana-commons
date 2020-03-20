@@ -13,11 +13,13 @@ import logging
 
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-from reana_commons.config import K8S_DEFAULT_NAMESPACE, \
-    REANA_USER_SECRET_MOUNT_PATH
+from reana_commons.config import (K8S_DEFAULT_NAMESPACE,
+                                  REANA_COMPONENT_PREFIX,
+                                  REANA_USER_SECRET_MOUNT_PATH)
 from reana_commons.errors import (REANASecretAlreadyExists,
                                   REANASecretDoesNotExist)
 from reana_commons.k8s.api_client import current_k8s_corev1_api_client
+from reana_commons.utils import build_unique_component_name
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +29,8 @@ class REANAUserSecretsStore(object):
 
     def __init__(self, user_secret_store_id):
         """Initialise the secret store object."""
-        self.user_secret_store_id = user_secret_store_id
+        self.user_secret_store_id = build_unique_component_name(
+            'secretsstore', str(user_secret_store_id))
 
     def _initialise_user_secrets_store(self):
         """Initialise an empty Kubernetes secret for a given user."""

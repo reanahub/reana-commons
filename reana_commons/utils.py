@@ -14,12 +14,17 @@ import os
 import shutil
 import subprocess
 import time
+import uuid
 from hashlib import md5
 
 import click
 import requests
 
-from reana_commons.config import (CVMFS_REPOSITORIES, REANA_CVMFS_PVC_TEMPLATE,
+from reana_commons.config import (CVMFS_REPOSITORIES,
+                                  REANA_COMPONENT_NAMING_SCHEME,
+                                  REANA_COMPONENT_PREFIX,
+                                  REANA_COMPONENT_TYPES,
+                                  REANA_CVMFS_PVC_TEMPLATE,
                                   REANA_CVMFS_SC_TEMPLATE)
 
 
@@ -285,3 +290,21 @@ def check_connection_to_job_controller(port=5000):
         retry_counter += 1
     else:
         logging.error('Job controller is not reachable.', exc_info=True)
+
+
+def build_unique_component_name(component_type, id=None):
+    """Use REANA component type and id build a human readable component name.
+
+    :param component_type: One of
+        ``reana_commons.config.REANA_COMPONENT_TYPES``.
+    :param id: Unique identifier, if not specified a new UUID4 is created.
+
+    :return: String representing the component name, i.e. reana-run-job-123456.
+    """
+    if component_type not in REANA_COMPONENT_TYPES:
+        raise ValueError(f'{component_type} not valid component type.\n'
+                         f'Choose one of: {REANA_COMPONENT_TYPES}')
+
+    return REANA_COMPONENT_NAMING_SCHEME.format(
+        prefix=REANA_COMPONENT_PREFIX, component_type=component_type,
+        id=id or str(uuid.uuid4()))

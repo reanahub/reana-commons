@@ -13,8 +13,8 @@ import logging
 from kombu import Connection, Exchange, Queue
 
 from .config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
-                     MQ_DEFAULT_FORMAT, MQ_DEFAULT_QUEUES, MQ_PASS, MQ_PORT,
-                     MQ_PRODUCER_MAX_RETRIES, MQ_URL, MQ_USER)
+                     MQ_DEFAULT_FORMAT, MQ_DEFAULT_QUEUES,
+                     MQ_PRODUCER_MAX_RETRIES)
 
 
 class BasePublisher(object):

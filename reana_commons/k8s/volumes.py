@@ -10,26 +10,37 @@
 
 import os
 
-import json
-
-from reana_commons.config import (REANA_CEPHFS_PVC_NAME,
+from reana_commons.config import (REANA_SHARED_PVC_NAME,
                                   REANA_STORAGE_BACKEND, SHARED_VOLUME_PATH)
 
 REANA_SHARED_VOLUME_NAME = "reana-shared-volume"
 
 
-def get_k8s_cephfs_volume():
-    """Return k8s CephFS volume template.
+def get_reana_shared_volume():
+    """Return REANA shared volume as k8s spec.
 
-    :returns: k8s CephFS volume spec as a dictionary.
+    Depending on the configured storage backend REANA will
+    use just a local volume in the host VM or a persistent
+    volume claim which provides access to a network file system.
+
+    :returns: k8s shared volume spec as a dictionary.
     """
-    return {
-        "name": REANA_SHARED_VOLUME_NAME,
-        "persistentVolumeClaim": {
-            "claimName": REANA_CEPHFS_PVC_NAME
-        },
-        "readOnly": False
-    }
+    if REANA_STORAGE_BACKEND == "network":
+        volume = {
+            "name": REANA_SHARED_VOLUME_NAME,
+            "persistentVolumeClaim": {
+                "claimName": REANA_SHARED_PVC_NAME
+            },
+            "readOnly": False
+        }
+    else:
+        volume = {
+            "name": REANA_SHARED_VOLUME_NAME,
+            "hostPath": {
+                "path": SHARED_VOLUME_PATH
+            }
+        }
+    return volume
 
 
 def get_k8s_cvmfs_volume(repository):
@@ -44,20 +55,6 @@ def get_k8s_cvmfs_volume(repository):
             "claimName": "csi-cvmfs-{}-pvc".format(repository)
         },
         "readOnly": True
-    }
-
-
-def get_k8s_hostpath_volume(root_path):
-    """Render k8s HostPath volume template.
-
-    :param root_path: Root path in the host machine to be mounted.
-    :returns: k8s HostPath spec as a dictionary.
-    """
-    return {
-        "name": REANA_SHARED_VOLUME_NAME,
-        "hostPath": {
-            "path": root_path
-        }
     }
 
 
@@ -78,9 +75,5 @@ def get_shared_volume(workflow_workspace):
         "mountPath": mount_path,
         "subPath": workflow_workspace_relative_to_owner}
 
-    if REANA_STORAGE_BACKEND == "cephfs":
-        volume = get_k8s_cephfs_volume()
-    else:
-        volume = get_k8s_hostpath_volume(SHARED_VOLUME_PATH)
-
+    volume = get_reana_shared_volume()
     return volume_mount, volume
