@@ -54,6 +54,11 @@ serial_workflow_schema = {
                         "type": "boolean",
                         "default": "false",
                     },
+                    "kubernetes_uid": {
+                        "$id": "#/properties/steps/properties/kubernetes_uid",
+                        "type": "integer",
+                        "default": "None",
+                    },
                     "commands": {
                         "$id": "#/properties/steps/properties/commands",
                         "type": "array",
