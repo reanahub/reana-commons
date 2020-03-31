@@ -130,7 +130,7 @@ def _expand_parameters(specification, parameters, original=None):
                 for command_num, command in enumerate(step['commands']):
                     current_step['commands'][command_num] = \
                         Template(command).substitute(parameters)
-                return expanded_specification
+            return expanded_specification
         except KeyError as e:
             raise ValidationError('Workflow parameter(s) could not '
                                   'be expanded. Please take a look '

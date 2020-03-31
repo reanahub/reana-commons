@@ -27,3 +27,11 @@ class REANASecretDoesNotExist(Exception):
 
 class REANASecretAlreadyExists(Exception):
     """The referenced secret already exists."""
+
+
+class REANAValidationError(Exception):
+    """Validation error."""
+
+    def __init__(self, message):
+        """Initialize REANAValidationError exception."""
+        self.message = message
