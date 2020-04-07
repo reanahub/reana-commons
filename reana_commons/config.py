@@ -50,7 +50,7 @@ It is a Python format string which take as arguments:
 """
 
 MQ_HOST = os.getenv('RABBIT_MQ_HOST',
-                    f'{REANA_COMPONENT_PREFIX}-message-broker')
+                    '{}-message-broker'.format(REANA_COMPONENT_PREFIX))
 """Message queue (RabbitMQ) server host name."""
 
 MQ_USER = os.getenv('RABBIT_MQ_USER', 'test')
@@ -90,12 +90,12 @@ OPENAPI_SPECS = {
     'reana-workflow-controller': (
         'http://{address}:{port}'.format(
             address=os.getenv(
-                f'{REANA_COMPONENT_PREFIX_ENVIRONMENT}_'
-                f'WORKFLOW_CONTROLLER_SERVICE_HOST',
+                '{}_WORKFLOW_CONTROLLER_SERVICE_HOST'.format(
+                    REANA_COMPONENT_PREFIX_ENVIRONMENT),
                 '0.0.0.0'),
             port=os.getenv(
-                f'{REANA_COMPONENT_PREFIX_ENVIRONMENT}_'
-                f'WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP',
+                '{}_WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP'.format(
+                    REANA_COMPONENT_PREFIX_ENVIRONMENT),
                 '5000')),
         'reana_workflow_controller.json'),
     'reana-server': (
@@ -177,8 +177,8 @@ REANA_STORAGE_BACKEND = os.getenv('REANA_STORAGE_BACKEND', 'local')
 """Storage backend deployed in current REANA cluster ['local'|'cephfs']."""
 
 REANA_SHARED_PVC_NAME = os.getenv(
-    "REANA_SHARED_PVC_NAME",
-    f"{REANA_COMPONENT_PREFIX}-shared-persistent-volume")
+    'REANA_SHARED_PVC_NAME',
+    '{}-shared-persistent-volume'.format(REANA_COMPONENT_PREFIX))
 """Name of the shared CEPHFS PVC which will be used by all REANA jobs."""
 
 REANA_WORKFLOW_UMASK = 0o0002

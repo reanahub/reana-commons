@@ -302,8 +302,8 @@ def build_unique_component_name(component_type, id=None):
     :return: String representing the component name, i.e. reana-run-job-123456.
     """
     if component_type not in REANA_COMPONENT_TYPES:
-        raise ValueError(f'{component_type} not valid component type.\n'
-                         f'Choose one of: {REANA_COMPONENT_TYPES}')
+        raise ValueError('{} not valid component type.\nChoose one of: {}'
+                         .format(component_type, REANA_COMPONENT_TYPES))
 
     return REANA_COMPONENT_NAMING_SCHEME.format(
         prefix=REANA_COMPONENT_PREFIX, component_type=component_type,
