@@ -7,6 +7,7 @@ The list of contributors in alphabetical order:
 - `Diego Rodriguez <https://orcid.org/0000-0003-0649-2002>`_
 - `Dinos Kousidis <https://orcid.org/0000-0002-4914-4289>`_
 - `Jan Okraska <https://orcid.org/0000-0002-1416-3244>`_
+- `Kenyi Hurtado-Anampa <https://orcid.org/0000-0002-9779-3566>`_
 - `Leticia Wanderley <https://orcid.org/0000-0003-4649-6630>`_
 - `Marco Vidal <https://orcid.org/0000-0002-9363-4971>`_
 - `Rokas Maciulaitis <https://orcid.org/0000-0003-1064-6967>`_

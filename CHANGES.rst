@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.6.1 (2020-05-25)
+--------------------------
+
+- Upgrades Kubernetes Python client.
+
 Version 0.6.0 (2019-12-19)
 --------------------------
 
