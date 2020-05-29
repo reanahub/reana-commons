@@ -23,7 +23,9 @@ REANA_EMAIL_PASSWORD = os.getenv('REANA_EMAIL_PASSWORD')
 def send_email(receiver_email, subject, body, login_email=REANA_EMAIL_LOGIN,
                sender_email=REANA_EMAIL_SENDER):
     """Send emails from REANA platform."""
-    message = 'Subject: {subject}\n\n{body}'.format(subject=subject, body=body)
+    headers = 'From: REANA platform <{from_}>\nTo: {to}\nSubject: {subject}' \
+        .format(from_=sender_email, to=receiver_email, subject=subject)
+    message = '{headers}\n\n{body}'.format(headers=headers, body=body)
 
     context = ssl.create_default_context()
     with smtplib.SMTP(REANA_EMAIL_SMTP_SERVER,
