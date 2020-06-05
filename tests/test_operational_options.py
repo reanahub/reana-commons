@@ -15,14 +15,16 @@ from reana_commons.operational_options import validate_operational_options
 
 
 @pytest.mark.parametrize(
-    'workflow_type, options, except_msg',
+    "workflow_type, options, except_msg",
     [
-        ('serial', 'CACHE=on', 'must be a dict'),
-        ('yadage', {'unsupported': 'yes'}, 'not supported'),
-        ('foo', {'TARGET': 'gendata'},
-         'not supported for {workflow_type} workflows'),
-        ('serial', {'toplevel': 'github:reanahub/awesome-workflow'},
-         'not supported for {workflow_type} workflows'),
+        ("serial", "CACHE=on", "must be a dict"),
+        ("yadage", {"unsupported": "yes"}, "not supported"),
+        ("foo", {"TARGET": "gendata"}, "not supported for {workflow_type} workflows"),
+        (
+            "serial",
+            {"toplevel": "github:reanahub/awesome-workflow"},
+            "not supported for {workflow_type} workflows",
+        ),
     ],
 )
 def test_unsupported(workflow_type, options, except_msg):
@@ -33,12 +35,11 @@ def test_unsupported(workflow_type, options, except_msg):
 
 
 @pytest.mark.parametrize(
-    'workflow_type, options, option',
+    "workflow_type, options, option",
     [
-        ('serial', {'FROM': 'fitdata'}, 'FROM'),
-        ('yadage', {'toplevel': 'github:reanahub/awesome-workflow'},
-         'toplevel'),
-        ('cwl', {'TARGET': 'gendata'}, '--target')
+        ("serial", {"FROM": "fitdata"}, "FROM"),
+        ("yadage", {"toplevel": "github:reanahub/awesome-workflow"}, "toplevel"),
+        ("cwl", {"TARGET": "gendata"}, "--target"),
     ],
 )
 def test_successful(workflow_type, options, option):

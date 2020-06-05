@@ -21,8 +21,8 @@ class REANASecretDoesNotExist(Exception):
 
     def __str__(self):
         """Represent REANA secret does not exist exception as a string."""
-        return 'Operation cancelled. Secrets {} '
-        'do not exist.'.format(self.missing_secrets_list)
+        return "Operation cancelled. Secrets {} "
+        "do not exist.".format(self.missing_secrets_list)
 
 
 class REANASecretAlreadyExists(Exception):

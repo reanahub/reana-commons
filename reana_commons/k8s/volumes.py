@@ -10,8 +10,11 @@
 
 import os
 
-from reana_commons.config import (REANA_SHARED_PVC_NAME,
-                                  REANA_STORAGE_BACKEND, SHARED_VOLUME_PATH)
+from reana_commons.config import (
+    REANA_SHARED_PVC_NAME,
+    REANA_STORAGE_BACKEND,
+    SHARED_VOLUME_PATH,
+)
 
 REANA_SHARED_VOLUME_NAME = "reana-shared-volume"
 
@@ -28,17 +31,13 @@ def get_reana_shared_volume():
     if REANA_STORAGE_BACKEND == "network":
         volume = {
             "name": REANA_SHARED_VOLUME_NAME,
-            "persistentVolumeClaim": {
-                "claimName": REANA_SHARED_PVC_NAME
-            },
-            "readOnly": False
+            "persistentVolumeClaim": {"claimName": REANA_SHARED_PVC_NAME},
+            "readOnly": False,
         }
     else:
         volume = {
             "name": REANA_SHARED_VOLUME_NAME,
-            "hostPath": {
-                "path": SHARED_VOLUME_PATH
-            }
+            "hostPath": {"path": SHARED_VOLUME_PATH},
         }
     return volume
 
@@ -51,10 +50,8 @@ def get_k8s_cvmfs_volume(repository):
     """
     return {
         "name": "{}-cvmfs-volume".format(repository),
-        "persistentVolumeClaim": {
-            "claimName": "csi-cvmfs-{}-pvc".format(repository)
-        },
-        "readOnly": True
+        "persistentVolumeClaim": {"claimName": "csi-cvmfs-{}-pvc".format(repository)},
+        "readOnly": True,
     }
 
 
@@ -66,14 +63,15 @@ def get_shared_volume(workflow_workspace):
     """
     workflow_workspace_relative_to_owner = workflow_workspace
     if os.path.isabs(workflow_workspace):
-        workflow_workspace_relative_to_owner = \
-            os.path.relpath(workflow_workspace, SHARED_VOLUME_PATH)
-    mount_path = os.path.join(SHARED_VOLUME_PATH,
-                              workflow_workspace_relative_to_owner)
+        workflow_workspace_relative_to_owner = os.path.relpath(
+            workflow_workspace, SHARED_VOLUME_PATH
+        )
+    mount_path = os.path.join(SHARED_VOLUME_PATH, workflow_workspace_relative_to_owner)
     volume_mount = {
         "name": REANA_SHARED_VOLUME_NAME,
         "mountPath": mount_path,
-        "subPath": workflow_workspace_relative_to_owner}
+        "subPath": workflow_workspace_relative_to_owner,
+    }
 
     volume = get_reana_shared_volume()
     return volume_mount, volume

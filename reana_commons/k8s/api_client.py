@@ -15,7 +15,7 @@ from kubernetes import config as k8s_config
 from werkzeug.local import LocalProxy
 
 
-def create_api_client(api='BatchV1'):
+def create_api_client(api="BatchV1"):
     """Create Kubernetes API client using config.
 
     :param api: String which represents which Kubernetes API to spawn. By
@@ -25,15 +25,15 @@ def create_api_client(api='BatchV1'):
     k8s_config.load_incluster_config()
     api_configuration = client.Configuration()
     api_configuration.verify_ssl = False
-    if api == 'extensions/v1beta1':
+    if api == "extensions/v1beta1":
         api_client = client.ExtensionsV1beta1Api()
-    elif api == 'CoreV1':
+    elif api == "CoreV1":
         api_client = client.CoreV1Api()
-    elif api == 'StorageV1':
+    elif api == "StorageV1":
         api_client = client.StorageV1Api()
-    elif api == 'AppsV1':
+    elif api == "AppsV1":
         api_client = client.AppsV1Api()
-    elif api == 'networking.k8s.io/v1beta1':
+    elif api == "networking.k8s.io/v1beta1":
         api_client = client.NetworkingV1beta1Api()
     else:
         api_client = client.BatchV1Api()
@@ -41,11 +41,11 @@ def create_api_client(api='BatchV1'):
 
 
 current_k8s_batchv1_api_client = LocalProxy(create_api_client)
-current_k8s_corev1_api_client = LocalProxy(partial(create_api_client,
-                                                   api='CoreV1'))
-current_k8s_networking_v1beta1 = LocalProxy(partial(
-    create_api_client, api='networking.k8s.io/v1beta1'))
-current_k8s_storagev1_api_client = LocalProxy(partial(create_api_client,
-                                                      api='StorageV1'))
-current_k8s_appsv1_api_client = LocalProxy(partial(create_api_client,
-                                                   api='AppsV1'))
+current_k8s_corev1_api_client = LocalProxy(partial(create_api_client, api="CoreV1"))
+current_k8s_networking_v1beta1 = LocalProxy(
+    partial(create_api_client, api="networking.k8s.io/v1beta1")
+)
+current_k8s_storagev1_api_client = LocalProxy(
+    partial(create_api_client, api="StorageV1")
+)
+current_k8s_appsv1_api_client = LocalProxy(partial(create_api_client, api="AppsV1"))

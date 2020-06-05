@@ -10,15 +10,18 @@
 from kombu import Connection, Exchange, Queue
 from kombu.mixins import ConsumerMixin
 
-from reana_commons.config import (MQ_CONNECTION_STRING, MQ_DEFAULT_EXCHANGE,
-                                  MQ_DEFAULT_FORMAT, MQ_DEFAULT_QUEUES)
+from reana_commons.config import (
+    MQ_CONNECTION_STRING,
+    MQ_DEFAULT_EXCHANGE,
+    MQ_DEFAULT_FORMAT,
+    MQ_DEFAULT_QUEUES,
+)
 
 
 class BaseConsumer(ConsumerMixin):
     """Base RabbitMQ consumer."""
 
-    def __init__(self,  queue=None, connection=None,
-                 message_default_format=None):
+    def __init__(self, queue=None, connection=None, message_default_format=None):
         """Construct a BaseConsumer.
 
         :param connection: A :class:`kombu.Connection`, if not provided a
@@ -34,12 +37,11 @@ class BaseConsumer(ConsumerMixin):
             queue = Queue(queue, **MQ_DEFAULT_QUEUES[queue])
         self.queue = queue
         self.connection = connection or Connection(MQ_CONNECTION_STRING)
-        self.message_default_format = message_default_format or \
-            MQ_DEFAULT_FORMAT
+        self.message_default_format = message_default_format or MQ_DEFAULT_FORMAT
 
     def _build_default_exchange(self):
         """Build :class:`kombu.Exchange` with default values."""
-        return Exchange(MQ_DEFAULT_EXCHANGE, type='direct')
+        return Exchange(MQ_DEFAULT_EXCHANGE, type="direct")
 
     def get_consumers(self, Consumer, channel):
         """Map consumers to specific queues.
@@ -51,8 +53,10 @@ class BaseConsumer(ConsumerMixin):
         # return [Consumer(queues=self.queues,
         #                  callbacks=[self.on_message],
         #                  accept=[MQ_DEFAULT_FORMAT]))]
-        raise NotImplementedError('Implement this method to map which'
-                                  'callbacks are connected with which queues')
+        raise NotImplementedError(
+            "Implement this method to map which"
+            "callbacks are connected with which queues"
+        )
 
     def on_message(self, body, message):
         """Implement this method to manipulate the data received.
@@ -61,4 +65,4 @@ class BaseConsumer(ConsumerMixin):
             format.
         :param message: A :class:`kombu.transport.virtual.Message`.
         """
-        raise NotImplementedError('Implement this method to react to events.')
+        raise NotImplementedError("Implement this method to react to events.")

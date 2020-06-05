@@ -12,8 +12,7 @@ import os
 
 import pkg_resources
 from bravado.client import RequestsClient, SwaggerClient
-from bravado.exception import (HTTPBadRequest, HTTPInternalServerError,
-                               HTTPNotFound)
+from bravado.exception import HTTPBadRequest, HTTPInternalServerError, HTTPNotFound
 from mock import Mock
 
 from reana_commons.config import OPENAPI_SPECS
@@ -35,35 +34,38 @@ class BaseAPIClient(object):
         # 2. We're passing an http client (likely a mock), or
         # 3. The current instance is a Mock, meaning that either we want to
         #    use the `RequestClient` or we're passing a different mock.
-        if (current_instance is None or
-                http_client or
-                isinstance(current_instance.swagger_spec.http_client, Mock)):
+        if (
+            current_instance is None
+            or http_client
+            or isinstance(current_instance.swagger_spec.http_client, Mock)
+        ):
             BaseAPIClient._bravado_client_instance = SwaggerClient.from_spec(
                 json_spec,
                 http_client=http_client or RequestsClient(ssl_verify=False),
-                config={'also_return_response': True})
+                config={"also_return_response": True},
+            )
         self._load_config_from_env()
         self._client = BaseAPIClient._bravado_client_instance
         if server_url is None:
             raise MissingAPIClientConfiguration(
-                'Configuration to connect to {} is missing.'.format(service)
+                "Configuration to connect to {} is missing.".format(service)
             )
         self._client.swagger_spec.api_url = server_url
         self.server_url = server_url
 
     def _load_config_from_env(self):
         """Override configuration from environment."""
-        OPENAPI_SPECS['reana-server'] = (os.getenv('REANA_SERVER_URL'),
-                                         'reana_server.json')
+        OPENAPI_SPECS["reana-server"] = (
+            os.getenv("REANA_SERVER_URL"),
+            "reana_server.json",
+        )
 
     def _get_spec(self, spec_file):
         """Get json specification from package data."""
         spec_file_path = os.path.join(
-            pkg_resources.
-            resource_filename(
-                'reana_commons',
-                'openapi_specifications'),
-            spec_file)
+            pkg_resources.resource_filename("reana_commons", "openapi_specifications"),
+            spec_file,
+        )
 
         with open(spec_file_path) as f:
             json_spec = json.load(f)
@@ -73,20 +75,22 @@ class BaseAPIClient(object):
 class JobControllerAPIClient(BaseAPIClient):
     """REANA-Job-Controller http client class."""
 
-    def submit(self,
-               workflow_uuid='',
-               experiment='',
-               image='',
-               cmd='',
-               prettified_cmd='',
-               workflow_workspace='',
-               job_name='',
-               cvmfs_mounts='false',
-               compute_backend=None,
-               kerberos=False,
-               kubernetes_uid=None,
-               unpacked_img=False,
-               voms_proxy=False):
+    def submit(
+        self,
+        workflow_uuid="",
+        experiment="",
+        image="",
+        cmd="",
+        prettified_cmd="",
+        workflow_workspace="",
+        job_name="",
+        cvmfs_mounts="false",
+        compute_backend=None,
+        kerberos=False,
+        kubernetes_uid=None,
+        unpacked_img=False,
+        voms_proxy=False,
+    ):
         """Submit a job to RJC API.
 
         :param job_name: Name of the job.
@@ -106,57 +110,58 @@ class JobControllerAPIClient(BaseAPIClient):
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {
-            'docker_img': image,
-            'cmd': cmd,
-            'prettified_cmd': prettified_cmd,
-            'env_vars': {},
-            'workflow_workspace': workflow_workspace,
-            'job_name': job_name,
-            'cvmfs_mounts': cvmfs_mounts,
-            'workflow_uuid': workflow_uuid,
+            "docker_img": image,
+            "cmd": cmd,
+            "prettified_cmd": prettified_cmd,
+            "env_vars": {},
+            "workflow_workspace": workflow_workspace,
+            "job_name": job_name,
+            "cvmfs_mounts": cvmfs_mounts,
+            "workflow_uuid": workflow_uuid,
         }
 
         if compute_backend:
-            job_spec['compute_backend'] = compute_backend
+            job_spec["compute_backend"] = compute_backend
 
         if kerberos:
-            job_spec['kerberos'] = kerberos
+            job_spec["kerberos"] = kerberos
 
         if voms_proxy:
-            job_spec['voms_proxy'] = voms_proxy
+            job_spec["voms_proxy"] = voms_proxy
 
         if kubernetes_uid:
-            job_spec['kubernetes_uid'] = kubernetes_uid
+            job_spec["kubernetes_uid"] = kubernetes_uid
 
         if unpacked_img:
-            job_spec['unpacked_img'] = unpacked_img
+            job_spec["unpacked_img"] = unpacked_img
 
-        response, http_response = self._client.jobs.create_job(job=job_spec).\
-            result()
+        response, http_response = self._client.jobs.create_job(job=job_spec).result()
         if http_response.status_code == 400:
-            raise HTTPBadRequest('Bad request to create a job. Error: {}'.
-                                 format(http_response.data))
+            raise HTTPBadRequest(
+                "Bad request to create a job. Error: {}".format(http_response.data)
+            )
         elif http_response.status_code == 500:
-            raise HTTPInternalServerError('Internal Server Error. Error: {}'.
-                                          format(http_response.data))
+            raise HTTPInternalServerError(
+                "Internal Server Error. Error: {}".format(http_response.data)
+            )
         return response
 
     def check_status(self, job_id):
         """Check status of a job."""
-        response, http_response = self._client.jobs.get_job(job_id=job_id).\
-            result()
+        response, http_response = self._client.jobs.get_job(job_id=job_id).result()
         if http_response.status_code == 404:
-            raise HTTPNotFound('The given job ID was not found. Error: {}'.
-                               format(http_response.data))
+            raise HTTPNotFound(
+                "The given job ID was not found. Error: {}".format(http_response.data)
+            )
         return response
 
     def get_logs(self, job_id):
         """Get logs of a job."""
-        response, http_response = self._client.jobs.get_logs(job_id=job_id).\
-            result()
+        response, http_response = self._client.jobs.get_logs(job_id=job_id).result()
         if http_response.status_code == 404:
-            raise HTTPNotFound('The given job ID was not found. Error: {}'.
-                               format(http_response.data))
+            raise HTTPNotFound(
+                "The given job ID was not found. Error: {}".format(http_response.data)
+            )
         return http_response.text
 
     def check_if_cached(self, job_spec, step, workflow_workspace):
@@ -164,14 +169,16 @@ class JobControllerAPIClient(BaseAPIClient):
         response, http_response = self._client.job_cache.check_if_cached(
             job_spec=json.dumps(job_spec),
             workflow_json=json.dumps(step),
-            workflow_workspace=workflow_workspace).\
-            result()
+            workflow_workspace=workflow_workspace,
+        ).result()
         if http_response.status_code == 400:
-            raise HTTPBadRequest('Bad request to check cache. Error: {}'.
-                                 format(http_response.data))
+            raise HTTPBadRequest(
+                "Bad request to check cache. Error: {}".format(http_response.data)
+            )
         elif http_response.status_code == 500:
-            raise HTTPInternalServerError('Internal Server Error. Error: {}'.
-                                          format(http_response.data))
+            raise HTTPInternalServerError(
+                "Internal Server Error. Error: {}".format(http_response.data)
+            )
         return http_response
 
 

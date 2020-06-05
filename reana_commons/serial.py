@@ -27,9 +27,7 @@ serial_workflow_schema = {
             "items": {
                 "$id": "#/properties/steps/items",
                 "type": "object",
-                "required": [
-                    "commands"
-                ],
+                "required": ["commands"],
                 "properties": {
                     "name": {
                         "$id": "#/properties/steps/properties/environment",
@@ -70,19 +68,18 @@ serial_workflow_schema = {
                         "minItems": 1,
                         "items": {
                             "$id": "#/properties/steps/items/properties/"
-                                "commands/items",
-                            "type": "string"
+                            "commands/items",
+                            "type": "string",
                         },
-                    }
-                }
-            }
+                    },
+                },
+            },
         }
-    }
+    },
 }
 
 
-def serial_load(workflow_file, specification, parameters=None, original=None,
-                **kwargs):
+def serial_load(workflow_file, specification, parameters=None, original=None, **kwargs):
     """Validate and return a expanded REANA Serial workflow specification.
 
     :param workflow_file: A specification file compliant with
@@ -93,12 +90,10 @@ def serial_load(workflow_file, specification, parameters=None, original=None,
     parameters = parameters or {}
 
     if not specification:
-        with open(workflow_file, 'r') as f:
+        with open(workflow_file, "r") as f:
             specification = json.loads(f.read())
 
-    expanded_specification = _expand_parameters(specification,
-                                                parameters,
-                                                original)
+    expanded_specification = _expand_parameters(specification, parameters, original)
 
     validate(specification, serial_workflow_schema)
 
@@ -125,13 +120,16 @@ def _expand_parameters(specification, parameters, original=None):
     else:
         try:
             expanded_specification = deepcopy(specification)
-            for step_num, step in enumerate(expanded_specification['steps']):
-                current_step = expanded_specification['steps'][step_num]
-                for command_num, command in enumerate(step['commands']):
-                    current_step['commands'][command_num] = \
-                        Template(command).substitute(parameters)
+            for step_num, step in enumerate(expanded_specification["steps"]):
+                current_step = expanded_specification["steps"][step_num]
+                for command_num, command in enumerate(step["commands"]):
+                    current_step["commands"][command_num] = Template(
+                        command
+                    ).substitute(parameters)
             return expanded_specification
         except KeyError as e:
-            raise ValidationError('Workflow parameter(s) could not '
-                                  'be expanded. Please take a look '
-                                  'to {params}'.format(params=str(e)))
+            raise ValidationError(
+                "Workflow parameter(s) could not "
+                "be expanded. Please take a look "
+                "to {params}".format(params=str(e))
+            )
