@@ -1,6 +1,21 @@
 Changes
 =======
 
+Version master (UNRELEASED)
+---------------------------
+
+- Adds new utility to send emails.
+- Adds centralised operational options validation.
+- Fixes memory leak in Bravado client instantiation. (`reanahub/reana-server#225 <https://github.com/reanahub/reana-server/issues/225>`_)
+- Makes maximum number of running workflows configurable.
+- Adds configurable prefix for component names.
+- Allows specifying unpacked Docker images.
+- Upgrades minimum version of Kubernetes Python library to 11.
+- Centralises CephFS PVC name.
+- Updates to latest CVMFS CSI driver.
+- Increases default log level to ``INFO``.
+- Add Black formatter support.
+
 Version 0.6.0 (2019-12-20)
 --------------------------
 
