@@ -49,6 +49,9 @@ It is a Python format string which take as arguments:
 - ``id``: unique identifier for the component, by default UUID4.
 """
 
+REANA_KUBERNETES_NAMESPACE = os.getenv("REANA_KUBERNETES_NAMESPACE", "default")
+"""Kubernetes namespace in which REANA is currectly deployed."""
+
 MQ_HOST = os.getenv(
     "RABBIT_MQ_HOST", "{}-message-broker".format(REANA_COMPONENT_PREFIX)
 )
@@ -198,9 +201,6 @@ REANA_SHARED_PVC_NAME = os.getenv(
 
 REANA_WORKFLOW_UMASK = 0o0002
 """Umask used for workflow worksapce."""
-
-K8S_DEFAULT_NAMESPACE = "default"
-"""Kubernetes workflow runtime default namespace"""
 
 WORKFLOW_RUNTIME_USER_NAME = os.getenv("WORKFLOW_RUNTIME_USER_NAME", "reana")
 """Default OS user name for running job controller."""

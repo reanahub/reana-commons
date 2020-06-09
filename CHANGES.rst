@@ -13,6 +13,7 @@ Version master (UNRELEASED)
 - Upgrades minimum version of Kubernetes Python library to 11.
 - Centralises CephFS PVC name.
 - Updates to latest CVMFS CSI driver.
+- Introduces new configuration variable ``REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE`` to define the Kubernetes namespace in which REANA infrastructure components run.
 - Increases default log level to ``INFO``.
 - Add Black formatter support.
 

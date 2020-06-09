@@ -14,8 +14,8 @@ import logging
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from reana_commons.config import (
-    K8S_DEFAULT_NAMESPACE,
     REANA_COMPONENT_PREFIX,
+    REANA_KUBERNETES_NAMESPACE,
     REANA_USER_SECRET_MOUNT_PATH,
 )
 from reana_commons.errors import REANASecretAlreadyExists, REANASecretDoesNotExist
@@ -39,12 +39,15 @@ class REANAUserSecretsStore(object):
         try:
             empty_k8s_secret = client.V1Secret(
                 api_version="v1",
-                metadata=client.V1ObjectMeta(name=str(self.user_secret_store_id)),
+                metadata=client.V1ObjectMeta(
+                    name=str(self.user_secret_store_id),
+                    namespace=REANA_KUBERNETES_NAMESPACE,
+                ),
                 data={},
             )
             empty_k8s_secret.metadata.annotations = {"secrets_types": "{}"}
             current_k8s_corev1_api_client.create_namespaced_secret(
-                K8S_DEFAULT_NAMESPACE, empty_k8s_secret
+                REANA_KUBERNETES_NAMESPACE, empty_k8s_secret
             )
             return empty_k8s_secret
         except ApiException as api_e:
@@ -63,14 +66,14 @@ class REANAUserSecretsStore(object):
                                  version of the store.
         """
         current_k8s_corev1_api_client.replace_namespaced_secret(
-            str(self.user_secret_store_id), K8S_DEFAULT_NAMESPACE, k8s_user_secrets
+            str(self.user_secret_store_id), REANA_KUBERNETES_NAMESPACE, k8s_user_secrets
         )
 
     def _get_k8s_user_secrets_store(self):
         """Retrieve the Kubernetes secret which contains all user secrets."""
         try:
             k8s_user_secrets_store = current_k8s_corev1_api_client.read_namespaced_secret(
-                str(self.user_secret_store_id), K8S_DEFAULT_NAMESPACE
+                str(self.user_secret_store_id), REANA_KUBERNETES_NAMESPACE
             )
             k8s_user_secrets_store.data = k8s_user_secrets_store.data or {}
             return k8s_user_secrets_store
