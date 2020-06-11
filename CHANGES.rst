@@ -14,6 +14,7 @@ Version master (UNRELEASED)
 - Centralises CephFS PVC name.
 - Updates to latest CVMFS CSI driver.
 - Introduces new configuration variable ``REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE`` to define the Kubernetes namespace in which REANA infrastructure components run.
+- Introduces new configuration variable ``REANA_RUNTIME_KUBERNETES_NAMESPACE`` to define the Kubernetes namespace in which REANA runtime components components run.
 - Increases default log level to ``INFO``.
 - Add Black formatter support.
 

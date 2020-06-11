@@ -30,13 +30,23 @@ REANA_COMPONENT_TYPES = [
 """Type of REANA components.
 
 Note: this list is used for validation of on demand created REANA components
-names, this is why it doesn't contain REANA instrastructure components.
+names, this is why it doesn't contain REANA infrastructure components.
 
 ``run-batch``: An instance of reana-workflow-engine-_
 ``run-session``: An instance of an interactive session
 ``run-job``: An instance of a workflow's job
 ``secretsstore``: An instance of a user secret store
 """
+
+REANA_INFRASTRUCTURE_COMPONENTS = [
+    "ui",
+    "server",
+    "workflow-controller",
+    "cache",
+    "message-broker",
+    "db",
+]
+"""REANA infrastructure pods."""
 
 REANA_COMPONENT_NAMING_SCHEME = os.getenv(
     "REANA_COMPONENT_NAMING_SCHEME", "{prefix}-{component_type}-{id}"
@@ -49,12 +59,37 @@ It is a Python format string which take as arguments:
 - ``id``: unique identifier for the component, by default UUID4.
 """
 
-REANA_KUBERNETES_NAMESPACE = os.getenv("REANA_KUBERNETES_NAMESPACE", "default")
-"""Kubernetes namespace in which REANA is currectly deployed."""
-
-MQ_HOST = os.getenv(
-    "RABBIT_MQ_HOST", "{}-message-broker".format(REANA_COMPONENT_PREFIX)
+REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE = os.getenv(
+    "REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE", "default"
 )
+"""Kubernetes namespace in which REANA infrastructure is currently deployed."""
+
+REANA_INFRASTRUCTURE_COMPONENTS_HOSTNAMES = {
+    component_name: (
+        "{component_prefix}-{component_name}.{namespace}.svc.cluster.local"
+    ).format(
+        component_prefix=REANA_COMPONENT_PREFIX,
+        component_name=component_name,
+        namespace=REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE,
+    )
+    for component_name in REANA_INFRASTRUCTURE_COMPONENTS
+}
+"""REANA infrastructure pods hostnames.
+
+Uses the FQDN of the infrastructure components (which should be behind a Kubernetes
+service) following the
+`Kubernetes DNS-Based Service Discovery <https://github.com/kubernetes/dns/blob/master/docs/specification.md>`_
+"""
+
+REANA_RUNTIME_KUBERNETES_NAMESPACE = os.getenv(
+    "REANA_RUNTIME_KUBERNETES_NAMESPACE", REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE
+)
+"""Kubernetes namespace in which REANA runtime pods should be running in.
+
+By default runtime pods will run in the same namespace as the infrastructure pods.
+"""
+
+MQ_HOST = REANA_INFRASTRUCTURE_COMPONENTS_HOSTNAMES["message-broker"]
 """Message queue (RabbitMQ) server host name."""
 
 MQ_USER = os.getenv("RABBIT_MQ_USER", "test")
@@ -96,19 +131,9 @@ MQ_PRODUCER_MAX_RETRIES = 3
 
 OPENAPI_SPECS = {
     "reana-workflow-controller": (
-        "http://{address}:{port}".format(
-            address=os.getenv(
-                "{}_WORKFLOW_CONTROLLER_SERVICE_HOST".format(
-                    REANA_COMPONENT_PREFIX_ENVIRONMENT
-                ),
-                "0.0.0.0",
-            ),
-            port=os.getenv(
-                "{}_WORKFLOW_CONTROLLER_SERVICE_PORT_HTTP".format(
-                    REANA_COMPONENT_PREFIX_ENVIRONMENT
-                ),
-                "5000",
-            ),
+        "http://{host}:{port}".format(
+            host=REANA_INFRASTRUCTURE_COMPONENTS_HOSTNAMES["workflow-controller"],
+            port="80",
         ),
         "reana_workflow_controller.json",
     ),
@@ -241,5 +266,17 @@ This a configuration set by the system administrators through Helm values at
 cluster creation time.
 """
 
-K8S_REANA_SERVICE_ACCOUNT_NAME = os.getenv("K8S_REANA_SERVICE_ACCOUNT_NAME")
-"""REANA service account in the deployed Kubernetes cluster."""
+REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME = os.getenv(
+    "REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME"
+)
+"""REANA infrastructure service account."""
+
+REANA_RUNTIME_KUBERNETES_SERVICEACCOUNT_NAME = os.getenv(
+    "REANA_RUNTIME_KUBERNETES_SERVICEACCOUNT_NAME",
+    REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME,
+)
+"""REANA runtime service account.
+
+If no runtime namespace is deployed it will default to the infrastructure service
+account.
+"""
