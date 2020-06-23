@@ -18,7 +18,12 @@ Version master (UNRELEASED)
 - Increases default log level to ``INFO``.
 - Add Black formatter support.
 
-Version 0.6.0 (2019-12-20)
+Version 0.6.1 (2020-05-25)
+--------------------------
+
+- Upgrades Kubernetes Python client.
+
+Version 0.6.0 (2019-12-19)
 --------------------------
 
 - Adds new API for Gitlab integration.
