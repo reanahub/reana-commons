@@ -8,6 +8,7 @@
 
 """REANA Commons configuration."""
 
+import json
 import logging
 import os
 
@@ -250,6 +251,30 @@ REANA_SHARED_PVC_NAME = os.getenv(
     "{}-shared-persistent-volume".format(REANA_COMPONENT_PREFIX),
 )
 """Name of the shared CEPHFS PVC which will be used by all REANA jobs."""
+
+REANA_JOB_HOSTPATH_MOUNTS = json.loads(os.getenv("REANA_JOB_HOSTPATH_MOUNTS", "[]"))
+"""List of dictionaries composed of name, hostPath and mountPath.
+
+- ``name``: name of the mount.
+- ``hostPath``: path in the Kubernetes cluster host nodes that will be mounted into job pods.
+- ``mountPath``: path inside job pods where hostPath will get mounted.
+  This is optional, by default the same path as the hostPath will be used
+
+This configuration should be used only when one knows for sure that the
+specified locations exist in all the cluster nodes. For example, if all nodes in your cluster
+have a directory ``/usr/local/share/mydata``, and you pass the following configuration:
+
+.. code-block::
+
+    REANA_JOB_HOSTPATH_MOUNTS = [
+        {"name": "mydata",
+         "hostPath": "/usr/local/share/mydata",
+         "mountPath": "/mydata"},
+    ]
+
+All jobs will have ``/mydata`` mounted with the content of
+``/usr/local/share/mydata`` from the Kubernetes cluster host node.
+"""
 
 REANA_WORKFLOW_UMASK = 0o0002
 """Umask used for workflow worksapce."""
