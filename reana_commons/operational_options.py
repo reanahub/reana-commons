@@ -21,6 +21,7 @@ available_options = {
     "TARGET": {"serial": "TARGET", "cwl": "--target"},
     "toplevel": {"yadage": "toplevel"},
     "initdir": {"yadage": "initdir"},
+    "initfiles": {"yadage": "initfiles"},
 }
 
 

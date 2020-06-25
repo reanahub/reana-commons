@@ -17,6 +17,7 @@ Version master (UNRELEASED)
 - Introduces new configuration variable ``REANA_RUNTIME_KUBERNETES_NAMESPACE`` to define the Kubernetes namespace in which REANA runtime components components run.
 - Increases default log level to ``INFO``.
 - Add Black formatter support.
+- Adds initfiles as an operational option for Yadage.
 
 Version 0.6.1 (2020-05-25)
 --------------------------
