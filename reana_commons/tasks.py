@@ -8,6 +8,7 @@
 """REANA common tasks."""
 
 import importlib
+import json
 import logging
 
 from kubernetes.client.rest import ApiException
@@ -37,13 +38,17 @@ def reana_ready():
 def check_predefined_conditions():
     """Check k8s predefined conditions for the nodes."""
     try:
-        node_info = current_k8s_corev1_api_client.list_node()
-        for node in node_info.items:
+        node_info = json.loads(
+            current_k8s_corev1_api_client.list_node(
+                _preload_content=False
+            ).data.decode()
+        )
+        for node in node_info["items"]:
             # check based on the predefined conditions about the
             # node status: MemoryPressure, OutOfDisk, KubeletReady
             #              DiskPressure, PIDPressure,
-            for condition in node.status.conditions:
-                if not condition.status:
+            for condition in node.get("status", {}).get("conditions", {}):
+                if not condition.get("status"):
                     return False
     except ApiException as e:
         log.error("Something went wrong while getting node information.")
