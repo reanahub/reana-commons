@@ -797,6 +797,20 @@
             "name": "block_size",
             "required": false,
             "type": "string"
+          },
+          {
+            "description": "Results page number (pagination).",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Number of results per page (pagination).",
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "type": "integer"
           }
         ],
         "produces": [
@@ -842,33 +856,41 @@
               ]
             },
             "schema": {
-              "items": {
-                "properties": {
-                  "created": {
-                    "type": "string"
-                  },
-                  "id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "progress": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "created": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "progress": {
+                        "type": "object"
+                      },
+                      "size": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "user": {
+                        "type": "string"
+                      }
+                    },
                     "type": "object"
                   },
-                  "size": {
-                    "type": "string"
-                  },
-                  "status": {
-                    "type": "string"
-                  },
-                  "user": {
-                    "type": "string"
-                  }
+                  "type": "array"
                 },
-                "type": "object"
+                "total": {
+                  "type": "integer"
+                }
               },
-              "type": "array"
+              "type": "object"
             }
           },
           "400": {
@@ -1411,6 +1433,20 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "Results page number (pagination).",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Number of results per page (pagination).",
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "type": "integer"
           }
         ],
         "produces": [
@@ -2106,6 +2142,20 @@
             "name": "access_token",
             "required": false,
             "type": "string"
+          },
+          {
+            "description": "Results page number (pagination).",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Number of results per page (pagination).",
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "type": "integer"
           }
         ],
         "produces": [
@@ -2115,21 +2165,29 @@
           "200": {
             "description": "Requests succeeded. The list of files has been retrieved.",
             "schema": {
-              "items": {
-                "properties": {
-                  "last-modified": {
-                    "type": "string"
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "last-modified": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
                   },
-                  "name": {
-                    "type": "string"
-                  },
-                  "size": {
-                    "type": "integer"
-                  }
+                  "type": "array"
                 },
-                "type": "object"
+                "total": {
+                  "type": "integer"
+                }
               },
-              "type": "array"
+              "type": "object"
             }
           },
           "400": {
