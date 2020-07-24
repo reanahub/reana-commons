@@ -9,6 +9,7 @@ Version master (UNRELEASED)
 - Fixes memory leak in Bravado client instantiation. (`reanahub/reana-server#225 <https://github.com/reanahub/reana-server/issues/225>`_)
 - Makes maximum number of running workflows configurable.
 - Adds configurable prefix for component names.
+- Adds central variable for the runtime pods node selector label.
 - Allows specifying unpacked Docker images.
 - Upgrades minimum version of Kubernetes Python library to 11.
 - Centralises CephFS PVC name.
