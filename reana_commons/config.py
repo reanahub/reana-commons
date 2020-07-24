@@ -117,6 +117,21 @@ REANA_RUNTIME_KUBERNETES_NAMESPACE = os.getenv(
 By default runtime pods will run in the same namespace as the infrastructure pods.
 """
 
+REANA_RUNTIME_KUBERNETES_NODE_LABEL = (
+    {
+        os.getenv("REANA_RUNTIME_KUBERNETES_NODE_LABEL")
+        .split("=")[0]: os.getenv("REANA_RUNTIME_KUBERNETES_NODE_LABEL")
+        .split("=")[1]
+    }
+    if os.getenv("REANA_RUNTIME_KUBERNETES_NODE_LABEL")
+    else {}
+)
+"""Kubernetes label (with format ``lable_name=lable_value``) which identifies the nodes where the runtime pods should run.
+
+If not set, the runtime pods run in any available node in the cluster.
+"""
+
+
 MQ_HOST = REANA_INFRASTRUCTURE_COMPONENTS_HOSTNAMES["message-broker"]
 """Message queue (RabbitMQ) server host name."""
 
