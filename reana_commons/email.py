@@ -12,6 +12,8 @@ import os
 import smtplib
 import ssl
 
+from reana_commons.errors import REANAEmailNotificationError
+
 # Email configuration
 REANA_EMAIL_SMTP_SERVER = os.getenv("REANA_EMAIL_SMTP_SERVER")
 REANA_EMAIL_SMTP_PORT = os.getenv("REANA_EMAIL_SMTP_PORT")
@@ -34,6 +36,12 @@ def send_email(
     message = "{headers}\n\n{body}".format(headers=headers, body=body)
 
     context = ssl.create_default_context()
+    if not (REANA_EMAIL_SMTP_SERVER and REANA_EMAIL_SMTP_PORT):
+        raise REANAEmailNotificationError(
+            "Cannot send email, missing server and port configuration. "
+            "Please provide the following environment variables:\n"
+            "REANA_EMAIL_SMTP_SERVER\nREANA_EMAIL_SMTP_PORT"
+        )
     with smtplib.SMTP(REANA_EMAIL_SMTP_SERVER, REANA_EMAIL_SMTP_PORT) as server:
         if os.getenv("FLASK_ENV") != "development":
             server.starttls(context=context)

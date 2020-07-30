@@ -43,3 +43,11 @@ class REANAConfigDoesNotExist(Exception):
     def __init__(self, message):
         """Initialize REANAConfigDoesNotExist exception."""
         self.message = message
+
+
+class REANAEmailNotificationError(Exception):
+    """Validation error."""
+
+    def __init__(self, message):
+        """Initialize REANAEmailNotificationError exception."""
+        self.message = message
