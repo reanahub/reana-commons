@@ -46,7 +46,7 @@ class REANAConfigDoesNotExist(Exception):
 
 
 class REANAEmailNotificationError(Exception):
-    """Validation error."""
+    """Email notification error."""
 
     def __init__(self, message):
         """Initialize REANAEmailNotificationError exception."""

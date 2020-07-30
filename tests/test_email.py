@@ -9,7 +9,6 @@
 """REANA-Commons email tests."""
 
 import pytest
-from mock import patch
 
 from reana_commons.email import send_email
 from reana_commons.errors import REANAEmailNotificationError
