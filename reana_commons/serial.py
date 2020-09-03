@@ -13,6 +13,7 @@ from copy import deepcopy
 from string import Template
 
 from jsonschema import ValidationError, validate
+from reana_commons.utils import check_htcondor_max_runtime
 
 serial_workflow_schema = {
     "$schema": "http://json-schema.org/draft-06/schema#",
@@ -62,6 +63,16 @@ serial_workflow_schema = {
                         "type": "boolean",
                         "default": "false",
                     },
+                    "htcondor_max_runtime": {
+                        "$id": "#/properties/steps/properties/htcondor_max_runtime",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "htcondor_accounting_group": {
+                        "$id": "#/properties/steps/properties/htcondor_accounting_group",
+                        "type": "string",
+                        "default": "",
+                    },
                     "commands": {
                         "$id": "#/properties/steps/properties/commands",
                         "type": "array",
@@ -87,6 +98,9 @@ def serial_load(workflow_file, specification, parameters=None, original=None, **
     :returns: A dictionary which represents the valid Serial workflow with all
         parameters expanded.
     """
+    if not check_htcondor_max_runtime(specification):
+        raise Exception("Invalid input in htcondor_max_runtime.")
+
     parameters = parameters or {}
 
     if not specification:

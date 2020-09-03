@@ -5,6 +5,7 @@ Version 0.7.1 (UNRELEASED)
 --------------------------
 
 - Adds support for restarting yadage workflows (through ``accept_metadir`` operational option).
+- Allows ``htcondor_max_runtime`` and ``htcondor_accounting_group`` to be specified for HTC jobs.
 
 Version 0.7.0 (2020-10-20)
 --------------------------

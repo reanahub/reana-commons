@@ -27,6 +27,7 @@ from reana_commons.config import (
     REANA_COMPONENT_TYPES,
     REANA_CVMFS_PVC_TEMPLATE,
     REANA_CVMFS_SC_TEMPLATE,
+    HTCONDOR_JOB_FLAVOURS,
 )
 
 
@@ -305,3 +306,39 @@ def build_unique_component_name(component_type, id=None):
         component_type=component_type,
         id=id or str(uuid.uuid4()),
     )
+
+
+def check_htcondor_max_runtime(specification):
+    """Check if the field htcondor_max_runtime has a valid input.
+
+    :param reana_specification: reana specification of workflow.
+    """
+    check_pass = True
+    steps_with_max_runtime = (
+        step
+        for step in specification["steps"]
+        if step.get("htcondor_max_runtime", False)
+    )
+    for i, step in enumerate(steps_with_max_runtime):
+        htcondor_max_runtime = step["htcondor_max_runtime"]
+        if (
+            not str.isdigit(htcondor_max_runtime)
+            and not htcondor_max_runtime in HTCONDOR_JOB_FLAVOURS
+        ):
+            check_pass = False
+            click.secho(
+                "In step {0}:\n'{1}' is not a valid input for htcondor_max_runtime. Inputs must be a digit in the form of a string, or one of the following job flavours: '{2}'.".format(
+                    step.get("name", i),
+                    htcondor_max_runtime,
+                    "' '".join(
+                        [
+                            k
+                            for k, v in sorted(
+                                HTCONDOR_JOB_FLAVOURS.items(), key=lambda key: key[1]
+                            )
+                        ]
+                    ),
+                ),
+                fg="red",
+            )
+    return check_pass

@@ -350,3 +350,15 @@ REANA_RUNTIME_KUBERNETES_SERVICEACCOUNT_NAME = os.getenv(
 If no runtime namespace is deployed it will default to the infrastructure service
 account.
 """
+
+HTCONDOR_JOB_FLAVOURS = {
+    "espresso": 1200,
+    "microcentury": 3600,
+    "longlunch": 7200,
+    "workday": 28800,
+    "tomorrow": 86400,
+    "testmatch": 259200,
+    "nextweek": 604800,
+}
+
+"""HTCondor job flavours and their respective runtime in seconds."""
