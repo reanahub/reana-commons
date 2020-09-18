@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import time
 import uuid
+import fs
 from hashlib import md5
 
 import click
@@ -27,6 +28,7 @@ from reana_commons.config import (
     REANA_COMPONENT_TYPES,
     REANA_CVMFS_PVC_TEMPLATE,
     REANA_CVMFS_SC_TEMPLATE,
+    SHARED_VOLUME_PATH,
 )
 
 
@@ -187,8 +189,19 @@ def build_caching_info_message(
     return caching_info_message
 
 
-def get_workspace_disk_usage(workspace, summarize=False, block_size=None):
-    """Retrieve disk usage information of a workspace."""
+def get_disk_usage(directory, summarize=False, block_size=None):
+    """Retrieve directory disk usage information.
+
+    :param directory: Disk usage directory.
+    :param summarize: Displays a total size of a directory.
+    :param block_size: Scales sizes in a specified format.
+
+    :return: List of dicts with file name and size.
+    """
+    reana_fs = fs.open_fs(SHARED_VOLUME_PATH)
+    if not reana_fs.exists(directory):
+        raise ValueError("Directory does not exist.")
+    absolute_path = reana_fs.getospath(directory)
     command = ["du"]
     if block_size in ["b", "k"]:
         command.append("-{}".format(block_size))
@@ -198,7 +211,7 @@ def get_workspace_disk_usage(workspace, summarize=False, block_size=None):
         command.append("-s")
     else:
         command.append("-a")
-    command.append(workspace)
+    command.append(absolute_path)
     disk_usage_info = subprocess.check_output(command).decode().split()
     # create pairs of (size, filename)
     filesize_pairs = list(zip(disk_usage_info[::2], disk_usage_info[1::2]))
@@ -206,7 +219,7 @@ def get_workspace_disk_usage(workspace, summarize=False, block_size=None):
     for filesize_pair in filesize_pairs:
         size, name = filesize_pair
         # trim workspace path in every file name
-        filesizes.append({"name": name[len(workspace) :], "size": size})
+        filesizes.append({"name": name[len(absolute_path) :], "size": size})
     return filesizes
 
 
