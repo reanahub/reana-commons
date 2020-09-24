@@ -4,6 +4,12 @@ Changes
 Version master (UNRELEASED)
 ---------------------------
 
+- Adds `get_disk_usage` utility function to calculate disk usage for a directory.
+- Centralises `fs` package dependency
+
+Version 0.7.0 (UNRELEASED)
+---------------------------
+
 - Adds new utility to send emails.
 - Adds centralised operational options validation.
 - Fixes memory leak in Bravado client instantiation. (`reanahub/reana-server#225 <https://github.com/reanahub/reana-server/issues/225>`_)
