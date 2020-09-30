@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.7.0.dev20191230"
+    "version": "0.7.0a3"
   },
   "parameters": {},
   "paths": {
@@ -34,9 +34,9 @@
             "examples": {
               "application/json": {
                 "announcement": "This is a QA instance",
-                "docs_url": "http://docs.reana.io/",
                 "chat_url": "https://mattermost.web.cern.ch/it-dep/channels/reana",
                 "client_pyvenv": "/afs/cern.ch/user/r/reana/public/reana/bin/activate",
+                "docs_url": "http://docs.reana.io/",
                 "forum_url": "https://forum.reana.io/",
                 "local_users": true,
                 "pooling_secs": 15,
@@ -647,11 +647,13 @@
               "application/json": [
                 {
                   "access_token": "Drmhze6EPcv0fN_81Bj-nA",
+                  "disk_usage": "408",
                   "email": "user@reana.info",
                   "id": "00000000-0000-0000-0000-000000000000"
                 },
                 {
                   "access_token": "Drmhze6EPcv0fN_81Bj-nB",
+                  "disk_usage": "408",
                   "email": "user2@reana.info",
                   "id": "00000000-0000-0000-0000-000000000001"
                 }
@@ -661,6 +663,9 @@
               "items": {
                 "properties": {
                   "access_token": {
+                    "type": "string"
+                  },
+                  "disk_usage": {
                     "type": "string"
                   },
                   "email": {
@@ -732,6 +737,7 @@
             "examples": {
               "application/json": {
                 "access_token": "Drmhze6EPcv0fN_81Bj-nA",
+                "disk_usage": "0",
                 "email": "user@reana.info",
                 "id_": "00000000-0000-0000-0000-000000000000"
               }
@@ -739,6 +745,9 @@
             "schema": {
               "properties": {
                 "access_token": {
+                  "type": "string"
+                },
+                "disk_usage": {
                   "type": "string"
                 },
                 "email": {
@@ -791,6 +800,30 @@
             "name": "verbose",
             "required": false,
             "type": "boolean"
+          },
+          {
+            "description": "Filter workflows by name.",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Sort workflows by creation date (asc, desc).",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Filter workflows by list of statuses.",
+            "in": "query",
+            "items": {
+              "type": "string"
+            },
+            "name": "status",
+            "required": false,
+            "type": "array"
           },
           {
             "description": "Size format, either 'b' (bytes) or 'k' (kilobytes).",
@@ -2464,6 +2497,7 @@
             "description": "User information correspoding to the session cookie sent in the request.",
             "examples": {
               "application/json": {
+                "disk_usage": "408",
                 "email": "user@reana.info",
                 "full_name": "John Doe",
                 "reana_token": {
