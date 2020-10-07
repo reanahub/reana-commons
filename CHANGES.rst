@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.7.1 (UNRELEASED)
+--------------------------
+
+- Adds support for restarting yadage workflows (through ``accept_metadir`` operational option).
+
 Version 0.7.0 (2020-10-20)
 --------------------------
 

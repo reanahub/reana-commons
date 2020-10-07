@@ -22,6 +22,7 @@ available_options = {
     "toplevel": {"yadage": "toplevel"},
     "initdir": {"yadage": "initdir"},
     "initfiles": {"yadage": "initfiles"},
+    "accept_metadir": {"yadage": "accept_metadir"},
 }
 
 
