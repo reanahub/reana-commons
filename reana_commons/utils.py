@@ -33,7 +33,7 @@ from reana_commons.config import (
 )
 
 
-def click_table_printer(headers, _filter, data):
+def click_table_printer(headers, _filter, data, colours=None):
     """Generate space separated output for click commands."""
     _filter = [h.lower() for h in _filter] + [h.upper() for h in _filter]
     header_indexes = [i for i, item in enumerate(headers)]
@@ -55,10 +55,13 @@ def click_table_printer(headers, _filter, data):
     formatted_output = "   ".join(formatted_output_parts)
     # Print the table with the headers capitalized
     click.echo(formatted_output.format(*[h.upper() for h in headers]))
-    for row in data:
+    colours = colours if len(colours or []) == len(data) else None
+    for i, row in enumerate(data):
         if header_indexes:
             row = [row[i] for i in header_indexes]
-        click.echo(formatted_output.format(*row))
+        click.secho(
+            formatted_output.format(*row), fg=colours[i] if colours else None,
+        )
 
 
 def calculate_hash_of_dir(directory, file_list=None):
