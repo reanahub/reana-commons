@@ -8,14 +8,15 @@
 """REANA-Commons utils."""
 
 
+import fs
 import json
 import logging
 import os
+import platform
 import shutil
 import subprocess
 import time
 import uuid
-import fs
 from hashlib import md5
 
 import click
@@ -203,8 +204,17 @@ def get_disk_usage(directory, summarize=False, block_size=None):
         raise ValueError("Directory does not exist.")
     absolute_path = reana_fs.getospath(directory)
     command = ["du"]
-    if block_size in ["b", "k"]:
-        command.append("-{}".format(block_size))
+
+    if block_size in ["b", "k", "m", "g"]:
+        if "Darwin" in platform.system():
+            if block_size != "b":  # Default block size in BSD is bytes
+                command.append("-{}}".format(block_size))
+        else:
+            command.append(
+                "--block-size={}".format(
+                    1 if block_size == "b" else block_size
+                )  # Default block size in GNU is KB
+            )
     else:
         command.append("-h")
     if summarize:
