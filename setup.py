@@ -44,7 +44,7 @@ install_requires = [
     "click>=7.0",
     "jsonschema[format]>=3.0.1",
     "kombu>=4.6,<4.7",
-    "mock>=3.0",
+    "mock>=3.0,<4",
     "PyYAML>=5.1",
     "Werkzeug>=0.14.1",
 ]
