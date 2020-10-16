@@ -19,7 +19,7 @@ readme = open("README.rst").read()
 history = open("CHANGES.rst").read()
 
 tests_require = [
-    "pytest-reana>=0.7.0.dev20191219,<0.8.0",
+    "pytest-reana>=0.7.0a2,<0.8.0",
 ]
 
 extras_require = {
@@ -45,7 +45,7 @@ install_requires = [
     "fs>=2.0",
     "jsonschema[format]>=3.0.1",
     "kombu>=4.6,<4.7",
-    "mock>=3.0",
+    "mock>=3.0,<4",
     "PyYAML>=5.1",
     "Werkzeug>=0.14.1",
 ]
