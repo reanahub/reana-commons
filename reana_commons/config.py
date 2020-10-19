@@ -350,3 +350,10 @@ REANA_RUNTIME_KUBERNETES_SERVICEACCOUNT_NAME = os.getenv(
 If no runtime namespace is deployed it will default to the infrastructure service
 account.
 """
+
+REANA_RESOURCE_HEALTH_COLORS = {
+    "healthy": "green",
+    "warning": "yellow",
+    "critical": "red",
+}
+"""REANA mapping between resource health statuses and click-compatible colors."""
