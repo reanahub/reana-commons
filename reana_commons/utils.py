@@ -194,12 +194,13 @@ def build_caching_info_message(
     return caching_info_message
 
 
-def get_disk_usage(directory, summarize=False, block_size=None):
+def get_disk_usage(directory, summarize=False, to_human_readable_units=None):
     """Retrieve directory disk usage information.
 
     :param directory: Disk usage directory.
     :param summarize: Displays a total size of a directory.
-    :param block_size: Scales sizes in a specified format.
+    :param to_human_readable_units: Callback to transform bytes to human
+        readable units.
 
     :return: List of dicts with file name and size.
     """
@@ -208,19 +209,6 @@ def get_disk_usage(directory, summarize=False, block_size=None):
         raise REANAMissingWorkspaceError("Directory does not exist.")
     absolute_path = reana_fs.getospath(directory)
     command = ["du"]
-
-    if block_size in ["b", "k", "m", "g"]:
-        if "Darwin" in platform.system():
-            if block_size != "b":  # Default block size in BSD is bytes
-                command.append("-{}}".format(block_size))
-        else:
-            command.append(
-                "--block-size={}".format(
-                    1 if block_size == "b" else block_size
-                )  # Default block size in GNU is KB
-            )
-    else:
-        command.append("-h")
     if summarize:
         command.append("-s")
     else:
@@ -232,8 +220,15 @@ def get_disk_usage(directory, summarize=False, block_size=None):
     filesizes = []
     for filesize_pair in filesize_pairs:
         size, name = filesize_pair
-        # trim workspace path in every file name
-        filesizes.append({"name": name[len(absolute_path) :], "size": size})
+        size = int(size)
+        # trim workspace path in every file name, and transform bytes if necessary
+        file_data = {
+            "name": name[len(absolute_path) :],
+            "size": {"raw": size},
+        }
+        if to_human_readable_units:
+            file_data["size"]["human_readable"] = to_human_readable_units(size)
+        filesizes.append(file_data)
     return filesizes
 
 
