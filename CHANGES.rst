@@ -1,24 +1,26 @@
 Changes
 =======
 
-Version master (UNRELEASED)
----------------------------
+Version 0.7.0 (2020-10-20)
+--------------------------
 
 - Adds new utility to send emails.
-- Adds centralised operational options validation.
-- Fixes memory leak in Bravado client instantiation. (`reanahub/reana-server#225 <https://github.com/reanahub/reana-server/issues/225>`_)
-- Makes maximum number of running workflows configurable.
-- Adds configurable prefix for component names.
-- Adds central variable for the runtime pods node selector label.
-- Allows specifying unpacked Docker images.
-- Upgrades minimum version of Kubernetes Python library to 11.
-- Centralises CephFS PVC name.
-- Updates to latest CVMFS CSI driver.
-- Introduces new configuration variable ``REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE`` to define the Kubernetes namespace in which REANA infrastructure components run.
-- Introduces new configuration variable ``REANA_RUNTIME_KUBERNETES_NAMESPACE`` to define the Kubernetes namespace in which REANA runtime components components run.
-- Increases default log level to ``INFO``.
-- Add Black formatter support.
-- Adds initfiles as an operational option for Yadage.
+- Adds centralised validation utility for workflow operational options.
+- Adds new configuration variable to set the maximum number of running workflows. (``REANA_MAX_CONCURRENT_BATCH_WORKFLOWS``)
+- Adds new configuration variable to set prefix of REANA cluster component names. (``REANA_COMPONENT_PREFIX``)
+- Adds new configuration variable for the runtime pod node selector label. (``REANA_RUNTIME_KUBERNETES_NODE_LABEL``)
+- Adds new configuration variable to define the Kubernetes namespace in which REANA infrastructure components run. (``REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE``)
+- Adds new configuration variable to define the Kubernetes namespace in which REANA runtime components components run. (``REANA_RUNTIME_KUBERNETES_NAMESPACE``)
+- Adds possibility to specify unpacked container images for running jobs.
+- Adds support for ``initfiles`` operational option for the Yadage workflow engine.
+- Fixes memory leak in Bravado client instantiation.
+- Changes CephFS Persistent Volume Claim name. (``REANA_SHARED_PVC_NAME``)
+- Changes default logging level to ``INFO``.
+- Changes default CVMFS volume list to include LHCb Gaudi related workflows.
+- Changes code formatting to respect ``black`` coding style.
+- Changes underlying requirements to use Kubernetes Python library version 11.
+- Changes underlying requirements to use latest CVMFS CSI driver version.
+- Changes documentation to single-page layout.
 
 Version 0.6.1 (2020-05-25)
 --------------------------
