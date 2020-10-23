@@ -8,7 +8,6 @@
 """REANA-Commons utils."""
 
 
-import fs
 import json
 import logging
 import os
@@ -20,6 +19,7 @@ import uuid
 from hashlib import md5
 
 import click
+import fs
 import requests
 
 from reana_commons.config import (
@@ -31,6 +31,7 @@ from reana_commons.config import (
     REANA_CVMFS_SC_TEMPLATE,
     SHARED_VOLUME_PATH,
 )
+from reana_commons.errors import REANAMissingWorkspaceError
 
 
 def click_table_printer(headers, _filter, data, colours=None):
@@ -204,7 +205,7 @@ def get_disk_usage(directory, summarize=False, block_size=None):
     """
     reana_fs = fs.open_fs(SHARED_VOLUME_PATH)
     if not reana_fs.exists(directory):
-        raise ValueError("Directory does not exist.")
+        raise REANAMissingWorkspaceError("Directory does not exist.")
     absolute_path = reana_fs.getospath(directory)
     command = ["du"]
 

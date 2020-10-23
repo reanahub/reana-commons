@@ -51,3 +51,11 @@ class REANAEmailNotificationError(Exception):
     def __init__(self, message):
         """Initialize REANAEmailNotificationError exception."""
         self.message = message
+
+
+class REANAMissingWorkspaceError(Exception):
+    """Missing workspace error."""
+
+    def __init__(self, message):
+        """Initialize REANAMissingWorkspaceError exception."""
+        self.message = message
