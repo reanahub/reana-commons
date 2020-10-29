@@ -59,3 +59,11 @@ class REANAMissingWorkspaceError(Exception):
     def __init__(self, message):
         """Initialize REANAMissingWorkspaceError exception."""
         self.message = message
+
+
+class REANAQuotaExceededError(Exception):
+    """Quota exceeded error."""
+
+    def __init__(self, message="User quota exceeded."):
+        """Initialize REANAQuotaExceededError exception."""
+        self.message = message
