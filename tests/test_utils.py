@@ -9,6 +9,8 @@
 """REANA-Commons utilities testing."""
 
 import os
+import pkg_resources
+import shutil
 from hashlib import md5
 from pathlib import Path
 
@@ -65,7 +67,13 @@ def test_calculate_hash_of_dir(sample_workflow_workspace):
     """Test calculate_hash_of_dir."""
     non_existing_dir_hash = calculate_hash_of_dir("a/b/c")
     assert non_existing_dir_hash == -1
+
+    test_workspace_path = pkg_resources.resource_filename(
+        "pytest_reana", "test_workspace"
+    )
     sample_workflow_workspace_path = next(sample_workflow_workspace("sample"))
+    shutil.rmtree(sample_workflow_workspace_path)
+    shutil.copytree(test_workspace_path, sample_workflow_workspace_path)
     dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path)
     assert dir_hash == "8d287a3e2240b1762862d485a424363c"
     include_only_path = os.path.join(
@@ -78,6 +86,7 @@ def test_calculate_hash_of_dir(sample_workflow_workspace):
     empty_dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path, [])
     md5_hash = md5()
     assert empty_dir_hash == md5_hash.hexdigest()
+    shutil.rmtree(sample_workflow_workspace_path)
 
 
 def test_calculate_job_input_hash():
