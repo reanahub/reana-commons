@@ -213,6 +213,9 @@ def get_disk_usage(directory, summarize=False, to_human_readable_units=None):
         command.append("-s")
     else:
         command.append("-a")
+    if not "Darwin" in platform.system():
+        # Default block size in GNU is KB
+        command.append("-b")
     command.append(absolute_path)
     disk_usage_info = subprocess.check_output(command).decode().split()
     # create pairs of (size, filename)
