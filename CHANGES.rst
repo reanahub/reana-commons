@@ -7,6 +7,14 @@ Version master (UNRELEASED)
 - Adds `get_disk_usage` utility function to calculate disk usage for a directory.
 - Centralises `fs` package dependency
 
+Version 0.7.1 (2020-11-09)
+--------------------------
+
+- Adds support for restarting yadage workflows (through ``accept_metadir`` operational option).
+- Allows ``htcondor_max_runtime`` and ``htcondor_accounting_group`` to be specified for HTC jobs.
+- Adds new field in REANA-Server OpenAPI spec to return server version.
+- Changes CI system from Travis to GitHub Actions.
+
 Version 0.7.0 (2020-10-20)
 --------------------------
 
