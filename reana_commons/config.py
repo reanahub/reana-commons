@@ -368,3 +368,6 @@ REANA_RESOURCE_HEALTH_COLORS = {
     "critical": "red",
 }
 """REANA mapping between resource health statuses and click-compatible colors."""
+
+REANA_API_RETRY_NUMBER = 3
+"""Number of times to retry a failed REST API call."""
