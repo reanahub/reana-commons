@@ -61,7 +61,7 @@ def test_click_table_printer_filter_wrong_header(capsys):
     assert out == "\n\n\n"
 
 
-def test_calculate_hash_of_dir(sample_workflow_workspace):
+def test_calculate_hash_of_dir(sample_workflow_workspace):  # noqa: F811
     """Test calculate_hash_of_dir."""
     non_existing_dir_hash = calculate_hash_of_dir("a/b/c")
     assert non_existing_dir_hash == -1
@@ -90,7 +90,7 @@ def test_calculate_job_input_hash():
     ) == calculate_job_input_hash(job_spec_2, workflow_json)
 
 
-def test_calculate_file_access_time(sample_workflow_workspace):
+def test_calculate_file_access_time(sample_workflow_workspace):  # noqa: F811
     """Test calculate_file_access_time."""
     sample_workflow_workspace_path = next(sample_workflow_workspace("sample"))
     access_times = calculate_file_access_time(sample_workflow_workspace_path)

@@ -42,7 +42,7 @@ def test_create_existing_secrets_fail(
     ) as api_client:
         secrets_store = REANAUserSecretsStore(no_db_user)
         with pytest.raises(REANASecretAlreadyExists):
-            secrets_list = secrets_store.add_secrets(user_secrets)
+            secrets_store.add_secrets(user_secrets)
         api_client.replace_namespaced_secret.assert_not_called()
 
 
@@ -55,7 +55,7 @@ def test_overwrite_secret(
         corev1_api_client_with_user_secrets(user_secrets),
     ) as api_client:
         secrets_store = REANAUserSecretsStore(no_db_user.id_)
-        secrets_list = secrets_store.add_secrets(user_secrets, overwrite=True)
+        secrets_store.add_secrets(user_secrets, overwrite=True)
         api_client.replace_namespaced_secret.assert_called()
 
 

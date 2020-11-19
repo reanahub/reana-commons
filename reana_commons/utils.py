@@ -323,7 +323,7 @@ def check_htcondor_max_runtime(specification):
         htcondor_max_runtime = step["htcondor_max_runtime"]
         if (
             not str.isdigit(htcondor_max_runtime)
-            and not htcondor_max_runtime in HTCONDOR_JOB_FLAVOURS
+            and htcondor_max_runtime not in HTCONDOR_JOB_FLAVOURS
         ):
             check_pass = False
             click.secho(
