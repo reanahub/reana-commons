@@ -67,7 +67,7 @@ def test_calculate_hash_of_dir(sample_workflow_workspace):  # noqa: F811
     assert non_existing_dir_hash == -1
     sample_workflow_workspace_path = next(sample_workflow_workspace("sample"))
     dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path)
-    assert dir_hash == "8d287a3e2240b1762862d485a424363c"
+    assert dir_hash == "cb2669b4d7651aa717b6952fce85575f"
     include_only_path = os.path.join(
         sample_workflow_workspace_path, "code", "worldpopulation.ipynb"
     )

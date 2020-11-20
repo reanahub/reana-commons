@@ -65,8 +65,9 @@ def calculate_hash_of_dir(directory, file_list=None):
     if not os.path.exists(directory):
         return -1
 
+    sorted_by_dirs = sorted(list(os.walk(directory)), key=lambda x: x[2])
     try:
-        for subdir, dirs, files in os.walk(directory):
+        for subdir, dirs, files in sorted_by_dirs:
             for _file in files:
                 file_path = os.path.join(subdir, _file)
                 if file_list is not None and file_path not in file_list:
