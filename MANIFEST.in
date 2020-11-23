@@ -10,6 +10,7 @@ include *.rst
 include *.sh
 include *.yaml
 include *.yml
+include .flake8
 include pytest.ini
 prune docs/_build
 recursive-include reana_commons *.py

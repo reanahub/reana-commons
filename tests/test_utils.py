@@ -63,7 +63,7 @@ def test_click_table_printer_filter_wrong_header(capsys):
     assert out == "\n\n\n"
 
 
-def test_calculate_hash_of_dir(sample_workflow_workspace):
+def test_calculate_hash_of_dir(sample_workflow_workspace):  # noqa: F811
     """Test calculate_hash_of_dir."""
     non_existing_dir_hash = calculate_hash_of_dir("a/b/c")
     assert non_existing_dir_hash == -1
@@ -75,7 +75,7 @@ def test_calculate_hash_of_dir(sample_workflow_workspace):
     shutil.rmtree(sample_workflow_workspace_path)
     shutil.copytree(test_workspace_path, sample_workflow_workspace_path)
     dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path)
-    assert dir_hash == "8d287a3e2240b1762862d485a424363c"
+    assert dir_hash == "cb2669b4d7651aa717b6952fce85575f"
     include_only_path = os.path.join(
         sample_workflow_workspace_path, "code", "worldpopulation.ipynb"
     )
@@ -99,7 +99,7 @@ def test_calculate_job_input_hash():
     ) == calculate_job_input_hash(job_spec_2, workflow_json)
 
 
-def test_calculate_file_access_time(sample_workflow_workspace):
+def test_calculate_file_access_time(sample_workflow_workspace):  # noqa: F811
     """Test calculate_file_access_time."""
     sample_workflow_workspace_path = next(sample_workflow_workspace("sample"))
     access_times = calculate_file_access_time(sample_workflow_workspace_path)

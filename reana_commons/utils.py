@@ -72,8 +72,9 @@ def calculate_hash_of_dir(directory, file_list=None):
     if not os.path.exists(directory):
         return -1
 
+    sorted_by_dirs = sorted(list(os.walk(directory)), key=lambda x: x[2])
     try:
-        for subdir, dirs, files in os.walk(directory):
+        for subdir, dirs, files in sorted_by_dirs:
             for _file in files:
                 file_path = os.path.join(subdir, _file)
                 if file_list is not None and file_path not in file_list:
@@ -214,7 +215,7 @@ def get_disk_usage(directory, summarize=False, to_human_readable_units=None):
         command.append("-s")
     else:
         command.append("-a")
-    if not "Darwin" in platform.system():
+    if "Darwin" not in platform.system():
         # Default block size in GNU is KB
         command.append("-b")
     command.append(absolute_path)
@@ -348,7 +349,7 @@ def check_htcondor_max_runtime(specification):
         htcondor_max_runtime = step["htcondor_max_runtime"]
         if (
             not str.isdigit(htcondor_max_runtime)
-            and not htcondor_max_runtime in HTCONDOR_JOB_FLAVOURS
+            and htcondor_max_runtime not in HTCONDOR_JOB_FLAVOURS
         ):
             check_pass = False
             click.secho(

@@ -50,7 +50,7 @@ class REANAUserSecretsStore(object):
                 REANA_RUNTIME_KUBERNETES_NAMESPACE, empty_k8s_secret
             )
             return empty_k8s_secret
-        except ApiException as api_e:
+        except ApiException:
             log.error(
                 "Something went wrong while creating "
                 "Kubernetes secret for user {0}.".format(
@@ -113,12 +113,12 @@ class REANAUserSecretsStore(object):
         """Load string annotations from Kubernetes object."""
         try:
             return json.loads(k8s_object.metadata.annotations[annotation_key])
-        except ValueError as e:
+        except ValueError:
             log.error(
                 "Annotations for user {} secret store could not be"
                 "loaded as json.".format(annotation_key)
             )
-        except KeyError as e:
+        except KeyError:
             log.error(
                 "Annotation key {annotation_key} does not exist for"
                 " user {user} secret store, so it can not be loaded".format(

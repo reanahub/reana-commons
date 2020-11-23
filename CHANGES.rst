@@ -7,6 +7,12 @@ Version master (UNRELEASED)
 - Adds `get_disk_usage` utility function to calculate disk usage for a directory.
 - Centralises `fs` package dependency
 
+Version 0.7.2 (UNRELEASED)
+--------------------------
+
+- Adds support for Python 3.9.
+- Fixes minor code warnings.
+
 Version 0.7.1 (2020-11-09)
 --------------------------
 
