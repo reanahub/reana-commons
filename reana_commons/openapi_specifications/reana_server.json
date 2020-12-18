@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.7.0.dev20191230"
+    "version": "0.7.2"
   },
   "parameters": {},
   "paths": {
@@ -2539,13 +2539,15 @@
         "summary": "Gets information about authenticated user."
       }
     },
-    "/login/": {},
+    "/confirm": {},
+    "/confirm/{token}": {},
     "/logout/": {},
     "/oauth/authorized/{remote_app}/": {},
     "/oauth/disconnect/{remote_app}/": {},
     "/oauth/login/{remote_app}/": {},
     "/oauth/signup/{remote_app}/": {},
     "/oauth/static/{filename}": {},
+    "/signin": {},
     "/signup/": {}
   },
   "swagger": "2.0",
