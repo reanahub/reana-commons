@@ -47,6 +47,9 @@ extensions = [
     "sphinx.ext.intersphinx",
 ]
 
+# Autodoc mocking to fix ReadTheDocs builds missing system dependencies
+autodoc_mock_imports = ["kubernetes"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 

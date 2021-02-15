@@ -7,11 +7,15 @@ Version master (UNRELEASED)
 - Adds `get_disk_usage` utility function to calculate disk usage for a directory.
 - Centralises `fs` package dependency
 
-Version 0.7.2 (UNRELEASED)
+Version 0.7.2 (2021-02-02)
 --------------------------
 
 - Adds support for Python 3.9.
 - Fixes minor code warnings.
+- Fixes a helper function that calculates directory hashes.
+- Changes OpenAPI specifications with respect to sign-up form.
+- Changes OpenAPI specifications with respect to email confirmation.
+- Changes CI system to include Python flake8 checker.
 
 Version 0.7.1 (2020-11-09)
 --------------------------
