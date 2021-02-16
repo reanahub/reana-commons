@@ -43,11 +43,15 @@ class BasePublisher(object):
         """
         self._routing_key = routing_key
         self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE, type="direct")
-        self._queue = Queue(
-            queue,
-            durable=durable,
-            exchange=self._exchange,
-            routing_key=self._routing_key,
+        self._queue = (
+            queue
+            if isinstance(queue, Queue)
+            else Queue(
+                queue,
+                durable=durable,
+                exchange=self._exchange,
+                routing_key=self._routing_key,
+            )
         )
         self._connection = connection or Connection(MQ_CONNECTION_STRING)
         self.producer = self._build_producer()
