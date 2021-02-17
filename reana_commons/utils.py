@@ -8,12 +8,10 @@
 """REANA-Commons utils."""
 
 
-import functools
 import json
 import logging
 import os
 import shutil
-import signal
 import subprocess
 import time
 import uuid
@@ -345,48 +343,3 @@ def check_htcondor_max_runtime(specification):
                 fg="red",
             )
     return check_pass
-
-
-def handle_workflow_engine_graceful_exit(publisher=None, exit_handler=None):
-    """Decorator to handle graceful exits for REANA workflow engines.
-
-    This decorator is expected to be run after Click decorator so it can
-    discover the workflow UUID.
-
-    :param publisher: Instance of ``reana_commons.publisher.WorkflowStatusPublisher``.
-    :param exit_handler: A Python signal handler.
-    """
-
-    def decorator(func):
-        @functools.wraps(func)
-        def handle_workflow_engine_graceful_exit_wrapper(*args, **kwargs):
-            workflow_uuid = kwargs.get("workflow_uuid")
-
-            def _default_exit_handler(signum, frame):
-                """Handle executable exit gracefully."""
-                if not publisher:
-                    raise Exception(
-                        "Workflow engine graceful exit requires an instance"
-                        "of reana_commons.publisher.WorkflowStatusPublisher"
-                    )
-                try:
-                    logging.warning(
-                        "SIGTERM signal received, notifying REANA Workflow Controller ..."
-                    )
-                    publisher.publish_workflow_status(
-                        workflow_uuid, 3, logs="Workflow exited unexpectedly."
-                    )
-                except Exception as e:
-                    logging.error(
-                        "Workflow {workflow_uuid} could not be stopped gracefully".format(
-                            workflow_uuid=workflow_uuid
-                        ),
-                        exc_info=True,
-                    )
-
-            signal.signal(signal.SIGTERM, exit_handler or _default_exit_handler)
-            return func(*args, **kwargs)
-
-        return handle_workflow_engine_graceful_exit_wrapper
-
-    return decorator
