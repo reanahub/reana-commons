@@ -362,3 +362,17 @@ HTCONDOR_JOB_FLAVOURS = {
 }
 
 """HTCondor job flavours and their respective runtime in seconds."""
+
+REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES = os.getenv(
+    "REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES", ""
+).split(",")
+"""Keep alive Kubernetes user runtime jobs depending on status.
+
+Keep alive both batch workflow jobs and invididual step jobs after termination
+when their statuses match one of the specified comma-separated values
+(possible values are: ``finished``, ``failed``). By default all jobs are
+cleaned up.
+
+Example: ``REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES="finished,failed"``
+would keep jobs that terminated successfully and jobs that failed.
+"""
