@@ -1,6 +1,12 @@
 Changes
 =======
 
+Version 0.7.3 (2021-02-22)
+--------------------------
+
+- Adds new configuration variable to toggle runtime user jobs clean up depending on their statuses. (``REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES``)
+- Adds central class to instantiate workflow engines with more resilience. (``workflow_engine.create_workflow_engine_command``)
+
 Version 0.7.2 (2021-02-02)
 --------------------------
 
