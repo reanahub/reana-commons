@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.7.4 (UNRELEASED)
+--------------------------
+
+- Changes `reana_ready` function location to REANA-Server.
+
 Version 0.7.3 (2021-02-22)
 --------------------------
 
