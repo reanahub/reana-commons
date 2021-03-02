@@ -4,6 +4,7 @@ Changes
 Version 0.7.4 (UNRELEASED)
 --------------------------
 
+- Adds new functions to serialise/deserialise job commands between REANA components.
 - Changes `reana_ready` function location to REANA-Server.
 
 Version 0.7.3 (2021-02-22)

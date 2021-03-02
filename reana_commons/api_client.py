@@ -17,6 +17,7 @@ from mock import Mock
 
 from reana_commons.config import OPENAPI_SPECS
 from reana_commons.errors import MissingAPIClientConfiguration
+from reana_commons.job_utils import serialise_job_command
 
 
 class BaseAPIClient(object):
@@ -78,7 +79,6 @@ class JobControllerAPIClient(BaseAPIClient):
     def submit(
         self,
         workflow_uuid="",
-        experiment="",
         image="",
         cmd="",
         prettified_cmd="",
@@ -96,7 +96,6 @@ class JobControllerAPIClient(BaseAPIClient):
         """Submit a job to RJC API.
 
         :param job_name: Name of the job.
-        :param experiment: Experiment the job belongs to.
         :param image: Identifier of the Docker image which will run the job.
         :param cmd: String which represents the command to execute. It can be
             modified by the workflow engine i.e. prepending ``cd /some/dir/``.
@@ -115,7 +114,7 @@ class JobControllerAPIClient(BaseAPIClient):
         """
         job_spec = {
             "docker_img": image,
-            "cmd": cmd,
+            "cmd": serialise_job_command(cmd),
             "prettified_cmd": prettified_cmd,
             "env_vars": {},
             "workflow_workspace": workflow_workspace,
