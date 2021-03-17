@@ -1,7 +1,7 @@
 Changes
 =======
 
-Version 0.7.4 (UNRELEASED)
+Version 0.7.4 (2021-03-17)
 --------------------------
 
 - Adds new functions to serialise/deserialise job commands between REANA components.
