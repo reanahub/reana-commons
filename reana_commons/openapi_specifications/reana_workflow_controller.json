@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit and manage workflows",
     "title": "REANA Workflow Controller",
-    "version": "0.7.0.dev20191230"
+    "version": "0.7.2"
   },
   "parameters": {},
   "paths": {
@@ -1041,6 +1041,13 @@
             "in": "path",
             "name": "workflow_id_or_name",
             "required": true,
+            "type": "string"
+          },
+          {
+            "description": "File name(s) (glob) to list.",
+            "in": "query",
+            "name": "file_name",
+            "required": false,
             "type": "string"
           },
           {

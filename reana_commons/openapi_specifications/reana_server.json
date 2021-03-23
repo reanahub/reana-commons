@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.7.2"
+    "version": "0.7.4"
   },
   "parameters": {},
   "paths": {
@@ -2143,6 +2143,13 @@
             "description": "The API access_token of workflow owner.",
             "in": "query",
             "name": "access_token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "File name(s) (glob) to list.",
+            "in": "query",
+            "name": "file_name",
             "required": false,
             "type": "string"
           },

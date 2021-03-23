@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.7.5 (UNRELEASED)
+--------------------------
+
+- Adds support for glob patterns when listing workflow files.
+
 Version 0.7.4 (2021-03-17)
 --------------------------
 
