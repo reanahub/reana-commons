@@ -58,6 +58,11 @@ serial_workflow_schema = {
                         "type": "integer",
                         "default": "None",
                     },
+                    "kubernetes_memory_limit": {
+                        "$id": "#/properties/steps/properties/kubernetes_memory_limit",
+                        "type": "string",
+                        "default": "",
+                    },
                     "voms_proxy": {
                         "$id": "#/properties/steps/properties/voms_proxy",
                         "type": "boolean",

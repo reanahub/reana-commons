@@ -88,6 +88,7 @@ class JobControllerAPIClient(BaseAPIClient):
         compute_backend=None,
         kerberos=False,
         kubernetes_uid=None,
+        kubernetes_memory_limit=None,
         unpacked_img=False,
         voms_proxy=False,
         htcondor_max_runtime="",
@@ -107,6 +108,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :voms_proxy: Decides if grid proxy should be provided for job
             container.
         :kubernetes_uid: Overwrites the default user id in the job container.
+        :kubernetes_memory_limit: Overwrites the default memory limit in the job container.
         :unpacked_img: Decides if unpacked iamges should be used.
         :return: Returns a dict with the ``job_id``.
         :htcondor_max_runtime: Maximum runtime of a HTCondor job.
@@ -134,6 +136,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if kubernetes_uid:
             job_spec["kubernetes_uid"] = kubernetes_uid
+
+        if kubernetes_memory_limit:
+            job_spec["kubernetes_memory_limit"] = kubernetes_memory_limit
 
         if unpacked_img:
             job_spec["unpacked_img"] = unpacked_img
