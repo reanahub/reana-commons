@@ -117,18 +117,42 @@ REANA_RUNTIME_KUBERNETES_NAMESPACE = os.getenv(
 By default runtime pods will run in the same namespace as the infrastructure pods.
 """
 
-REANA_RUNTIME_KUBERNETES_NODE_LABEL = (
-    {
-        os.getenv("REANA_RUNTIME_KUBERNETES_NODE_LABEL")
-        .split("=")[0]: os.getenv("REANA_RUNTIME_KUBERNETES_NODE_LABEL")
-        .split("=")[1]
-    }
-    if os.getenv("REANA_RUNTIME_KUBERNETES_NODE_LABEL")
-    else {}
+
+def kubernetes_node_label_to_dict(node_label):
+    """Load Kubernetes node label to Python dict."""
+    if node_label:
+        label_name, value = node_label.split("=")
+        return {label_name: value}
+
+    return {}
+
+
+REANA_RUNTIME_BATCH_KUBERNETES_NODE_LABEL = kubernetes_node_label_to_dict(
+    os.getenv("REANA_RUNTIME_BATCH_KUBERNETES_NODE_LABEL")
 )
-"""Kubernetes label (with format ``lable_name=lable_value``) which identifies the nodes where the runtime pods should run.
+"""Kubernetes label (with format ``label_name=label_value``) which identifies the nodes where the runtime batch workflows should run.
 
 If not set, the runtime pods run in any available node in the cluster.
+"""
+
+REANA_RUNTIME_JOBS_KUBERNETES_NODE_LABEL = kubernetes_node_label_to_dict(
+    os.getenv("REANA_RUNTIME_JOBS_KUBERNETES_NODE_LABEL")
+)
+"""Kubernetes label (with format ``label_name=label_value``) which identifies the nodes where the runtime jobs should run.
+
+If not set, the runtime pods run in any available node in the cluster.
+"""
+
+REANA_RUNTIME_SESSIONS_KUBERNETES_NODE_LABEL = kubernetes_node_label_to_dict(
+    os.getenv(
+        "REANA_RUNTIME_SESSIONS_KUBERNETES_NODE_LABEL",
+        os.getenv("REANA_RUNTIME_JOBS_KUBERNETES_NODE_LABEL"),
+    )
+)
+"""Kubernetes label (with format ``label_name=label_value``) which identifies the nodes where the runtime sessions should run.
+
+If not set, the runtime sessions run in the same nodes as runtime jobs if ``REANA_RUNTIME_JOBS_KUBERNETES_NODE_LABEL`` is set,
+otherwise, they will be allocated in any available node in the cluster.
 """
 
 
