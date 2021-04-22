@@ -8,15 +8,25 @@
 """REANA REST API base client."""
 
 import json
+import logging
 import os
+import traceback
 
 import pkg_resources
 from bravado.client import RequestsClient, SwaggerClient
-from bravado.exception import HTTPBadRequest, HTTPInternalServerError, HTTPNotFound
+from bravado.exception import (
+    HTTPBadRequest,
+    HTTPError,
+    HTTPInternalServerError,
+    HTTPNotFound,
+)
 from mock import Mock
 
 from reana_commons.config import OPENAPI_SPECS
-from reana_commons.errors import MissingAPIClientConfiguration
+from reana_commons.errors import (
+    MissingAPIClientConfiguration,
+    REANAJobControllerSubmissionError,
+)
 from reana_commons.job_utils import serialise_job_command
 
 
@@ -149,16 +159,17 @@ class JobControllerAPIClient(BaseAPIClient):
         if htcondor_accounting_group:
             job_spec["htcondor_accounting_group"] = htcondor_accounting_group
 
-        response, http_response = self._client.jobs.create_job(job=job_spec).result()
-        if http_response.status_code == 400:
-            raise HTTPBadRequest(
-                "Bad request to create a job. Error: {}".format(http_response.data)
-            )
-        elif http_response.status_code == 500:
-            raise HTTPInternalServerError(
-                "Internal Server Error. Error: {}".format(http_response.data)
-            )
-        return response
+        try:
+            response, http_response = self._client.jobs.create_job(
+                job=job_spec
+            ).result()
+            return response
+        except HTTPError as e:
+            msg = e.response.json().get("message")
+            raise REANAJobControllerSubmissionError(msg)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            raise e
 
     def check_status(self, job_id):
         """Check status of a job."""

@@ -11,7 +11,11 @@ import subprocess
 
 import pytest
 
-from reana_commons.job_utils import deserialise_job_command, serialise_job_command
+from reana_commons.job_utils import (
+    deserialise_job_command,
+    serialise_job_command,
+    validate_kubernetes_memory,
+)
 
 TEST_COMMAND_SIMPLE_ONELINE = dict(
     command="echo 'Hello world'", output="Hello world\n",
@@ -61,3 +65,27 @@ def test_job_serialisation_deserialisation(command_string, expected_output):
     assert expected_output == subprocess.check_output(
         ["bash", "-c", deserialised_command]
     ).decode("utf-8")
+
+
+@pytest.mark.parametrize(
+    "memory,output",
+    [
+        ("100K", True),
+        ("8Mi", True),
+        ("7Gi", True),
+        ("3T", True),
+        ("50Pi", True),
+        ("2Ei", True),
+        ("1E", True),
+        ("2KI", False),
+        ("4096KiB", False),
+        ("8Kib", False),
+        ("8Mb", False),
+        ("2GB", False),
+        ("50Tb", False),
+        ("24Exabyte", False),
+    ],
+)
+def test_validate_kubernetes_memory_format(memory, output):
+    """Test validation of K8s memory format."""
+    assert validate_kubernetes_memory(memory) is output

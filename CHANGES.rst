@@ -5,6 +5,7 @@ Version 0.7.5 (UNRELEASED)
 --------------------------
 
 - Adds support for glob patterns when listing workflow files.
+- Adds support for specifying ``kubernetes_memory_limit`` for Kubernetes compute backend jobs.
 
 Version 0.7.4 (2021-03-17)
 --------------------------
