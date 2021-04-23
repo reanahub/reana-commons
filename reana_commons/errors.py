@@ -62,6 +62,14 @@ class REANAKubernetesWrongMemoryFormat(Exception):
         self.message = message
 
 
+class REANAKubernetesMemoryLimitExceeded(Exception):
+    """Kubernetes memory value exceed max limit."""
+
+    def __init__(self, message):
+        """Initialize REANAKubernetesMemoryLimitExceeded exception."""
+        self.message = message
+
+
 class REANAJobControllerSubmissionError(Exception):
     """REANA Job submission exception."""
 

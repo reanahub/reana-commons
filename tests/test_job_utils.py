@@ -13,6 +13,7 @@ import pytest
 
 from reana_commons.job_utils import (
     deserialise_job_command,
+    kubernetes_memory_to_bytes,
     serialise_job_command,
     validate_kubernetes_memory,
 )
@@ -70,6 +71,7 @@ def test_job_serialisation_deserialisation(command_string, expected_output):
 @pytest.mark.parametrize(
     "memory,output",
     [
+        ("2048", True),
         ("100K", True),
         ("8Mi", True),
         ("7Gi", True),
@@ -84,8 +86,28 @@ def test_job_serialisation_deserialisation(command_string, expected_output):
         ("2GB", False),
         ("50Tb", False),
         ("24Exabyte", False),
+        ("10i", False),
     ],
 )
 def test_validate_kubernetes_memory_format(memory, output):
     """Test validation of K8s memory format."""
     assert validate_kubernetes_memory(memory) is output
+
+
+@pytest.mark.parametrize(
+    "k8s_memory,bytes_",
+    [
+        (100, 100),
+        ("2048", 2048),
+        ("100K", 100000),
+        ("8Mi", 8 * 1024 ** 2),
+        ("7Gi", 7 * 1024 ** 3),
+        ("3T", 3 * 1000 ** 4),
+        ("50Pi", 50 * 1024 ** 5),
+        ("2Ei", 2 * 1024 ** 6),
+        ("1E", 1000 ** 6),
+    ],
+)
+def test_kubernetes_memory_to_bytes(k8s_memory, bytes_):
+    """Test conversion of k8s memory format to bytes."""
+    assert kubernetes_memory_to_bytes(k8s_memory) == bytes_
