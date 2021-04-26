@@ -358,10 +358,10 @@ HTCONDOR_JOB_FLAVOURS = {
 KUBERNETES_MEMORY_UNITS = ["E", "P", "T", "G", "M", "K"]
 """Kubernetes valid memory units"""
 
-KUBERNETES_MEMORY_FORMAT = r"(?:(?P<value_bytes>\d+)|(?P<value_unit>\d+)(?P<unit>[{}])(?P<binary>i?))$".format(
+KUBERNETES_MEMORY_FORMAT = r"(?:(?P<value_bytes>\d+)|(?P<value_unit>(\d+[.])?\d+)(?P<unit>[{}])(?P<binary>i?))$".format(
     "".join(KUBERNETES_MEMORY_UNITS)
 )
-"""Kubernetes valid memory format regular expression e.g. Ki, M , Gi, G, etc."""
+"""Kubernetes valid memory format regular expression e.g. Ki, M, Gi, G, etc."""
 
 REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES = os.getenv(
     "REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES", ""

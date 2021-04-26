@@ -41,8 +41,7 @@ def kubernetes_memory_to_bytes(memory):
         return int(memory_values.get("value_bytes"))
 
     unit = memory_values.get("unit")
-    # TODO: support float values
-    value = int(memory_values.get("value_unit"))
+    value = float(memory_values.get("value_unit"))
     power = "binary" if memory_values.get("binary") else "decimal"
     multiplier = {
         "E": {"decimal": 1000 ** 6, "binary": 1024 ** 6},
