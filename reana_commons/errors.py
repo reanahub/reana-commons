@@ -68,3 +68,31 @@ class REANAQuotaExceededError(Exception):
     def __init__(self, message="User quota exceeded."):
         """Initialize REANAQuotaExceededError exception."""
         self.message = message
+
+
+class REANAKubernetesWrongMemoryFormat(Exception):
+    """Kubernetes memory value has wrong format."""
+
+    def __init__(self, message):
+        """Initialize REANAKubernetesWrongMemoryFormat exception."""
+        self.message = message
+
+
+class REANAKubernetesMemoryLimitExceeded(Exception):
+    """Kubernetes memory value exceed max limit."""
+
+    def __init__(self, message):
+        """Initialize REANAKubernetesMemoryLimitExceeded exception."""
+        self.message = message
+
+
+class REANAJobControllerSubmissionError(Exception):
+    """REANA Job submission exception."""
+
+    def __init__(self, message):
+        """Initialize REANAJobSubmissionError exception."""
+        self.message = message
+
+    def __str__(self):
+        """Represent REANA job controller submission exception as a string."""
+        return "Job submission error: {}".format(self.message or "")

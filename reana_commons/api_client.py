@@ -8,15 +8,26 @@
 """REANA REST API base client."""
 
 import json
+import logging
 import os
+import traceback
 
 import pkg_resources
 from bravado.client import RequestsClient, SwaggerClient
-from bravado.exception import HTTPBadRequest, HTTPInternalServerError, HTTPNotFound
+from bravado.exception import (
+    HTTPBadRequest,
+    HTTPError,
+    HTTPInternalServerError,
+    HTTPNotFound,
+)
 from mock import Mock
 
 from reana_commons.config import OPENAPI_SPECS
-from reana_commons.errors import MissingAPIClientConfiguration
+from reana_commons.errors import (
+    MissingAPIClientConfiguration,
+    REANAJobControllerSubmissionError,
+)
+from reana_commons.job_utils import serialise_job_command
 
 
 class BaseAPIClient(object):
@@ -78,7 +89,6 @@ class JobControllerAPIClient(BaseAPIClient):
     def submit(
         self,
         workflow_uuid="",
-        experiment="",
         image="",
         cmd="",
         prettified_cmd="",
@@ -88,6 +98,7 @@ class JobControllerAPIClient(BaseAPIClient):
         compute_backend=None,
         kerberos=False,
         kubernetes_uid=None,
+        kubernetes_memory_limit=None,
         unpacked_img=False,
         voms_proxy=False,
         htcondor_max_runtime="",
@@ -96,7 +107,6 @@ class JobControllerAPIClient(BaseAPIClient):
         """Submit a job to RJC API.
 
         :param job_name: Name of the job.
-        :param experiment: Experiment the job belongs to.
         :param image: Identifier of the Docker image which will run the job.
         :param cmd: String which represents the command to execute. It can be
             modified by the workflow engine i.e. prepending ``cd /some/dir/``.
@@ -108,6 +118,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :voms_proxy: Decides if grid proxy should be provided for job
             container.
         :kubernetes_uid: Overwrites the default user id in the job container.
+        :kubernetes_memory_limit: Overwrites the default memory limit in the job container.
         :unpacked_img: Decides if unpacked iamges should be used.
         :return: Returns a dict with the ``job_id``.
         :htcondor_max_runtime: Maximum runtime of a HTCondor job.
@@ -115,7 +126,7 @@ class JobControllerAPIClient(BaseAPIClient):
         """
         job_spec = {
             "docker_img": image,
-            "cmd": cmd,
+            "cmd": serialise_job_command(cmd),
             "prettified_cmd": prettified_cmd,
             "env_vars": {},
             "workflow_workspace": workflow_workspace,
@@ -136,6 +147,9 @@ class JobControllerAPIClient(BaseAPIClient):
         if kubernetes_uid:
             job_spec["kubernetes_uid"] = kubernetes_uid
 
+        if kubernetes_memory_limit:
+            job_spec["kubernetes_memory_limit"] = kubernetes_memory_limit
+
         if unpacked_img:
             job_spec["unpacked_img"] = unpacked_img
 
@@ -145,16 +159,17 @@ class JobControllerAPIClient(BaseAPIClient):
         if htcondor_accounting_group:
             job_spec["htcondor_accounting_group"] = htcondor_accounting_group
 
-        response, http_response = self._client.jobs.create_job(job=job_spec).result()
-        if http_response.status_code == 400:
-            raise HTTPBadRequest(
-                "Bad request to create a job. Error: {}".format(http_response.data)
-            )
-        elif http_response.status_code == 500:
-            raise HTTPInternalServerError(
-                "Internal Server Error. Error: {}".format(http_response.data)
-            )
-        return response
+        try:
+            response, http_response = self._client.jobs.create_job(
+                job=job_spec
+            ).result()
+            return response
+        except HTTPError as e:
+            msg = e.response.json().get("message")
+            raise REANAJobControllerSubmissionError(msg)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            raise e
 
     def check_status(self, job_id):
         """Check status of a job."""

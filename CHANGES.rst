@@ -7,6 +7,24 @@ Version master (UNRELEASED)
 - Adds `get_disk_usage` utility function to calculate disk usage for a directory.
 - Centralises `fs` package dependency
 
+Version 0.7.5 (UNRELEASED)
+--------------------------
+
+- Adds support for glob patterns when listing workflow files.
+- Adds support for specifying ``kubernetes_memory_limit`` for Kubernetes compute backend jobs.
+
+Version 0.7.4 (2021-03-17)
+--------------------------
+
+- Adds new functions to serialise/deserialise job commands between REANA components.
+- Changes `reana_ready` function location to REANA-Server.
+
+Version 0.7.3 (2021-02-22)
+--------------------------
+
+- Adds new configuration variable to toggle runtime user jobs clean up depending on their statuses. (``REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES``)
+- Adds central class to instantiate workflow engines with more resilience. (``workflow_engine.create_workflow_engine_command``)
+
 Version 0.7.2 (2021-02-02)
 --------------------------
 

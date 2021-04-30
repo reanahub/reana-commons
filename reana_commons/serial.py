@@ -13,6 +13,7 @@ from copy import deepcopy
 from string import Template
 
 from jsonschema import ValidationError, validate
+from reana_commons.config import KUBERNETES_MEMORY_FORMAT
 from reana_commons.utils import check_htcondor_max_runtime
 
 serial_workflow_schema = {
@@ -57,6 +58,12 @@ serial_workflow_schema = {
                         "$id": "#/properties/steps/properties/kubernetes_uid",
                         "type": "integer",
                         "default": "None",
+                    },
+                    "kubernetes_memory_limit": {
+                        "$id": "#/properties/steps/properties/kubernetes_memory_limit",
+                        "type": "string",
+                        "default": "",
+                        "pattern": KUBERNETES_MEMORY_FORMAT,
                     },
                     "voms_proxy": {
                         "$id": "#/properties/steps/properties/voms_proxy",

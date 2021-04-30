@@ -220,13 +220,6 @@ REANA_MAX_CONCURRENT_BATCH_WORKFLOWS = int(
 )
 """Upper limit on concurrent REANA batch workflows running in the cluster."""
 
-REANA_READY_CONDITIONS = {
-    "reana_commons.tasks": [
-        "check_predefined_conditions",
-        "check_running_reana_batch_workflows_count",
-    ]
-}
-
 REANA_LOG_LEVEL = logging.getLevelName(os.getenv("REANA_LOG_LEVEL", "INFO"))
 """Log verbosity level for REANA components."""
 
@@ -392,3 +385,25 @@ REANA_RESOURCE_HEALTH_COLORS = {
     "critical": "red",
 }
 """REANA mapping between resource health statuses and click-compatible colors."""
+
+KUBERNETES_MEMORY_UNITS = ["E", "P", "T", "G", "M", "K"]
+"""Kubernetes valid memory units"""
+
+KUBERNETES_MEMORY_FORMAT = r"(?:(?P<value_bytes>\d+)|(?P<value_unit>(\d+[.])?\d+)(?P<unit>[{}])(?P<binary>i?))$".format(
+    "".join(KUBERNETES_MEMORY_UNITS)
+)
+"""Kubernetes valid memory format regular expression e.g. Ki, M, Gi, G, etc."""
+
+REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES = os.getenv(
+    "REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES", ""
+).split(",")
+"""Keep alive Kubernetes user runtime jobs depending on status.
+
+Keep alive both batch workflow jobs and invididual step jobs after termination
+when their statuses match one of the specified comma-separated values
+(possible values are: ``finished``, ``failed``). By default all jobs are
+cleaned up.
+
+Example: ``REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES="finished,failed"``
+would keep jobs that terminated successfully and jobs that failed.
+"""
