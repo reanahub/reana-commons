@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.8.0a0"
+    "version": "0.8.0a1"
   },
   "parameters": {},
   "paths": {
@@ -668,6 +668,18 @@
             "name": "size",
             "required": false,
             "type": "integer"
+          },
+          {
+            "description": "Include progress information of the workflows.",
+            "in": "query",
+            "name": "include_progress",
+            "type": "boolean"
+          },
+          {
+            "description": "Include size information of the workspace.",
+            "in": "query",
+            "name": "include_workspace_size",
+            "type": "boolean"
           }
         ],
         "produces": [
