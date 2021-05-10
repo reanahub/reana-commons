@@ -38,10 +38,12 @@ class BaseConsumer(ConsumerMixin):
         self.queue = queue
         self.connection = connection or Connection(MQ_CONNECTION_STRING)
         self.message_default_format = message_default_format or MQ_DEFAULT_FORMAT
+        self.channel = self.connection.channel()
+        self.channel.basic_consume(self.queue, auto_ack=True)
 
     def _build_default_exchange(self):
         """Build :class:`kombu.Exchange` with default values."""
-        return Exchange(MQ_DEFAULT_EXCHANGE, type="direct")
+        return Exchange(MQ_DEFAULT_EXCHANGE, type="direct", durable=True)
 
     def get_consumers(self, Consumer, channel):
         """Map consumers to specific queues.

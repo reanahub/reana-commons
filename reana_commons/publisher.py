@@ -42,7 +42,7 @@ class BasePublisher(object):
             the default configuration.
         """
         self._routing_key = routing_key
-        self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE, type="direct")
+        self._exchange = Exchange(name=exchange or MQ_DEFAULT_EXCHANGE, type="direct", durable=True)
         self._queue = (
             queue
             if isinstance(queue, Queue)
@@ -54,6 +54,8 @@ class BasePublisher(object):
             )
         )
         self._connection = connection or Connection(MQ_CONNECTION_STRING)
+        self._channel = self._connection.channel()
+        self._channel.queue_bind(self._exchange, self._queue, self._routing_key)
         self.producer = self._build_producer()
 
     def _build_producer(self):

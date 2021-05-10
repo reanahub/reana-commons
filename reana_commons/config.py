@@ -183,7 +183,7 @@ MQ_DEFAULT_QUEUES = {
     "jobs-status": {
         "routing_key": "jobs-status",
         "exchange": MQ_DEFAULT_EXCHANGE,
-        "durable": False,
+        "durable": True,
     },
     "workflow-submission": {
         "routing_key": "workflow-submission",
