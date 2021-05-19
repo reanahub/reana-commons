@@ -407,3 +407,10 @@ cleaned up.
 Example: ``REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES="finished,failed"``
 would keep jobs that terminated successfully and jobs that failed.
 """
+
+REANA_COMPUTE_BACKENDS = {
+    "kubernetes": "Kubernetes",
+    "htcondor": "HTCondor",
+    "slurm": "Slurm",
+}
+"""REANA supported compute backends."""
