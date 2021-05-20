@@ -25,7 +25,13 @@ class BasePublisher(object):
     """Base publisher to MQ."""
 
     def __init__(
-        self, queue, routing_key, connection=None, exchange=None, durable=False
+        self,
+        queue,
+        routing_key,
+        connection=None,
+        exchange=None,
+        durable=False,
+        max_priority=None,
     ):
         """Initialise the BasePublisher class.
 
@@ -51,6 +57,7 @@ class BasePublisher(object):
                 durable=durable,
                 exchange=self._exchange,
                 routing_key=self._routing_key,
+                max_priority=max_priority,
             )
         )
         self._connection = connection or Connection(MQ_CONNECTION_STRING)
@@ -71,12 +78,13 @@ class BasePublisher(object):
         logging.error("Error while publishing {}".format(exception))
         logging.info("Retry in %s seconds.", interval)
 
-    def _publish(self, msg):
+    def _publish(self, msg, priority=None):
         """Publish, handling retries, a message in the queue.
 
         :param msg: Object which represents the message to be sent in
             the queue. Note that this object should be serializable in the
             configured format (by default JSON).
+        :param priority: Message priority.
         """
         connection = self._connection.clone()
         publish = connection.ensure(
@@ -90,6 +98,7 @@ class BasePublisher(object):
             exchange=self._exchange,
             routing_key=self._routing_key,
             declare=[self._queue],
+            priority=priority,
         )
         logging.debug("Publisher: message sent: %s", msg)
 
@@ -143,14 +152,18 @@ class WorkflowSubmissionPublisher(BasePublisher):
             queue,
             MQ_DEFAULT_QUEUES[queue]["routing_key"],
             durable=MQ_DEFAULT_QUEUES[queue]["durable"],
+            max_priority=MQ_DEFAULT_QUEUES[queue]["max_priority"],
             **kwargs
         )
 
-    def publish_workflow_submission(self, user_id, workflow_id_or_name, parameters):
+    def publish_workflow_submission(
+        self, user_id, workflow_id_or_name, parameters, priority=0
+    ):
         """Publish workflow submission parameters."""
         msg = {
             "user": user_id,
             "workflow_id_or_name": workflow_id_or_name,
             "parameters": parameters,
+            "priority": priority,  # FIXME: this was added for debugging purposes, needs to be removed
         }
-        self._publish(msg)
+        self._publish(msg, priority)

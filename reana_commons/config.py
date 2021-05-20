@@ -179,6 +179,9 @@ MQ_DEFAULT_FORMAT = "json"
 MQ_DEFAULT_EXCHANGE = ""
 """Message queue (RabbitMQ) exchange."""
 
+MQ_MAX_PRIORITY = 3
+"""Declare the queue as a priority queue and set the highest priority number."""
+
 MQ_DEFAULT_QUEUES = {
     "jobs-status": {
         "routing_key": "jobs-status",
@@ -189,6 +192,7 @@ MQ_DEFAULT_QUEUES = {
         "routing_key": "workflow-submission",
         "exchange": MQ_DEFAULT_EXCHANGE,
         "durable": True,
+        "max_priority": MQ_MAX_PRIORITY
     },
 }
 """Default message queues."""
