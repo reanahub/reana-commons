@@ -9,7 +9,6 @@
 
 import os
 import copy
-import json
 import yadageschemas
 from jsonschema import ValidationError
 
