@@ -27,6 +27,7 @@ extras_require = {
     "docs": ["Sphinx>=1.4.4", "sphinx-rtd-theme>=0.1.9",],
     "tests": tests_require,
     "kubernetes": ["kubernetes>=11.0.0,<12.0.0",],
+    "yadage": ["yadage==0.20.1", "yadage-schemas==0.10.6",],
 }
 
 extras_require["all"] = []
