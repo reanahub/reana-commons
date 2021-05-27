@@ -4,8 +4,10 @@ Changes
 Version master (UNRELEASED)
 ---------------------------
 
-- Adds `get_disk_usage` utility function to calculate disk usage for a directory.
-- Centralises `fs` package dependency
+- Adds ``get_disk_usage`` utility function to calculate disk usage for a directory.
+- Centralises ``fs`` package dependency
+- Changes ``workflow-submission`` queue as a priority queue and allows to set the priority number on workflow submission.
+- Adds Yadage workflow specification loading utilities.
 
 Version 0.7.5 (UNRELEASED)
 --------------------------
@@ -17,7 +19,7 @@ Version 0.7.4 (2021-03-17)
 --------------------------
 
 - Adds new functions to serialise/deserialise job commands between REANA components.
-- Changes `reana_ready` function location to REANA-Server.
+- Changes ``reana_ready`` function location to REANA-Server.
 
 Version 0.7.3 (2021-02-22)
 --------------------------

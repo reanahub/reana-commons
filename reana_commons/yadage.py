@@ -8,6 +8,7 @@
 """REANA Yadage Workflow utils."""
 
 import os
+import copy
 import json
 import yadageschemas
 from jsonschema import ValidationError
@@ -50,9 +51,13 @@ def yadage_load(workflow_file, toplevel=".", **kwargs):
         raise e
 
 
-def yadage_load_from_workspace(workspace_path, workflow_file, toplevel, **kwargs):
-    """Load yadage workflow specification from workspace path."""
+def yadage_load_from_workspace(workspace_path, reana_specification, toplevel, **kwargs):
+    """Load yadage workflow specification from workspace path.
+
+    :returns: Updated reana specification with loaded `yadage` workflow.
+    """
     workflow_workspace = "{0}/{1}".format(SHARED_VOLUME_PATH, workspace_path)
+    workflow_file = reana_specification["workflow"].get("file")
     workflow_file_abs_path = os.path.join(workflow_workspace, workflow_file)
     if not os.path.exists(workflow_file_abs_path):
         message = f"Workflow file {workflow_file} does not exist"
@@ -61,4 +66,7 @@ def yadage_load_from_workspace(workspace_path, workflow_file, toplevel, **kwargs
     if not toplevel.startswith("github:"):
         toplevel = os.path.join(workflow_workspace, toplevel)
 
-    return yadage_load(workflow_file, toplevel=toplevel, **kwargs)
+    workflow_spec = yadage_load(workflow_file, toplevel=toplevel, **kwargs)
+    reana_spec = copy.deepcopy(reana_specification)
+    reana_spec["workflow"]["specification"] = workflow_spec
+    return reana_spec

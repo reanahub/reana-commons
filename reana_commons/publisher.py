@@ -157,13 +157,14 @@ class WorkflowSubmissionPublisher(BasePublisher):
         )
 
     def publish_workflow_submission(
-        self, user_id, workflow_id_or_name, parameters, priority=0
+        self, user_id, workflow_id_or_name, parameters, priority=0, min_job_memory=0
     ):
         """Publish workflow submission parameters."""
         msg = {
             "user": user_id,
             "workflow_id_or_name": workflow_id_or_name,
             "parameters": parameters,
-            "priority": priority,  # FIXME: this was added for debugging purposes, needs to be removed
+            "priority": priority,
+            "min_job_memory": min_job_memory,
         }
         self._publish(msg, priority)
