@@ -60,7 +60,7 @@ def yadage_load_from_workspace(workspace_path, reana_specification, toplevel, **
     workflow_file = reana_specification["workflow"].get("file")
     workflow_file_abs_path = os.path.join(workflow_workspace, workflow_file)
     if not os.path.exists(workflow_file_abs_path):
-        message = f"Workflow file {workflow_file} does not exist"
+        message = "Workflow file {} does not exist".format(workflow_file)
         raise Exception(message)
 
     if not toplevel.startswith("github:"):

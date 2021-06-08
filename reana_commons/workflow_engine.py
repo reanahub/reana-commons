@@ -114,8 +114,8 @@ def create_workflow_engine_command(
     """
     if engine_type not in workflow_engines.keys():
         raise Exception(
-            f"Unknown workflow engine type {engine_type}. "
-            f"Must be one of {workflow_engines.keys()}"
+            "Unknown workflow engine type {}. "
+            "Must be one of {}".format(engine_type, workflow_engines.keys())
         )
 
     @click.command()
@@ -159,14 +159,16 @@ def create_workflow_engine_command(
                 )
             try:
                 logging.warning(
-                    f"Termination signal {signum} received. Workflow interrupted ..."
+                    "Termination signal {} received. Workflow interrupted ...".format(
+                        signum
+                    )
                 )
                 publisher.publish_workflow_status(
                     workflow_uuid, 3, logs="Workflow exited unexpectedly."
                 )
             except Exception:
                 logging.error(
-                    f"Workflow {workflow_uuid} could not be stopped gracefully",
+                    "Workflow {} could not be stopped gracefully".format(workflow_uuid),
                 )
 
         try:
@@ -176,7 +178,9 @@ def create_workflow_engine_command(
             check_connection_to_job_controller()
             workflow_engine_run_adapter(publisher, rjc_api_client, **kwargs)
             logging.info(
-                f"Workflow {workflow_uuid} finished. Files available at {workflow_workspace}.",
+                "Workflow {} finished. Files available at {}.".format(
+                    workflow_uuid, workflow_workspace
+                ),
             )
             publisher.close()
         except Exception as e:
@@ -189,9 +193,9 @@ def create_workflow_engine_command(
                 )
             else:
                 logging.error(
-                    f"Workflow {workflow_uuid} failed but status "
+                    "Workflow {} failed but status "
                     "could not be published causing the workflow to be "
-                    "stuck in running status.",
+                    "stuck in running status.".format(workflow_uuid),
                 )
 
         finally:
