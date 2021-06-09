@@ -15,6 +15,23 @@ from kubernetes import config as k8s_config
 from werkzeug.local import LocalProxy
 
 
+# FIXME: monkeypatch to avoid `Invalid value for `names`, must not be `None``
+# error when calling `current_k8s_corev1_api_client.list_node()`.
+# After new Kubernetes release this should not be needed.
+# https://github.com/reanahub/reana-commons/issues/197
+# https://github.com/kubernetes-client/python/issues/895
+# https://github.com/kubernetes/kubernetes/pull/102159
+from kubernetes.client.models.v1_container_image import V1ContainerImage
+
+
+def names(self, names):
+    """Monkeypatch."""
+    self._names = names
+
+
+V1ContainerImage.names = V1ContainerImage.names.setter(names)
+
+
 def create_api_client(api="BatchV1"):
     """Create Kubernetes API client using config.
 
