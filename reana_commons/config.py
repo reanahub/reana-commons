@@ -381,6 +381,17 @@ This a configuration set by the system administrators through Helm values at
 cluster creation time.
 """
 
+
+K8S_USE_SECURITY_CONTEXT = (
+    os.getenv("K8S_USE_SECURITY_CONTEXT", "True").lower() == "true"
+)
+"""Whether to use Kubernetes security contexts or not.
+
+This (enabled by default) runs workflows as the WORKFLOW_RUNTIME_USER_UID and
+WORKFLOW_RUNTIME_USER_GID.  It should be set to False for systems (like OpenShift)
+that assign ephemeral UIDs.
+"""
+
 REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME = os.getenv(
     "REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME"
 )
