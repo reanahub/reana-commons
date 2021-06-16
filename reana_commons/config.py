@@ -226,6 +226,12 @@ OPENAPI_SPECS = {
 }
 """REANA Workflow Controller address."""
 
+REANA_WORKFLOW_SCHEDULING_POLICIES = ["fifo", "balanced"]
+"""REANA workflow scheduling policies.
+- ``fifo``: first-in first-out strategy starting workflows as they come.
+- ``balanced``: a weighted strategy taking into account existing multi-user workloads and the DAG complexity of incoming workflows.
+"""
+
 REANA_MAX_CONCURRENT_BATCH_WORKFLOWS = int(
     os.getenv("REANA_MAX_CONCURRENT_BATCH_WORKFLOWS", "30")
 )
