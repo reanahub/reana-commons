@@ -15,7 +15,6 @@ from kombu import Connection, Exchange, Queue
 from .config import (
     MQ_CONNECTION_STRING,
     MQ_DEFAULT_EXCHANGE,
-    MQ_WORKFLOW_SUBMISSION_EXCHANGE,
     MQ_DEFAULT_FORMAT,
     MQ_DEFAULT_QUEUES,
     MQ_PRODUCER_MAX_RETRIES,
@@ -83,7 +82,7 @@ class BasePublisher(object):
         logging.error("Error while publishing {}".format(exception))
         logging.info("Retry in %s seconds.", interval)
 
-    def _publish(self, msg, priority=None, headers=None):
+    def _publish(self, msg, priority=None):
         """Publish, handling retries, a message in the queue.
 
         :param msg: Object which represents the message to be sent in
@@ -104,7 +103,6 @@ class BasePublisher(object):
             routing_key=self._routing_key,
             declare=[self._queue],
             priority=priority,
-            headers=headers,
         )
         logging.debug("Publisher: message sent: %s", msg)
 
@@ -159,19 +157,11 @@ class WorkflowSubmissionPublisher(BasePublisher):
             MQ_DEFAULT_QUEUES[queue]["routing_key"],
             durable=MQ_DEFAULT_QUEUES[queue]["durable"],
             max_priority=MQ_DEFAULT_QUEUES[queue]["max_priority"],
-            exchange=Exchange(**MQ_DEFAULT_QUEUES[queue]["exchange"]),
             **kwargs
         )
 
     def publish_workflow_submission(
-        self,
-        user_id,
-        workflow_id_or_name,
-        parameters,
-        priority=0,
-        min_job_memory=0,
-        retry_count=0,
-        delay=None,
+        self, user_id, workflow_id_or_name, parameters, priority=0, min_job_memory=0,
     ):
         """Publish workflow submission parameters."""
         msg = {
@@ -180,7 +170,5 @@ class WorkflowSubmissionPublisher(BasePublisher):
             "parameters": parameters,
             "priority": priority,
             "min_job_memory": min_job_memory,
-            "retry_count": retry_count,
         }
-        headers = {"x-delay": delay} if delay else None
-        self._publish(msg, priority, headers)
+        self._publish(msg, priority)

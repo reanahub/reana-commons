@@ -8,7 +8,6 @@ Version master (UNRELEASED)
 - Centralises ``fs`` package dependency
 - Changes ``workflow-submission`` queue as a priority queue and allows to set the priority number on workflow submission.
 - Adds Yadage workflow specification loading utilities.
-- Changes ``workflow-submission`` exchange to delay rescheduled workflows and count number of retries.
 
 Version 0.7.5 (UNRELEASED)
 --------------------------
