@@ -17,6 +17,7 @@ import subprocess
 import time
 import uuid
 from hashlib import md5
+from pathlib import Path
 
 import click
 import fs
@@ -196,11 +197,88 @@ def build_caching_info_message(
     return caching_info_message
 
 
-def get_disk_usage(directory, summarize=False, to_human_readable_units=None):
+def remove_upper_level_references(path):
+    """Remove upper than `./` references.
+
+    Collapse separators/up-level references avoiding references to paths
+    outside working directory.
+
+    :param path: User provided path to a file or directory.
+    :return: Returns the corresponding sanitized path.
+    """
+    return os.path.normpath("/" + path).lstrip("/")
+
+
+def is_directory(directory_path, path):
+    """Whether the given path matches a directory or not.
+
+    :param directory_path: Directory to check files from.
+    :param path: Optional wildcard pattern to use for the check.
+    :return: Full path if it is a directory, False if not.
+    """
+    secure_path = remove_upper_level_references(path)
+    full_path = Path(directory_path, secure_path)
+    if full_path.is_dir():
+        return full_path
+    return False
+
+
+def get_files_recursive_wildcard(directory_path, path):
+    """Get file(s) fitting the wildcard from the workspace.
+
+    :param directory_path: Directory to get files from.
+    :param path: Wildcard pattern to use for the extraction.
+    :return: list of paths sorted by length.
+    """
+    secure_path = remove_upper_level_references(path)
+    # if `secure_path` is a directory, append `/*` to get all the files inside
+    if is_directory(directory_path, secure_path):
+        _rstrip_path = secure_path.rstrip("/")
+        secure_path = "{}/*".format(_rstrip_path)
+    posix_dir_prefix = Path(directory_path)
+    paths = list(posix_dir_prefix.glob(secure_path))
+    # sort paths by length to start with the leaves of the directory tree
+    paths.sort(key=lambda path: len(str(path)), reverse=True)
+    return paths, posix_dir_prefix
+
+
+def get_disk_usage_info_paths(absolute_path, command, name_filter):
+    """Retrieve the path for disk usage information.
+
+    :param absolute_path: System path to reana filesystem.
+    :param command: Command to get the disk usage from reana filesystem.
+    :param name_filter: Name filter parameters if any.
+
+    :return: List of disk usage info containing the file path and size.
+    """
+    if name_filter:
+        path_list = []
+        for _path in name_filter:
+            paths, _ = get_files_recursive_wildcard(
+                absolute_path.decode("utf-8"), _path
+            )
+            if paths:
+                path_list += paths
+        if path_list:
+            for path in path_list:
+                command.append(path)
+            disk_usage_info = subprocess.check_output(command).decode().split()
+        else:
+            disk_usage_info = []
+    else:
+        command.append(absolute_path)
+        disk_usage_info = subprocess.check_output(command).decode().split()
+    return disk_usage_info
+
+
+def get_disk_usage(
+    directory, summarize=False, search=None, to_human_readable_units=None
+):
     """Retrieve directory disk usage information.
 
     :param directory: Disk usage directory.
     :param summarize: Displays a total size of a directory.
+    :param search: Filter parameters to show only files that match certain filtering.
     :param to_human_readable_units: Callback to transform bytes to human
         readable units.
 
@@ -218,23 +296,35 @@ def get_disk_usage(directory, summarize=False, to_human_readable_units=None):
     if "Darwin" not in platform.system():
         # Default block size in GNU is KB
         command.append("-b")
-    command.append(absolute_path)
-    disk_usage_info = subprocess.check_output(command).decode().split()
-    # create pairs of (size, filename)
-    filesize_pairs = list(zip(disk_usage_info[::2], disk_usage_info[1::2]))
-    filesizes = []
-    for filesize_pair in filesize_pairs:
-        size, name = filesize_pair
-        size = int(size)
-        # trim workspace path in every file name, and transform bytes if necessary
-        file_data = {
-            "name": name[len(absolute_path) :],
-            "size": {"raw": size},
-        }
-        if to_human_readable_units:
-            file_data["size"]["human_readable"] = to_human_readable_units(size)
-        filesizes.append(file_data)
-    return filesizes
+
+    name_filter = None
+    size_filter = None
+    if search:
+        search = json.loads(search)
+        name_filter = search.get("name")
+        size_filter = search.get("size")
+
+    disk_usage_info = get_disk_usage_info_paths(absolute_path, command, name_filter)
+    if disk_usage_info:
+        filesize_pairs = list(zip(disk_usage_info[::2], disk_usage_info[1::2]))
+        filesizes = []
+        for filesize_pair in filesize_pairs:
+            size, name = filesize_pair
+            size = int(size)
+            # trim workspace path in every file name, and transform bytes if necessary
+            file_data = {
+                "name": name[len(absolute_path) :],
+                "size": {"raw": size},
+            }
+            if to_human_readable_units:
+                file_data["size"]["human_readable"] = to_human_readable_units(size)
+            if size_filter:
+                if str(size) in size_filter:
+                    filesizes.append(file_data)
+            else:
+                filesizes.append(file_data)
+        return filesizes
+    return disk_usage_info
 
 
 def render_cvmfs_pvc(cvmfs_volume):
