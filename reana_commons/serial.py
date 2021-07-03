@@ -91,9 +91,11 @@ serial_workflow_schema = {
                         },
                     },
                 },
+                "additionalProperties": False,
             },
         }
     },
+    "additionalProperties": False,
 }
 
 
