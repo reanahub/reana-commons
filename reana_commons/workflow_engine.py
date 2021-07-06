@@ -66,6 +66,8 @@ workflow_engines = dict(
     cwl=dict(load_operational_options_callback=load_cwl_operational_options),
     serial=dict(load_operational_options_callback=load_json),
     yadage=dict(load_operational_options_callback=load_yadage_operational_options),
+    # FIXME: Create `load_snakemake_operational_options`.
+    snakemake=dict(load_operational_options_callback=lambda x: None),
 )
 
 
