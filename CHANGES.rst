@@ -9,7 +9,7 @@ Version master (UNRELEASED)
 - Changes ``workflow-submission`` queue as a priority queue and allows to set the priority number on workflow submission.
 - Adds Yadage workflow specification loading utilities.
 
-Version 0.7.5 (UNRELEASED)
+Version 0.7.5 (2021-07-02)
 --------------------------
 
 - Adds support for glob patterns when listing workflow files.
