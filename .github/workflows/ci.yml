@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [2.7, 3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
       - name: Checkout
@@ -127,7 +127,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install "pip<20.3"
-          pip install "setuptools==44.0.0" # for py27
           pip install twine wheel
           pip install -e .[all]
 

@@ -8,6 +8,7 @@ Version master (UNRELEASED)
 - Centralises ``fs`` package dependency
 - Changes ``workflow-submission`` queue as a priority queue and allows to set the priority number on workflow submission.
 - Adds Yadage workflow specification loading utilities.
+- Removes support for Python 2.
 
 Version 0.7.5 (2021-07-02)
 --------------------------
