@@ -67,6 +67,7 @@ def get_shared_volume(workflow_workspace):
             workflow_workspace, SHARED_VOLUME_PATH
         )
     mount_path = os.path.join(SHARED_VOLUME_PATH, workflow_workspace_relative_to_owner)
+
     volume_mount = {
         "name": REANA_SHARED_VOLUME_NAME,
         "mountPath": mount_path,

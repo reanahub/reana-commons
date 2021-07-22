@@ -17,7 +17,6 @@ import signal
 import click
 
 from reana_commons.api_client import JobControllerAPIClient
-from reana_commons.config import SHARED_VOLUME_PATH
 from reana_commons.publisher import WorkflowStatusPublisher
 from reana_commons.utils import check_connection_to_job_controller
 
@@ -35,7 +34,6 @@ def load_yadage_operational_options(ctx, param, operational_options):
     """Decode and prepare operational options."""
     operational_options = load_json(ctx, param, operational_options)
     workflow_workspace = ctx.params.get("workflow_workspace")
-    workflow_workspace = "{0}/{1}".format(SHARED_VOLUME_PATH, workflow_workspace)
     toplevel = operational_options.get("toplevel", "")
     if not toplevel.startswith("github:"):
         toplevel = os.path.join(workflow_workspace, toplevel)

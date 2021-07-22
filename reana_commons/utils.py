@@ -254,9 +254,7 @@ def get_disk_usage_info_paths(absolute_path, command, name_filter):
     if name_filter:
         path_list = []
         for _path in name_filter:
-            paths, _ = get_files_recursive_wildcard(
-                absolute_path.decode("utf-8"), _path
-            )
+            paths, _ = get_files_recursive_wildcard(absolute_path, _path)
             if paths:
                 path_list += paths
         if path_list:
@@ -284,10 +282,8 @@ def get_disk_usage(
 
     :return: List of dicts with file name and size.
     """
-    reana_fs = fs.open_fs(SHARED_VOLUME_PATH)
-    if not reana_fs.exists(directory):
+    if not os.path.exists(directory):
         raise REANAMissingWorkspaceError("Directory does not exist.")
-    absolute_path = reana_fs.getospath(directory)
     command = ["du"]
     if summarize:
         command.append("-s")
@@ -304,7 +300,7 @@ def get_disk_usage(
         name_filter = search.get("name")
         size_filter = search.get("size")
 
-    disk_usage_info = get_disk_usage_info_paths(absolute_path, command, name_filter)
+    disk_usage_info = get_disk_usage_info_paths(directory, command, name_filter)
     if disk_usage_info:
         filesize_pairs = list(zip(disk_usage_info[::2], disk_usage_info[1::2]))
         filesizes = []
@@ -313,7 +309,7 @@ def get_disk_usage(
             size = int(size)
             # trim workspace path in every file name, and transform bytes if necessary
             file_data = {
-                "name": name[len(absolute_path) :],
+                "name": name[len(directory) :],
                 "size": {"raw": size},
             }
             if to_human_readable_units:
