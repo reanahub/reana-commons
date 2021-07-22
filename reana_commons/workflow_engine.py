@@ -67,7 +67,7 @@ workflow_engines = dict(
     serial=dict(load_operational_options_callback=load_json),
     yadage=dict(load_operational_options_callback=load_yadage_operational_options),
     # FIXME: Create `load_snakemake_operational_options`.
-    snakemake=dict(load_operational_options_callback=lambda x: None),
+    snakemake=dict(load_operational_options_callback=load_json),
 )
 
 
@@ -139,12 +139,12 @@ def create_workflow_engine_command(
     )
     @click.option(
         "--workflow-parameters",
-        help="JSON representation of parameters received by" " the workflow.",
+        help="JSON representation of parameters received by the workflow.",
         callback=load_json,
     )
     @click.option(
         "--operational-options",
-        help="Options to be passed to the workflow engine" " (i.e. caching).",
+        help="Options to be passed to the workflow engine (i.e. caching).",
         callback=workflow_engines[engine_type]["load_operational_options_callback"],
     )
     def run_workflow_engine_run_command(**kwargs):
