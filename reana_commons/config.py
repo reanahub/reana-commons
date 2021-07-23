@@ -418,3 +418,6 @@ REANA_COMPUTE_BACKENDS = {
     "slurm": "Slurm",
 }
 """REANA supported compute backends."""
+
+REANA_WORKFLOW_ENGINES = ["yadage", "cwl", "serial", "snakemake"]
+"""Available workflow engines."""
