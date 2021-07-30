@@ -76,3 +76,18 @@ def get_shared_volume(workflow_workspace):
 
     volume = get_reana_shared_volume()
     return volume_mount, volume
+
+
+def get_workspace_volume(workflow_workspace):
+    """Get shared CephFS/hostPath workspace volume to a given job spec.
+
+    :param workflow_workspace: Absolute path to the job's workflow workspace.
+    :returns: Tuple consisting of the Kubernetes volumeMount and the volume.
+    """
+    volume_mount = {"name": "reana-workspace-volume", "mountPath": workflow_workspace}
+
+    volume = {
+        "name": "reana-workspace-volume",
+        "hostPath": {"path": workflow_workspace},
+    }
+    return volume_mount, volume
