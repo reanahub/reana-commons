@@ -336,6 +336,19 @@ REANA_USER_SECRET_MOUNT_PATH = os.getenv(
 SHARED_VOLUME_PATH = os.getenv("SHARED_VOLUME_PATH", "/var/reana")
 """Default shared volume path."""
 
+DEFAULT_WORKSPACE_PATH = os.getenv("DEFAULT_WORKSPACE_PATH", SHARED_VOLUME_PATH)
+"""Default workspace path defined by the admin."""
+
+
+def workspaces(workspaces_list):
+    """Load the available workspaces as list."""
+    workspaces_list = workspaces_list.split(",") if workspaces_list else []
+    return workspaces_list
+
+
+WORKSPACE_PATHS = workspaces(os.getenv("WORKSPACE_PATHS"))
+"""List of allowed workspace paths."""
+
 K8S_CERN_EOS_MOUNT_CONFIGURATION = {
     "volume": {"name": "eos", "hostPath": {"path": "/var/eos"}},
     "volumeMounts": {
