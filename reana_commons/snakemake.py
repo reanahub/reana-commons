@@ -65,7 +65,6 @@ def snakemake_load(workflow_file, **kwargs):
         workflow_file, configfiles=configfiles
     )
 
-    # FIXME: Adapt when supporting `kubernetes_uid`
     return {
         "steps": [
             {
@@ -75,6 +74,7 @@ def snakemake_load(workflow_file, **kwargs):
                 "params": dict(rule._params),
                 "outputs": dict(rule._output),
                 "commands": [rule.shellcmd],
+                "kubernetes_uid": rule.resources.get("kubernetes_uid"),
             }
             for rule in snakemake_workflow.rules
             if not rule.norun
