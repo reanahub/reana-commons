@@ -23,6 +23,7 @@ available_options = {
     "initdir": {"yadage": "initdir"},
     "initfiles": {"yadage": "initfiles"},
     "accept_metadir": {"yadage": "accept_metadir"},
+    "report": {"snakemake": "report"},
 }
 
 

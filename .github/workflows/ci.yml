@@ -98,6 +98,11 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -y
+          sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -y
           sudo apt install libcurl4-openssl-dev libssl-dev
           sudo apt-get install libgnutls28-dev
 
@@ -123,6 +128,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config
 
       - name: Install Python dependencies
         run: |

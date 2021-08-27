@@ -28,7 +28,7 @@ extras_require = {
     "tests": tests_require,
     "kubernetes": ["kubernetes>=11.0.0,<12.0.0",],
     "yadage": ["adage==0.10.1", "yadage==0.20.1", "yadage-schemas==0.10.6",],
-    "snakemake": ["snakemake>=6.5.3,<6.6.0"],
+    "snakemake": ["snakemake[reports]>=6.5.3,<6.6.0"],
 }
 
 extras_require["all"] = []
