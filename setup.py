@@ -23,15 +23,19 @@ tests_require = [
     "pathlib>=1.0.1,<1.1.0",
 ]
 
-snakemake_pkg = lambda extras="": f"snakemake{extras}>=6.5.3,<6.6.0"
+
+def get_snakemake_pkg(extras=""):
+    """Get Snakemake dependency string, adding appropiate extras."""
+    return f"snakemake{extras}>=6.5.3,<6.6.0"
+
 
 extras_require = {
     "docs": ["Sphinx>=1.4.4", "sphinx-rtd-theme>=0.1.9",],
     "tests": tests_require,
     "kubernetes": ["kubernetes>=11.0.0,<12.0.0",],
     "yadage": ["adage==0.10.1", "yadage==0.20.1", "yadage-schemas==0.10.6",],
-    "snakemake": [snakemake_pkg()],
-    "snakemake_reports": [snakemake_pkg("[reports]")],
+    "snakemake": [get_snakemake_pkg()],
+    "snakemake_reports": [get_snakemake_pkg("[reports]")],
 }
 
 extras_require["all"] = []
