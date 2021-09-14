@@ -20,7 +20,7 @@ def validate_workspace(workspace_option, available_paths=WORKSPACE_PATHS):
     """
     if workspace_option:
         available = any(
-            os.path.abspath(workspace_option).startswith(
+            os.path.join(os.path.abspath(workspace_option), "").startswith(
                 os.path.join(os.path.abspath(path), "")
             )
             for path in available_paths
