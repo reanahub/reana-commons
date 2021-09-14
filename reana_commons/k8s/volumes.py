@@ -14,6 +14,7 @@ from reana_commons.config import (
     REANA_SHARED_PVC_NAME,
     REANA_STORAGE_BACKEND,
     SHARED_VOLUME_PATH,
+    WORKSPACE_PATHS,
 )
 
 REANA_SHARED_VOLUME_NAME = "reana-shared-volume"
@@ -85,9 +86,12 @@ def get_workspace_volume(workflow_workspace):
     :returns: Tuple consisting of the Kubernetes volumeMount and the volume.
     """
     volume_mount = {"name": "reana-workspace-volume", "mountPath": workflow_workspace}
-
+    host_workspace_path = workflow_workspace
+    for host_path, mounted_path in WORKSPACE_PATHS.items():
+        if host_workspace_path.startswith(mounted_path):
+            host_workspace_path = host_workspace_path.replace(mounted_path, host_path)
     volume = {
         "name": "reana-workspace-volume",
-        "hostPath": {"path": workflow_workspace},
+        "hostPath": {"path": host_workspace_path},
     }
     return volume_mount, volume

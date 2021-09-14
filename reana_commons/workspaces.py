@@ -12,15 +12,20 @@ from reana_commons.config import WORKSPACE_PATHS
 import os
 
 
-def validate_workspace(workspace_option, available_paths=WORKSPACE_PATHS):
+def validate_workspace(
+    workspace_option, available_paths=list(WORKSPACE_PATHS.values())
+):
     """Validate and return workspace.
 
-    :param workspace_option: A string of the workspace.
+    :param workspace_option: A string of the workspace to validate.
+    :type workspace_option: string
+    :param available_paths: A list of the available workspaces.
+    :type available_paths: list
     :returns: A string of the validated workspace.
     """
     if workspace_option:
         available = any(
-            os.path.abspath(workspace_option).startswith(
+            os.path.join(os.path.abspath(workspace_option), "").startswith(
                 os.path.join(os.path.abspath(path), "")
             )
             for path in available_paths

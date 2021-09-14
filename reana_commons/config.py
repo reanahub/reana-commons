@@ -336,18 +336,26 @@ REANA_USER_SECRET_MOUNT_PATH = os.getenv(
 SHARED_VOLUME_PATH = os.getenv("SHARED_VOLUME_PATH", "/var/reana")
 """Default shared volume path."""
 
-DEFAULT_WORKSPACE_PATH = os.getenv("DEFAULT_WORKSPACE_PATH", SHARED_VOLUME_PATH)
+
+def workspaces(paths):
+    """Tranform list of mounted workspaces as strings, to dictionary of pairs as cluster_node_path:cluster_pod_mountpath."""
+    if isinstance(paths, list):
+        return dict(p.split(":") for p in paths)
+    return paths
+
+
+WORKSPACE_PATHS = workspaces(json.loads(os.getenv("WORKSPACE_PATHS", "{}")))
+"""Dictionary of available workspace paths with pairs of cluster_node_path:cluster_pod_mountpath."""
+
+
+def default_workspace():
+    """Obtain default workspace path."""
+    workspaces_list = [path for path in list(WORKSPACE_PATHS.values())]
+    return workspaces_list[0] if workspaces_list else SHARED_VOLUME_PATH
+
+
+DEFAULT_WORKSPACE_PATH = default_workspace()
 """Default workspace path defined by the admin."""
-
-
-def workspaces(workspaces_list):
-    """Load the available workspaces as list."""
-    workspaces_list = workspaces_list.split(",") if workspaces_list else []
-    return workspaces_list
-
-
-WORKSPACE_PATHS = workspaces(os.getenv("WORKSPACE_PATHS"))
-"""List of allowed workspace paths."""
 
 K8S_CERN_EOS_MOUNT_CONFIGURATION = {
     "volume": {"name": "eos", "hostPath": {"path": "/var/eos"}},
