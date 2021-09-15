@@ -117,6 +117,9 @@ def calculate_file_access_time(workflow_workspace):
     for subdir, dirs, files in os.walk(workflow_workspace):
         for file in files:
             file_path = os.path.join(subdir, file)
+            # skip symlinks
+            if os.path.islink(file_path):
+                continue
             access_times[file_path] = os.stat(file_path).st_atime
     return access_times
 
