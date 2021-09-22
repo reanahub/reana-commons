@@ -442,3 +442,6 @@ REANA_COMPUTE_BACKENDS = {
 
 REANA_WORKFLOW_ENGINES = ["yadage", "cwl", "serial", "snakemake"]
 """Available workflow engines."""
+
+REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "snakemake/snakemake:v6.8.0"
+"""Snakemake default job environment image."""

@@ -69,7 +69,7 @@ def snakemake_load(workflow_file, **kwargs):
         "steps": [
             {
                 "name": rule.name,
-                "environment": rule._container_img.replace("docker://", ""),
+                "environment": (rule._container_img or "").replace("docker://", ""),
                 "inputs": dict(rule._input),
                 "params": dict(rule._params),
                 "outputs": dict(rule._output),
