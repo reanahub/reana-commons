@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.9.0 (UNRELEASED)
+--------------------------
+
+- Adds support for networking/v1 API to Kubernetes Python client.
+
 Version 0.8.5 (2022-02-23)
 --------------------------
 

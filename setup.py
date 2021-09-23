@@ -31,7 +31,7 @@ def get_snakemake_pkg(extras=""):
 extras_require = {
     "docs": ["Sphinx>=1.4.4", "sphinx-rtd-theme>=0.1.9",],
     "tests": tests_require,
-    "kubernetes": ["kubernetes>=11.0.0,<12.0.0",],
+    "kubernetes": ["kubernetes>=22.0.0,<23.0.0",],
     "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
     "snakemake": [get_snakemake_pkg()],
     "snakemake_reports": [get_snakemake_pkg("[reports]"), "pygraphviz<1.8"],
