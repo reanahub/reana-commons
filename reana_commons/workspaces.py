@@ -7,14 +7,16 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA-Commons workspaces util."""
 
-from reana_commons.errors import REANAValidationError
-from reana_commons.config import WORKSPACE_PATHS
 import os
+from typing import List
+
+from reana_commons.config import WORKSPACE_PATHS
+from reana_commons.errors import REANAValidationError
 
 
 def validate_workspace(
-    workspace_option, available_paths=list(WORKSPACE_PATHS.values())
-):
+    workspace_option: str, available_paths: List[str] = list(WORKSPACE_PATHS.values())
+) -> str:
     """Validate and return workspace.
 
     :param workspace_option: A string of the workspace to validate.
@@ -32,8 +34,7 @@ def validate_workspace(
         )
         if not available:
             raise REANAValidationError(
-                '==> ERROR: Desired workspace "{0}" not valid.\nPlease run reana-client workspaces to see the list of allowed prefix values.'.format(
-                    workspace_option
-                )
+                f'Desired workspace "{workspace_option}" not valid.\n'
+                "Please run `reana-client info` to see the list of allowed prefix values."
             )
     return workspace_option
