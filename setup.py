@@ -26,7 +26,7 @@ tests_require = [
 
 def get_snakemake_pkg(extras=""):
     """Get Snakemake dependency string, adding appropiate extras."""
-    return f"snakemake{extras}>=6.8.0,<7.0.0"
+    return f"snakemake{extras}==6.8.0"
 
 
 extras_require = {
