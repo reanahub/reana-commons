@@ -85,6 +85,8 @@ def get_workspace_volume(workflow_workspace):
     :param workflow_workspace: Absolute path to the job's workflow workspace.
     :returns: Tuple consisting of the Kubernetes volumeMount and the volume.
     """
+    if SHARED_VOLUME_PATH in workflow_workspace:
+        return get_shared_volume(workflow_workspace)
     volume_mount = {"name": "reana-workspace-volume", "mountPath": workflow_workspace}
     host_workspace_path = workflow_workspace
     for host_path, mounted_path in WORKSPACE_PATHS.items():
