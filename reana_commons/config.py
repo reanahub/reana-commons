@@ -26,7 +26,7 @@ class REANAConfig:
     @classmethod
     def _read_file(cls, filename):
         with open(os.path.join(cls.path, filename)) as yaml_file:
-            data = yaml.load(yaml_file)
+            data = yaml.load(yaml_file, Loader=yaml.FullLoader)
             return data
 
     @classmethod
