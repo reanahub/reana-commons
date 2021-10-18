@@ -23,7 +23,7 @@ from snakemake.workflow import Workflow
 from reana_commons.errors import REANAValidationError
 
 
-def snakemake_validate(workflow_file: str, configfiles: List[str]) -> NoReturn:
+def snakemake_validate(workflow_file: str, configfiles: List[str]):
     """Validate Snakemake workflow specification.
 
     :param workflow_file: A specification file compliant with
@@ -145,7 +145,7 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
         dag.check_dynamic()
         return dag
 
-    configfiles = [kwargs.get("input")]
+    configfiles = [kwargs.get("input")] if kwargs.get("input") else []
     snakemake_validate(workflow_file=workflow_file, configfiles=configfiles)
     snakemake_dag = _create_snakemake_dag(
         workflow_file, configfiles=configfiles, **kwargs
@@ -154,7 +154,6 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
     job_dependencies = {
         str(job): list(map(str, deps.keys()))
         for job, deps in snakemake_dag.dependencies.items()
-        if type(job) is Job
     }
 
     return {

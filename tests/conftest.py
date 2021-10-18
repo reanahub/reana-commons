@@ -8,9 +8,51 @@
 
 """Pytest configuration for REANA-Commons."""
 
-from __future__ import absolute_import, print_function
-
-from uuid import uuid4
-
 import pytest
-from mock import Mock
+
+
+@pytest.fixture()
+def dummy_snakefile():
+    """Get dummy Snakemake specification file, ie. Snakefile content."""
+    return """
+rule all:
+    input:
+        "results/foo.txt",
+        "results/bar.txt",
+        "results/baz.txt"
+
+rule foo:
+    output:
+        "results/foo.txt"
+    container:
+        "docker://python:3.10.0-buster"
+    resources:
+        kubernetes_memory_limit="64Mi"
+    shell:
+        "mkdir -p results && touch {output}"
+
+rule bar:
+    input:
+        data="results/foo.txt"
+    output:
+        "results/bar.txt"
+    container:
+        "docker://python:3.10.0-buster"
+    resources:
+        kubernetes_memory_limit="64Mi"
+    shell:
+        "mkdir -p results && touch {output}"
+
+rule baz:
+    input:
+        "results/foo.txt",
+        "results/bar.txt"
+    output:
+        "results/baz.txt"
+    container:
+        "docker://python:3.10.0-buster"
+    resources:
+        kubernetes_memory_limit="64Mi"
+    shell:
+        "mkdir -p results && touch {output}"
+"""
