@@ -419,9 +419,10 @@ KUBERNETES_MEMORY_FORMAT = r"(?:(?P<value_bytes>\d+)|(?P<value_unit>(\d+[.])?\d+
 )
 """Kubernetes valid memory format regular expression e.g. Ki, M, Gi, G, etc."""
 
-REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES = os.getenv(
-    "REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES", ""
-).split(",")
+statuses = os.getenv("REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES", [])
+REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES = (
+    statuses.split(",") if statuses else statuses
+)
 """Keep alive Kubernetes user runtime jobs depending on status.
 
 Keep alive both batch workflow jobs and invididual step jobs after termination
