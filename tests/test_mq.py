@@ -69,7 +69,13 @@ def test_workflow_status_publish(
     )
     workflow_status_publisher.close()
     expected = json.dumps(
-        {"workflow_uuid": workflow_id, "logs": "", "status": status, "message": message}
+        {
+            "workflow_uuid": workflow_id,
+            "logs": "",
+            "status": status,
+            "priority": status,
+            "message": message,
+        }
     )
     consume_queue(consumer, limit=1)
     consumer.on_message.assert_called_once_with(expected, ANY)

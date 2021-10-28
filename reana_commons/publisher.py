@@ -115,7 +115,7 @@ class BasePublisher(object):
 class WorkflowStatusPublisher(BasePublisher):
     """Progress publisher to MQ."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Initialise the WorkflowStatusPublisher class."""
         queue = "jobs-status"
         if "queue" not in kwargs:
@@ -124,12 +124,20 @@ class WorkflowStatusPublisher(BasePublisher):
             kwargs["routing_key"] = MQ_DEFAULT_QUEUES[queue]["routing_key"]
         if "durable" not in kwargs:
             kwargs["durable"] = MQ_DEFAULT_QUEUES[queue]["durable"]
+        if "max_priority" not in kwargs:
+            kwargs["max_priority"] = MQ_DEFAULT_QUEUES[queue]["max_priority"]
         super(WorkflowStatusPublisher, self).__init__(**kwargs)
 
-    def publish_workflow_status(self, workflow_uuid, status, logs="", message=None):
-        """Publish workflow status using the configured.
+    def publish_workflow_status(
+        self, workflow_uuid, status, logs="", message=None
+    ) -> None:
+        """Publish workflow status.
 
-        :param workflow_uudid: String which represents the workflow UUID.
+        `Status` parameter is also used as a
+        priority number in the queue. This allows messages with a bigger
+        status number to be prioritized faster.
+
+        :param workflow_uuid: String which represents the workflow UUID.
         :param status: Integer which represents the status of the workflow,
             this is defined in the `reana-db` `Workflow` models.
         :param logs: String which represents the logs which the workflow
@@ -141,6 +149,7 @@ class WorkflowStatusPublisher(BasePublisher):
             "workflow_uuid": workflow_uuid,
             "logs": logs,
             "status": status,
+            "priority": status,
             "message": message,
         }
         self._publish(msg)
@@ -149,7 +158,7 @@ class WorkflowStatusPublisher(BasePublisher):
 class WorkflowSubmissionPublisher(BasePublisher):
     """Workflow submission publisher."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Initialise the WorkflowSubmissionPublisher class."""
         queue = "workflow-submission"
         super(WorkflowSubmissionPublisher, self).__init__(
@@ -162,7 +171,7 @@ class WorkflowSubmissionPublisher(BasePublisher):
 
     def publish_workflow_submission(
         self, user_id, workflow_id_or_name, parameters, priority=0, min_job_memory=0,
-    ):
+    ) -> None:
         """Publish workflow submission parameters."""
         msg = {
             "user": user_id,
