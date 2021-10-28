@@ -446,3 +446,8 @@ REANA_WORKFLOW_ENGINES = ["yadage", "cwl", "serial", "snakemake"]
 
 REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "snakemake/snakemake:v6.8.0"
 """Snakemake default job environment image."""
+
+REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP = float(
+    os.getenv("REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP", "10")
+)
+"""How many seconds to wait between job controller connection checks."""

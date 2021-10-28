@@ -20,7 +20,6 @@ from hashlib import md5
 from pathlib import Path
 
 import click
-import fs
 import requests
 
 from reana_commons.config import (
@@ -31,7 +30,7 @@ from reana_commons.config import (
     REANA_COMPONENT_TYPES,
     REANA_CVMFS_PVC_TEMPLATE,
     REANA_CVMFS_SC_TEMPLATE,
-    SHARED_VOLUME_PATH,
+    REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP,
 )
 from reana_commons.errors import REANAMissingWorkspaceError
 
@@ -394,7 +393,7 @@ def check_connection_to_job_controller(port=5000):
                 break
         except Exception:
             pass
-        time.sleep(10)
+        time.sleep(REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP)
         retry_counter += 1
     else:
         logging.error("Job controller is not reachable.", exc_info=True)
