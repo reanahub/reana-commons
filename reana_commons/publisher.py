@@ -71,7 +71,8 @@ class BasePublisher(object):
         """Instantiate a :class:`kombu.Producer`."""
         return self._connection.Producer(serializer=MQ_DEFAULT_FORMAT)
 
-    def __error_callback(self, exception, interval):
+    @staticmethod
+    def __error_callback(exception: Exception, interval: int) -> None:
         """Execute when there is an error while sending a message.
 
         :param exception: Exception which has been thrown while trying to send
@@ -79,8 +80,9 @@ class BasePublisher(object):
         :param interval: Interval in which the message delivery will be
             retried.
         """
-        logging.error("Error while publishing {}".format(exception))
-        logging.info("Retry in %s seconds.", interval)
+        logging.warning(
+            f"Error while publishing: {exception}. Retrying in {interval} seconds."
+        )
 
     def _publish(self, msg, priority=None):
         """Publish, handling retries, a message in the queue.
@@ -157,7 +159,7 @@ class WorkflowSubmissionPublisher(BasePublisher):
             MQ_DEFAULT_QUEUES[queue]["routing_key"],
             durable=MQ_DEFAULT_QUEUES[queue]["durable"],
             max_priority=MQ_DEFAULT_QUEUES[queue]["max_priority"],
-            **kwargs
+            **kwargs,
         )
 
     def publish_workflow_submission(
