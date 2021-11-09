@@ -5,9 +5,13 @@ Version master (UNRELEASED)
 ---------------------------
 
 - Adds ``get_disk_usage`` utility function to calculate disk usage for a directory.
+- Adds Yadage workflow specification loading utilities.
+- Adds workspace validation utilities.
+- Adds ``Snakemake`` workflow engine integration.
 - Centralises ``fs`` package dependency
 - Changes ``workflow-submission`` queue as a priority queue and allows to set the priority number on workflow submission.
-- Adds Yadage workflow specification loading utilities.
+- Changes OpenAPI specifications with respect to turning workspaces endpoint into info.
+- Changes publisher logging level on error callback.
 - Removes support for Python 2.
 
 Version 0.7.5 (2021-07-02)
