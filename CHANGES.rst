@@ -1,16 +1,20 @@
 Changes
 =======
 
-Version master (UNRELEASED)
+Version 0.8.0 (2021-11-22)
 ---------------------------
 
 - Adds ``get_disk_usage`` utility function to calculate disk usage for a directory.
-- Adds Yadage workflow specification loading utilities.
+- Adds ``Yadage`` workflow specification loading utilities.
 - Adds workspace validation utilities.
 - Adds ``Snakemake`` workflow engine integration.
-- Centralises ``fs`` package dependency
+- Adds custom objects API instance to k8s client.
+- Adds available worklow engines configuration.
+- Adds environment variable to define time between job controller connection checks.
+- Adds cluster health status endpoint.
+- Adds OpenAPI specifications with respect to user quotas.
 - Changes ``workflow-submission`` queue as a priority queue and allows to set the priority number on workflow submission.
-- Changes OpenAPI specifications with respect to turning workspaces endpoint into info.
+- Changes OpenAPI specifications with respect to turning ``workspaces`` endpoint into ``info``.
 - Changes publisher logging level on error callback.
 - Removes support for Python 2.
 
