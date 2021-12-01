@@ -27,7 +27,7 @@ rule foo:
     container:
         "docker://python:3.10.0-buster"
     resources:
-        kubernetes_memory_limit="64Mi"
+        kubernetes_memory_limit="256Mi"
     shell:
         "mkdir -p results && touch {output}"
 
@@ -39,7 +39,7 @@ rule bar:
     container:
         "docker://python:3.10.0-buster"
     resources:
-        kubernetes_memory_limit="64Mi"
+        kubernetes_memory_limit="256Mi"
     shell:
         "mkdir -p results && touch {output}"
 
@@ -52,7 +52,7 @@ rule baz:
     container:
         "docker://python:3.10.0-buster"
     resources:
-        kubernetes_memory_limit="64Mi"
+        kubernetes_memory_limit="256Mi"
     shell:
         "mkdir -p results && touch {output}"
 """

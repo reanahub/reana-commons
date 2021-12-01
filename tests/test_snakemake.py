@@ -19,7 +19,7 @@ def test_snakemake_load(tmpdir, dummy_snakefile):
     metadata = snakemake_load(p.strpath)
 
     for step in metadata["steps"]:
-        assert step["kubernetes_memory_limit"] == "64Mi"
+        assert step["kubernetes_memory_limit"] == "256Mi"
 
     assert metadata["job_dependencies"] == {
         "foo": [],
