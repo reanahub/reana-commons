@@ -76,6 +76,10 @@
           "format": "int32",
           "type": "integer"
         },
+        "kubernetes_job_timeout": {
+          "format": "int32",
+          "type": "integer"
+        },
         "prettified_cmd": {
           "default": "",
           "type": "string"

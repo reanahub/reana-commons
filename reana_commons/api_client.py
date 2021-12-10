@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import traceback
+from typing import Optional
 
 import pkg_resources
 from bravado.client import RequestsClient, SwaggerClient
@@ -103,26 +104,29 @@ class JobControllerAPIClient(BaseAPIClient):
         voms_proxy=False,
         htcondor_max_runtime="",
         htcondor_accounting_group="",
+        kubernetes_job_timeout: Optional[int] = None,
     ):
         """Submit a job to RJC API.
 
+        :param workflow_uuid: UUID of the workflow.
         :param job_name: Name of the job.
         :param image: Identifier of the Docker image which will run the job.
         :param cmd: String which represents the command to execute. It can be
             modified by the workflow engine i.e. prepending ``cd /some/dir/``.
-        :prettified_cmd: Original command submitted by the user.
-        :workflow_workspace: Path to the workspace of the workflow.
-        :cvmfs_mounts: String with CVMFS volumes to mount in job pods.
-        :compute_backend: Job compute backend.
-        :kerberos: Decides if kerberos should be provided for job container.
-        :voms_proxy: Decides if grid proxy should be provided for job
+        :param prettified_cmd: Original command submitted by the user.
+        :param workflow_workspace: Path to the workspace of the workflow.
+        :param cvmfs_mounts: String with CVMFS volumes to mount in job pods.
+        :param compute_backend: Job compute backend.
+        :param kerberos: Decides if kerberos should be provided for job container.
+        :param voms_proxy: Decides if grid proxy should be provided for job
             container.
-        :kubernetes_uid: Overwrites the default user id in the job container.
-        :kubernetes_memory_limit: Overwrites the default memory limit in the job container.
-        :unpacked_img: Decides if unpacked iamges should be used.
+        :param kubernetes_uid: Overwrites the default user id in the job container.
+        :param kubernetes_memory_limit: Overwrites the default memory limit in the job container.
+        :param unpacked_img: Decides if unpacked iamges should be used.
+        :param htcondor_max_runtime: Maximum runtime of a HTCondor job.
+        :param htcondor_accounting_group: Accounting group of a HTCondor job.
+        :param kubernetes_job_timeout: Timeout for the job in seconds.
         :return: Returns a dict with the ``job_id``.
-        :htcondor_max_runtime: Maximum runtime of a HTCondor job.
-        :htcondor_accounting_group: Accounting group of a HTCondor job.
         """
         job_spec = {
             "docker_img": image,
@@ -158,6 +162,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if htcondor_accounting_group:
             job_spec["htcondor_accounting_group"] = htcondor_accounting_group
+
+        if kubernetes_job_timeout:
+            job_spec["kubernetes_job_timeout"] = kubernetes_job_timeout
 
         try:
             response, http_response = self._client.jobs.create_job(
