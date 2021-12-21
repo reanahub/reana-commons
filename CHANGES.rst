@@ -1,6 +1,14 @@
 Changes
 =======
 
+Version 0.8.1 (2021-12-21)
+---------------------------
+
+- Adds OpenAPI specification support for ``kubernetes_job_timeout`` handling.
+- Changes OpenAPI specification for cluster health status endpoint.
+- Changes Yadage dependencies to allow 0.21.x patchlevel-version updates.
+- Changes installation to require Python-3.6 or higher versions.
+
 Version 0.8.0 (2021-11-22)
 ---------------------------
 
