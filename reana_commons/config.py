@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -315,8 +315,11 @@ All jobs will have ``/mydata`` mounted with the content of
 ``/usr/local/share/mydata`` from the Kubernetes cluster host node.
 """
 
+REANA_WORKFLOW_NAME_ILLEGAL_CHARACTERS = ["."]
+"""List of illegal characters for workflow name validation."""
+
 REANA_WORKFLOW_UMASK = 0o0002
-"""Umask used for workflow worksapce."""
+"""Umask used for workflow workspace."""
 
 WORKFLOW_RUNTIME_USER_NAME = os.getenv("WORKFLOW_RUNTIME_USER_NAME", "reana")
 """Default OS user name for running job controller."""

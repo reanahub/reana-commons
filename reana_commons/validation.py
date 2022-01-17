@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2021 CERN.
+# Copyright (C) 2021, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -10,8 +10,19 @@
 import os
 from typing import List
 
-from reana_commons.config import WORKSPACE_PATHS
+from reana_commons.config import REANA_WORKFLOW_NAME_ILLEGAL_CHARACTERS, WORKSPACE_PATHS
 from reana_commons.errors import REANAValidationError
+
+
+def validate_workflow_name(workflow_name: str) -> str:
+    """Validate workflow name."""
+    if workflow_name:
+        for item in REANA_WORKFLOW_NAME_ILLEGAL_CHARACTERS:
+            if item in workflow_name:
+                raise ValueError(
+                    f'Workflow name {workflow_name} contains illegal character "{item}"'
+                )
+    return workflow_name
 
 
 def validate_workspace(

@@ -5,6 +5,7 @@ Version 0.8.2 (UNRELEASED)
 --------------------------
 
 - Adds support for Python 3.10.
+- Adds workflow name validation utility.
 
 Version 0.8.1 (2021-12-21)
 ---------------------------
