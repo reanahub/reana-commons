@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -154,6 +154,9 @@ class JobControllerAPIClient(BaseAPIClient):
         if kubernetes_memory_limit:
             job_spec["kubernetes_memory_limit"] = kubernetes_memory_limit
 
+        if kubernetes_job_timeout is not None:
+            job_spec["kubernetes_job_timeout"] = kubernetes_job_timeout
+
         if unpacked_img:
             job_spec["unpacked_img"] = unpacked_img
 
@@ -162,9 +165,6 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if htcondor_accounting_group:
             job_spec["htcondor_accounting_group"] = htcondor_accounting_group
-
-        if kubernetes_job_timeout:
-            job_spec["kubernetes_job_timeout"] = kubernetes_job_timeout
 
         try:
             response, http_response = self._client.jobs.create_job(
