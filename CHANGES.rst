@@ -6,6 +6,8 @@ Version 0.8.2 (UNRELEASED)
 
 - Adds support for Python 3.10.
 - Adds workflow name validation utility.
+- Changes ``Snakemake`` loaded specification to include compute backends.
+- Changes OpenAPI specification with respect to return supported compute backends in ``info`` endpoint.
 
 Version 0.8.1 (2021-12-21)
 ---------------------------
