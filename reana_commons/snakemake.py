@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2021 CERN.
+# Copyright (C) 2021, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -10,7 +10,7 @@
 
 import os
 from itertools import filterfalse, chain
-from typing import Any, Dict, List, NoReturn, Optional
+from typing import Any, Dict, List, Optional
 
 from snakemake import snakemake
 from snakemake.dag import DAG
@@ -166,6 +166,7 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
                 "params": dict(rule._params),
                 "outputs": dict(rule._output),
                 "commands": [rule.shellcmd],
+                "compute_backend": rule.resources.get("compute_backend"),
                 "kubernetes_memory_limit": rule.resources.get(
                     "kubernetes_memory_limit"
                 ),
