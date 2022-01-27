@@ -8,6 +8,7 @@ Version 0.8.2 (UNRELEASED)
 - Adds workflow name validation utility.
 - Changes ``Snakemake`` loaded specification to include compute backends.
 - Changes OpenAPI specification with respect to return supported compute backends in ``info`` endpoint.
+- Fixes file system usage calculation on CephFS shares in ``get_disk_usage`` utility function.
 
 Version 0.8.1 (2021-12-21)
 ---------------------------

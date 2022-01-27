@@ -292,8 +292,7 @@ def get_disk_usage(
     else:
         command.append("-a")
     if "Darwin" not in platform.system():
-        # Default block size in GNU is KB
-        command.append("-b")
+        command.append("--block-size=1")
 
     name_filter = None
     size_filter = None
