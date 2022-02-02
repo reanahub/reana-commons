@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.8.3 (UNRELEASED)
+--------------------------
+
+- Changes installation to remove upper version pin on ``kombu``.
+
 Version 0.8.2 (2022-02-01)
 --------------------------
 

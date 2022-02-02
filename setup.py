@@ -34,7 +34,7 @@ extras_require = {
     "kubernetes": ["kubernetes>=11.0.0,<12.0.0",],
     "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
     "snakemake": [get_snakemake_pkg()],
-    "snakemake_reports": [get_snakemake_pkg("[reports]")],
+    "snakemake_reports": [get_snakemake_pkg("[reports]"), "pygraphviz<1.8"],
 }
 
 extras_require["all"] = []
@@ -53,7 +53,7 @@ install_requires = [
     "click>=7.0",
     "fs>=2.0",
     "jsonschema[format]>=3.0.1,<4.0.0",
-    "kombu>=4.6,<4.7",
+    "kombu>=4.6",
     "mock>=3.0,<4",
     "PyYAML>=5.1,<6.0",
     "Werkzeug>=0.14.1",
