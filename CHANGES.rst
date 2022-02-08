@@ -1,6 +1,12 @@
 Changes
 =======
 
+Version 0.8.4 (2022-02-08)
+--------------------------
+
+- Adds new configuration variable to toggle Kubernetes security context. (``K8S_USE_SECURITY_CONTEXT``)
+- Changes installation to revert ``Yadage`` dependency versions.
+
 Version 0.8.3 (2022-02-04)
 --------------------------
 
