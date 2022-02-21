@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -9,6 +9,7 @@
 
 import json
 import logging
+from typing import Optional
 
 from kombu import Connection, Exchange, Queue
 
@@ -163,7 +164,13 @@ class WorkflowSubmissionPublisher(BasePublisher):
         )
 
     def publish_workflow_submission(
-        self, user_id, workflow_id_or_name, parameters, priority=0, min_job_memory=0,
+        self,
+        user_id,
+        workflow_id_or_name,
+        parameters,
+        priority=0,
+        min_job_memory=0,
+        retry_count: Optional[int] = None,
     ):
         """Publish workflow submission parameters."""
         msg = {
@@ -173,4 +180,7 @@ class WorkflowSubmissionPublisher(BasePublisher):
             "priority": priority,
             "min_job_memory": min_job_memory,
         }
+
+        if retry_count:
+            msg["retry_count"] = retry_count
         self._publish(msg, priority)
