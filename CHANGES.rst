@@ -5,6 +5,7 @@ Version 0.9.0 (UNRELEASED)
 --------------------------
 
 - Adds support for networking/v1 API to Kubernetes Python client.
+- Adds new ``/api/launch`` endpoint that allows running workflows from remote sources.
 
 Version 0.8.5 (2022-02-23)
 --------------------------
