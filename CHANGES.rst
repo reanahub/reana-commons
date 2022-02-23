@@ -1,7 +1,7 @@
 Changes
 =======
 
-Version 0.8.5 (UNRELEASED)
+Version 0.8.5 (2022-02-23)
 --------------------------
 
 - Adds ``retry_count`` parameter to WorkflowSubmissionPublisher.
