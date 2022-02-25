@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA-Commons utils."""
 
 
+import datetime
 import json
 import logging
 import os
 import platform
 import shutil
 import subprocess
+import sys
 import time
 import uuid
 from hashlib import md5
@@ -24,7 +26,6 @@ import requests
 
 from reana_commons.config import (
     CVMFS_REPOSITORIES,
-    HTCONDOR_JOB_FLAVOURS,
     REANA_COMPONENT_NAMING_SCHEME,
     REANA_COMPONENT_PREFIX,
     REANA_COMPONENT_TYPES,
@@ -197,6 +198,38 @@ def build_caching_info_message(
         "result_path": result_path,
     }
     return caching_info_message
+
+
+def run_command(cmd, display=True, return_output=False, stderr_output=False):
+    """Run given command on shell in the current directory.
+
+    Exit in case of troubles.
+
+    :param cmd: shell command to run
+    :param display: should we display command to run?
+    :param return_output: shall the output of the command be returned?
+    :type cmd: str
+    :type display: bool
+    :type return_output: bool
+    """
+    now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    if display:
+        click.secho("[{0}] ".format(now), bold=True, nl=False, fg="green")
+        click.secho("{0}".format(cmd), bold=True)
+    try:
+        if return_output:
+            stderr_flag_val = subprocess.STDOUT if stderr_output else None
+            result = subprocess.check_output(cmd, stderr=stderr_flag_val, shell=True)
+            return result.decode().rstrip("\r\n")
+        else:
+            subprocess.check_call(cmd, shell=True)
+    except subprocess.CalledProcessError as err:
+        if display:
+            click.secho("[{0}] ".format(now), bold=True, nl=False, fg="green")
+            click.secho("{0}".format(err), bold=True, fg="red")
+        if stderr_output:
+            sys.exit(err.output.decode())
+        sys.exit(err.returncode)
 
 
 def remove_upper_level_references(path):
@@ -419,39 +452,3 @@ def build_unique_component_name(component_type, id=None):
         component_type=component_type,
         id=id or str(uuid.uuid4()),
     )
-
-
-def check_htcondor_max_runtime(specification):
-    """Check if the field htcondor_max_runtime has a valid input.
-
-    :param reana_specification: reana specification of workflow.
-    """
-    check_pass = True
-    steps_with_max_runtime = (
-        step
-        for step in specification["steps"]
-        if step.get("htcondor_max_runtime", False)
-    )
-    for i, step in enumerate(steps_with_max_runtime):
-        htcondor_max_runtime = step["htcondor_max_runtime"]
-        if (
-            not str.isdigit(htcondor_max_runtime)
-            and htcondor_max_runtime not in HTCONDOR_JOB_FLAVOURS
-        ):
-            check_pass = False
-            click.secho(
-                "In step {0}:\n'{1}' is not a valid input for htcondor_max_runtime. Inputs must be a digit in the form of a string, or one of the following job flavours: '{2}'.".format(
-                    step.get("name", i),
-                    htcondor_max_runtime,
-                    "' '".join(
-                        [
-                            k
-                            for k, v in sorted(
-                                HTCONDOR_JOB_FLAVOURS.items(), key=lambda key: key[1]
-                            )
-                        ]
-                    ),
-                ),
-                fg="red",
-            )
-    return check_pass

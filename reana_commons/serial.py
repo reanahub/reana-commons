@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA Workflow Engine Serial implementation utils."""
 
-
 import json
 from copy import deepcopy
 from string import Template
 
+import click
 from jsonschema import ValidationError, validate
-from reana_commons.config import KUBERNETES_MEMORY_FORMAT
-from reana_commons.utils import check_htcondor_max_runtime
+from reana_commons.config import KUBERNETES_MEMORY_FORMAT, HTCONDOR_JOB_FLAVOURS
 
 serial_workflow_schema = {
     "$schema": "http://json-schema.org/draft-06/schema#",
@@ -154,3 +153,39 @@ def _expand_parameters(specification, parameters, original=None):
                 "be expanded. Please take a look "
                 "to {params}".format(params=str(e))
             )
+
+
+def check_htcondor_max_runtime(specification):
+    """Check if the field htcondor_max_runtime has a valid input.
+
+    :param reana_specification: reana specification of workflow.
+    """
+    check_pass = True
+    steps_with_max_runtime = (
+        step
+        for step in specification["steps"]
+        if step.get("htcondor_max_runtime", False)
+    )
+    for i, step in enumerate(steps_with_max_runtime):
+        htcondor_max_runtime = step["htcondor_max_runtime"]
+        if (
+            not str.isdigit(htcondor_max_runtime)
+            and htcondor_max_runtime not in HTCONDOR_JOB_FLAVOURS
+        ):
+            check_pass = False
+            click.secho(
+                "In step {0}:\n'{1}' is not a valid input for htcondor_max_runtime. Inputs must be a digit in the form of a string, or one of the following job flavours: '{2}'.".format(
+                    step.get("name", i),
+                    htcondor_max_runtime,
+                    "' '".join(
+                        [
+                            k
+                            for k, v in sorted(
+                                HTCONDOR_JOB_FLAVOURS.items(), key=lambda key: key[1]
+                            )
+                        ]
+                    ),
+                ),
+                fg="red",
+            )
+    return check_pass

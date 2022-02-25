@@ -33,6 +33,7 @@ extras_require = {
     "tests": tests_require,
     "kubernetes": ["kubernetes>=22.0.0,<23.0.0",],
     "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
+    "cwl": ["cwltool==3.1.20210628163208"],
     "snakemake": [get_snakemake_pkg()],
     "snakemake_reports": [get_snakemake_pkg("[reports]"), "pygraphviz<1.8"],
 }

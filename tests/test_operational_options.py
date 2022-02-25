@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2020 CERN.
+# Copyright (C) 2020, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -11,7 +11,7 @@
 import pytest
 
 from reana_commons.errors import REANAValidationError
-from reana_commons.operational_options import validate_operational_options
+from reana_commons.validation.operational_options import validate_operational_options
 
 
 @pytest.mark.parametrize(

@@ -12,6 +12,7 @@ import json
 import logging
 import os
 
+import pkg_resources
 import yaml
 
 from reana_commons.errors import REANAConfigDoesNotExist
@@ -38,6 +39,11 @@ class REANAConfig:
             )
         return cls._read_file(cls.config_mapping[kind])
 
+
+reana_yaml_schema_file_path = pkg_resources.resource_filename(
+    __name__, "validation/schemas/reana_analysis_schema.json"
+)
+"""REANA specification schema location."""
 
 REANA_COMPONENT_PREFIX = os.getenv("REANA_COMPONENT_PREFIX", "reana")
 """REANA component naming prefix, i.e. my-prefix-job-controller.
@@ -465,3 +471,6 @@ REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP = float(
     os.getenv("REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP", "10")
 )
 """How many seconds to wait between job controller connection checks."""
+
+COMMAND_DANGEROUS_OPERATIONS = ["sudo ", "cd /"]
+"""Operations in workflow commands considered dangerous."""
