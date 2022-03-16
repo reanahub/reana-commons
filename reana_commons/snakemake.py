@@ -23,7 +23,9 @@ from snakemake.workflow import Workflow
 from reana_commons.errors import REANAValidationError
 
 
-def snakemake_validate(workflow_file: str, configfiles: List[str]):
+def snakemake_validate(
+    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+):
     """Validate Snakemake workflow specification.
 
     :param workflow_file: A specification file compliant with
@@ -31,9 +33,15 @@ def snakemake_validate(workflow_file: str, configfiles: List[str]):
     :type workflow_file: string
     :param configfiles: List of config files paths.
     :type configfiles: List
+    :param workdir: Path to working directory.
+    :type workdir: string or None
     """
     valid = snakemake(
-        snakefile=workflow_file, configfiles=configfiles, dryrun=True, quiet=True,
+        snakefile=workflow_file,
+        configfiles=configfiles,
+        workdir=workdir,
+        dryrun=True,
+        quiet=True,
     )
     if not valid:
         raise REANAValidationError("Snakemake specification is invalid.")
@@ -77,6 +85,10 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
             overwrite_configfiles=configfiles,
             overwrite_config=overwrite_config,
         )
+
+        workdir = kwargs.get("workdir")
+        if workdir:
+            workflow.workdir(workdir)
 
         workflow.include(snakefile=snakefile, overwrite_first_rule=True)
         workflow.check()
@@ -145,8 +157,15 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
         dag.check_dynamic()
         return dag
 
+    workdir = kwargs.get("workdir")
+    if workdir:
+        workflow_file = os.path.join(workdir, workflow_file)
+
     configfiles = [kwargs.get("input")] if kwargs.get("input") else []
-    snakemake_validate(workflow_file=workflow_file, configfiles=configfiles)
+
+    snakemake_validate(
+        workflow_file=workflow_file, configfiles=configfiles, workdir=workdir
+    )
     snakemake_dag = _create_snakemake_dag(
         workflow_file, configfiles=configfiles, **kwargs
     )

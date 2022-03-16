@@ -7,6 +7,7 @@ Version 0.9.0 (UNRELEASED)
 - Adds REANA specification validation and loading logic from ``reana-client``.
 - Adds support for networking/v1 API to Kubernetes Python client.
 - Adds new ``/api/launch`` endpoint that allows running workflows from remote sources.
+- Changes REANA specification loading functionality to allow specifying different working directories.
 
 Version 0.8.5 (2022-02-23)
 --------------------------

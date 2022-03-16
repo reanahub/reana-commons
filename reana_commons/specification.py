@@ -10,6 +10,7 @@
 
 import json
 import logging
+import os
 import subprocess
 import yaml
 
@@ -25,6 +26,9 @@ def cwl_load(workflow_file, **kwargs):
         `cwl` workflow specification.
     :returns: A dictionary which represents the valid `cwl` workflow.
     """
+    basedir = kwargs.get("basedir")
+    if basedir:
+        workflow_file = os.path.join(basedir, workflow_file)
     result = subprocess.check_output(["cwltool", "--pack", "--quiet", workflow_file])
     value = result.decode("utf-8")
     return json.loads(value)
@@ -52,7 +56,7 @@ def load_workflow_spec(workflow_type, workflow_file, **kwargs):
     return {}
 
 
-def load_reana_spec(filepath):
+def load_reana_spec(filepath, workspace_path=None):
     """Load reana specification file.
 
     :raises IOError: Error while reading REANA spec file from given `filepath`.
@@ -67,26 +71,34 @@ def load_reana_spec(filepath):
             kwargs["original"] = True
         if "options" in reana_yaml.get("inputs", {}):
             kwargs.update(reana_yaml["inputs"]["options"])
+        if workflow_type == "cwl":
+            kwargs["basedir"] = workspace_path
         if workflow_type == "snakemake":
-            kwargs["input"] = (
-                reana_yaml.get("inputs", {}).get("parameters", {}).get("input")
-            )
+            input_file = reana_yaml.get("inputs", {}).get("parameters", {}).get("input")
+            if workspace_path and input_file:
+                input_file = os.path.join(workspace_path, input_file)
+            kwargs["input"] = input_file
+            kwargs["workdir"] = workspace_path
+        if workflow_type == "yadage":
+            kwargs["toplevel"] = workspace_path or "."
         return kwargs
 
     try:
         with open(filepath) as f:
             reana_yaml = yaml.load(f.read(), Loader=yaml.FullLoader)
         workflow_type = reana_yaml["workflow"]["type"]
+        workflow_file = reana_yaml["workflow"].get("file")
         reana_yaml["workflow"]["specification"] = load_workflow_spec(
-            workflow_type,
-            reana_yaml["workflow"].get("file"),
-            **_prepare_kwargs(reana_yaml),
+            workflow_type, workflow_file, **_prepare_kwargs(reana_yaml),
         )
 
         if (
             workflow_type == "cwl" or workflow_type == "snakemake"
         ) and "inputs" in reana_yaml:
-            with open(reana_yaml["inputs"]["parameters"]["input"]) as f:
+            input_file = reana_yaml["inputs"]["parameters"]["input"]
+            if workspace_path and input_file:
+                input_file = os.path.join(workspace_path, input_file)
+            with open(input_file) as f:
                 reana_yaml["inputs"]["parameters"] = yaml.load(
                     f, Loader=yaml.FullLoader
                 )
