@@ -118,12 +118,19 @@ class ComputeBackendValidatorCWL(ComputeBackendValidatorBase):
     def validate(self) -> None:
         """Validate compute backends in REANA CWL workflow."""
 
+        def _get_reana_hints(hints: List[Dict]) -> Dict:
+            for hint in hints:
+                if hint.get("class") == "reana":
+                    return hint
+            return {}
+
         def _validate_compute_backends(workflow: Dict) -> None:
             """Validate compute backends in REANA CWL workflow steps."""
             steps = workflow.get("steps", [])
             for step in steps:
-                hints = step.get("hints", [{}]).pop()
-                backend = hints.get("compute_backend")
+                hints = step.get("hints", [])
+                reana_hints = _get_reana_hints(hints)
+                backend = reana_hints.get("compute_backend")
                 if backend and backend not in self.supported_backends:
                     self.raise_error(backend, step.get("id"))
 
