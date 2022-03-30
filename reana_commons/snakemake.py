@@ -97,7 +97,10 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
         # in order to build the DAG and calculate the job dependencies.
         # https://github.com/snakemake/snakemake/blob/75a544ba528b30b43b861abc0ad464db4d6ae16f/snakemake/workflow.py#L525
         def rules(items):
-            return map(workflow._rules.__getitem__, filter(workflow.is_rule, items),)
+            return map(
+                workflow._rules.__getitem__,
+                filter(workflow.is_rule, items),
+            )
 
         if kwargs.get("keep_target_files"):
 

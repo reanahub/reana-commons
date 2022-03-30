@@ -44,11 +44,11 @@ def kubernetes_memory_to_bytes(memory):
     value = float(memory_values.get("value_unit"))
     power = "binary" if memory_values.get("binary") else "decimal"
     multiplier = {
-        "E": {"decimal": 1000 ** 6, "binary": 1024 ** 6},
-        "P": {"decimal": 1000 ** 5, "binary": 1024 ** 5},
-        "T": {"decimal": 1000 ** 4, "binary": 1024 ** 4},
-        "G": {"decimal": 1000 ** 3, "binary": 1024 ** 3},
-        "M": {"decimal": 1000 ** 2, "binary": 1024 ** 2},
+        "E": {"decimal": 1000**6, "binary": 1024**6},
+        "P": {"decimal": 1000**5, "binary": 1024**5},
+        "T": {"decimal": 1000**4, "binary": 1024**4},
+        "G": {"decimal": 1000**3, "binary": 1024**3},
+        "M": {"decimal": 1000**2, "binary": 1024**2},
         "K": {"decimal": 1000, "binary": 1024},
     }
 

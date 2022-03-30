@@ -19,7 +19,8 @@ from reana_commons.job_utils import (
 )
 
 TEST_COMMAND_SIMPLE_ONELINE = dict(
-    command="echo 'Hello world'", output="Hello world\n",
+    command="echo 'Hello world'",
+    output="Hello world\n",
 )
 
 TEST_COMMAND_COMPLEX_ONELINE = dict(
@@ -103,15 +104,15 @@ def test_validate_kubernetes_memory_format(memory, output):
         (100, 100),
         ("2048", 2048),
         ("100K", 100000),
-        ("8Mi", 8 * 1024 ** 2),
-        ("3.5Gi", 3.5 * 1024 ** 3),
-        ("7Gi", 7 * 1024 ** 3),
-        ("3T", 3 * 1000 ** 4),
-        ("3.1416T", 3.1416 * 1000 ** 4),
-        ("50Pi", 50 * 1024 ** 5),
-        ("0.2Ei", 0.2 * 1024 ** 6),
-        ("2Ei", 2 * 1024 ** 6),
-        ("1E", 1000 ** 6),
+        ("8Mi", 8 * 1024**2),
+        ("3.5Gi", 3.5 * 1024**3),
+        ("7Gi", 7 * 1024**3),
+        ("3T", 3 * 1000**4),
+        ("3.1416T", 3.1416 * 1000**4),
+        ("50Pi", 50 * 1024**5),
+        ("0.2Ei", 0.2 * 1024**6),
+        ("2Ei", 2 * 1024**6),
+        ("1E", 1000**6),
     ],
 )
 def test_kubernetes_memory_to_bytes(k8s_memory, bytes_):

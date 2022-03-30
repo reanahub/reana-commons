@@ -63,7 +63,8 @@ def click_table_printer(headers, _filter, data, colours=None):
         if header_indexes:
             row = [row[i] for i in header_indexes]
         click.secho(
-            formatted_output.format(*row), fg=colours[i] if colours else None,
+            formatted_output.format(*row),
+            fg=colours[i] if colours else None,
         )
 
 

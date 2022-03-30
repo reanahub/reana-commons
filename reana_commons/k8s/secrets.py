@@ -74,8 +74,10 @@ class REANAUserSecretsStore(object):
     def _get_k8s_user_secrets_store(self):
         """Retrieve the Kubernetes secret which contains all user secrets."""
         try:
-            k8s_user_secrets_store = current_k8s_corev1_api_client.read_namespaced_secret(
-                str(self.user_secret_store_id), REANA_RUNTIME_KUBERNETES_NAMESPACE
+            k8s_user_secrets_store = (
+                current_k8s_corev1_api_client.read_namespaced_secret(
+                    str(self.user_secret_store_id), REANA_RUNTIME_KUBERNETES_NAMESPACE
+                )
             )
             k8s_user_secrets_store.data = k8s_user_secrets_store.data or {}
             return k8s_user_secrets_store
@@ -215,7 +217,10 @@ class REANAUserSecretsStore(object):
             name = secret["name"]
             if secret["type"] == "file":
                 file_secrets.append(
-                    {"key": name, "path": name,}
+                    {
+                        "key": name,
+                        "path": name,
+                    }
                 )
         return file_secrets
 

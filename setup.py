@@ -19,7 +19,7 @@ readme = open("README.rst").read()
 history = open("CHANGES.rst").read()
 
 tests_require = [
-    "pytest-reana>=0.9.0a2,<0.10.0",
+    "pytest-reana>=0.9.0a3,<0.10.0",
 ]
 
 
@@ -29,9 +29,14 @@ def get_snakemake_pkg(extras=""):
 
 
 extras_require = {
-    "docs": ["Sphinx>=1.4.4", "sphinx-rtd-theme>=0.1.9",],
+    "docs": [
+        "Sphinx>=1.4.4",
+        "sphinx-rtd-theme>=0.1.9",
+    ],
     "tests": tests_require,
-    "kubernetes": ["kubernetes>=22.0.0,<23.0.0",],
+    "kubernetes": [
+        "kubernetes>=22.0.0,<23.0.0",
+    ],
     "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
     "cwl": ["cwltool==3.1.20210628163208"],
     "snakemake": [get_snakemake_pkg()],
@@ -77,7 +82,9 @@ setup(
     author="REANA",
     author_email="info@reana.io",
     url="https://github.com/reanahub/reana-commons",
-    packages=["reana_commons",],
+    packages=[
+        "reana_commons",
+    ],
     zip_safe=False,
     include_package_data=True,
     python_requires=">=3.6",

@@ -89,7 +89,9 @@ def load_reana_spec(filepath, workspace_path=None):
         workflow_type = reana_yaml["workflow"]["type"]
         workflow_file = reana_yaml["workflow"].get("file")
         reana_yaml["workflow"]["specification"] = load_workflow_spec(
-            workflow_type, workflow_file, **_prepare_kwargs(reana_yaml),
+            workflow_type,
+            workflow_file,
+            **_prepare_kwargs(reana_yaml),
         )
 
         if (

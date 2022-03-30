@@ -63,7 +63,11 @@ def test_workflow_status_publish(
     )
     workflow_id = "test"
     status = 1
-    message = {"progress": {"total": {"total": 1, "job_ids": []},}}
+    message = {
+        "progress": {
+            "total": {"total": 1, "job_ids": []},
+        }
+    }
     workflow_status_publisher.publish_workflow_status(
         workflow_id, status, message=message
     )

@@ -41,7 +41,10 @@ def yadage_load(workflow_file, toplevel=".", **kwargs):
 
     try:
         return yadageschemas.load(
-            spec=workflow_file, specopts=specopts, validopts=validopts, validate=True,
+            spec=workflow_file,
+            specopts=specopts,
+            validopts=validopts,
+            validate=True,
         )
     except ValidationError as e:
         e.message = str(e)
