@@ -3,12 +3,13 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.9.0a1"
+    "version": "0.9.0a3"
   },
   "parameters": {},
   "paths": {
     "/account/settings/linkedaccounts/": {},
     "/account/settings/linkedaccounts/static/{filename}": {},
+    "/account/settings/login": {},
     "/account/settings/security/": {},
     "/account/settings/sessions/revoke/": {},
     "/account/settings/static/{filename}": {},
@@ -2854,6 +2855,7 @@
     "/logout/": {},
     "/oauth/authorized/{remote_app}/": {},
     "/oauth/disconnect/{remote_app}/": {},
+    "/oauth/login": {},
     "/oauth/login/{remote_app}/": {},
     "/oauth/signup/{remote_app}/": {},
     "/oauth/static/{filename}": {},
