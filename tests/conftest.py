@@ -22,6 +22,8 @@ rule all:
         "results/baz.txt"
 
 rule foo:
+    input:
+        "input.txt"
     output:
         "results/foo.txt"
     container:

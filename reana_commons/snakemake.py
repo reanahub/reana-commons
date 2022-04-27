@@ -65,6 +65,9 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
         The code of this function comes from the Snakemake codebase and is adapted
         to fullfil REANA purposes of getting the needed metadata.
 
+        If `workdir` is passed as a keyword argument, then this function will change the
+        CWD to `workdir`.
+
         :param snakefile: Path to Snakefile.
         :type snakefile: string
         :param configfiles: List of config files paths.
@@ -169,9 +172,16 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
     snakemake_validate(
         workflow_file=workflow_file, configfiles=configfiles, workdir=workdir
     )
-    snakemake_dag = _create_snakemake_dag(
-        workflow_file, configfiles=configfiles, **kwargs
-    )
+
+    # save the cwd to restore it after _create_snakemake_dag, because this function
+    # changes the cwd if `workdir` is in `kwargs`
+    prev_cwd = os.getcwd()
+    try:
+        snakemake_dag = _create_snakemake_dag(
+            workflow_file, configfiles=configfiles, **kwargs
+        )
+    finally:
+        os.chdir(prev_cwd)
 
     job_dependencies = {
         str(job): list(map(str, deps.keys()))
