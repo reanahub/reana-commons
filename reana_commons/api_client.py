@@ -129,7 +129,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {
-            "docker_img": image,
+            "docker_img": image.strip(),
             "cmd": serialise_job_command(cmd),
             "prettified_cmd": prettified_cmd,
             "env_vars": {},
