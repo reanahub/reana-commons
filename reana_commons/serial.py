@@ -13,7 +13,11 @@ from string import Template
 
 import click
 from jsonschema import ValidationError, validate
-from reana_commons.config import KUBERNETES_MEMORY_FORMAT, HTCONDOR_JOB_FLAVOURS
+
+from reana_commons.config import (
+    HTCONDOR_JOB_FLAVOURS,
+    KUBERNETES_MEMORY_FORMAT,
+)
 
 serial_workflow_schema = {
     "$schema": "http://json-schema.org/draft-06/schema#",
@@ -76,6 +80,16 @@ serial_workflow_schema = {
                     },
                     "htcondor_accounting_group": {
                         "$id": "#/properties/steps/properties/htcondor_accounting_group",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "slurm_partition": {
+                        "$id": "#/properties/steps/properties/slurm_partition",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "slurm_time": {
+                        "$id": "#/properties/steps/properties/slurm_time",
                         "type": "string",
                         "default": "",
                     },

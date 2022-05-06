@@ -88,6 +88,12 @@
           "default": true,
           "type": "boolean"
         },
+        "slurm_partition": {
+          "type": "string"
+        },
+        "slurm_time": {
+          "type": "string"
+        },
         "unpacked_img": {
           "type": "boolean"
         },
@@ -113,7 +119,7 @@
   "info": {
     "description": "REANA Job Controller API",
     "title": "reana-job-controller",
-    "version": "0.8.1"
+    "version": "0.9.0a5"
   },
   "parameters": {},
   "paths": {

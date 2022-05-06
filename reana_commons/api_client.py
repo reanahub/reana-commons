@@ -104,6 +104,8 @@ class JobControllerAPIClient(BaseAPIClient):
         voms_proxy=False,
         htcondor_max_runtime="",
         htcondor_accounting_group="",
+        slurm_partition="",
+        slurm_time="",
         kubernetes_job_timeout: Optional[int] = None,
     ):
         """Submit a job to RJC API.
@@ -125,6 +127,8 @@ class JobControllerAPIClient(BaseAPIClient):
         :param unpacked_img: Decides if unpacked iamges should be used.
         :param htcondor_max_runtime: Maximum runtime of a HTCondor job.
         :param htcondor_accounting_group: Accounting group of a HTCondor job.
+        :param slurm_partition: Partition of a Slurm job.
+        :param slurm_time: Maximum timelimit of a Slurm job.
         :param kubernetes_job_timeout: Timeout for the job in seconds.
         :return: Returns a dict with the ``job_id``.
         """
@@ -165,6 +169,12 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if htcondor_accounting_group:
             job_spec["htcondor_accounting_group"] = htcondor_accounting_group
+
+        if slurm_partition:
+            job_spec["slurm_partition"] = slurm_partition
+
+        if slurm_time:
+            job_spec["slurm_time"] = slurm_time
 
         try:
             response, http_response = self._client.jobs.create_job(

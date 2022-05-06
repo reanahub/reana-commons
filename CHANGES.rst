@@ -7,6 +7,7 @@ Version 0.9.0 (UNRELEASED)
 - Adds REANA specification validation and loading logic from ``reana-client``.
 - Adds support for networking/v1 API to Kubernetes Python client.
 - Adds new ``/api/launch`` endpoint that allows running workflows from remote sources.
+- Adds support for specifying ``slurm_partition`` and ``slurm_time`` for Slurm compute backend jobs.
 - Changes REANA specification loading functionality to allow specifying different working directories.
 - Changes the loading of Snakemake specifications to preserve the current working directory.
 - Fixes job controller submission API to strip potential leading and trailing whitespaces in image names.
