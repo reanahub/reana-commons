@@ -12,6 +12,7 @@ Version 0.9.0 (UNRELEASED)
 - Changes the loading of Snakemake specifications to preserve the current working directory.
 - Fixes job controller submission API to strip potential leading and trailing whitespaces in image names.
 - Adds generation of Kerberos sidecar container's configuration.
+- Changes `reana.yaml` specification to allow enabling Kerberos for the whole workflow.
 
 Version 0.8.5 (2022-02-23)
 --------------------------

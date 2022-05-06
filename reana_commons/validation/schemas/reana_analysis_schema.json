@@ -103,6 +103,11 @@
                 "title": "CVMFS repos",
                 "optional": false
               }
+            },
+            "kerberos": {
+              "id": "/properties/workflow/properties/resources/properties/kerberos",
+              "type": "boolean",
+              "title": "Kerberos authentication for the whole workflow."
             }
           }
         }
