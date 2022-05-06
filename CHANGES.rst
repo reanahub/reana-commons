@@ -11,6 +11,7 @@ Version 0.9.0 (UNRELEASED)
 - Changes REANA specification loading functionality to allow specifying different working directories.
 - Changes the loading of Snakemake specifications to preserve the current working directory.
 - Fixes job controller submission API to strip potential leading and trailing whitespaces in image names.
+- Adds generation of Kerberos sidecar container's configuration.
 
 Version 0.8.5 (2022-02-23)
 --------------------------
