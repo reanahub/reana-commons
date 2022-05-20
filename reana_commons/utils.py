@@ -20,6 +20,7 @@ import time
 import uuid
 from hashlib import md5
 from pathlib import Path
+from typing import Dict, Tuple, Optional
 
 import click
 import requests
@@ -453,3 +454,35 @@ def build_unique_component_name(component_type, id=None):
         component_type=component_type,
         id=id or str(uuid.uuid4()),
     )
+
+
+def get_usage_percentage(usage: int, limit: int) -> str:
+    """Usage percentage."""
+    if limit == 0:
+        return ""
+    return "{:.0%}".format(usage / limit)
+
+
+def get_quota_resource_usage(
+    resource: Dict, human_readable_or_raw: str
+) -> Tuple[str, Optional[str]]:
+    """Return quota resource usage and health.
+
+    :param resource: Dict representing quota resource obtained from get_quota_usage()
+    :param human_readable_or_raw: One of ("human_readable", "raw")
+
+    :return: Tuple containing quota resource usage string and resource health.
+        i.e. ("1 MiB out of 10 MiB used (10%)", "healthy")
+
+    """
+    usage = resource.get("usage")
+    limit = resource.get("limit")
+    limit_str = ""
+    health = None
+    if limit and limit.get("raw", 0) > 0:
+        health = resource.get("health")
+        percentage = get_usage_percentage(usage.get("raw"), limit.get("raw"))
+        limit_str = f"out of {limit.get(human_readable_or_raw)} used ({percentage})"
+    else:
+        limit_str = "used"
+    return f"{usage[human_readable_or_raw]} {limit_str}", health
