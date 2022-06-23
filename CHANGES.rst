@@ -8,11 +8,12 @@ Version 0.9.0 (UNRELEASED)
 - Adds support for networking/v1 API to Kubernetes Python client.
 - Adds new ``/api/launch`` endpoint that allows running workflows from remote sources.
 - Adds support for specifying ``slurm_partition`` and ``slurm_time`` for Slurm compute backend jobs.
+- Adds generation of Kerberos sidecar container's configuration.
+- Adds specification of ``retention_days`` in ``reana.yaml`` JSON schema.
 - Changes REANA specification loading functionality to allow specifying different working directories.
 - Changes the loading of Snakemake specifications to preserve the current working directory.
-- Fixes job controller submission API to strip potential leading and trailing whitespaces in image names.
-- Adds generation of Kerberos sidecar container's configuration.
 - Changes `reana.yaml` specification to allow enabling Kerberos for the whole workflow.
+- Fixes job controller submission API to strip potential leading and trailing whitespaces in image names.
 
 Version 0.8.5 (2022-02-23)
 --------------------------

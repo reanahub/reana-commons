@@ -170,6 +170,16 @@
           "id": "/properties/workspace/properties/root_path",
           "type": "string",
           "title": "Workspace root path."
+        },
+        "retention_days": {
+          "id": "/properties/workspace/properties/retention_days",
+          "type": "object",
+          "title": "Retention rules for the files in the workspace.",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       }
     }
