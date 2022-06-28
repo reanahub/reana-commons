@@ -366,6 +366,9 @@ def default_workspace():
 DEFAULT_WORKSPACE_PATH = default_workspace()
 """Default workspace path defined by the admin."""
 
+WORKFLOW_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
+"""Time format for workflow starting time, created time etc."""
+
 K8S_CERN_EOS_MOUNT_CONFIGURATION = {
     "volume": {"name": "eos", "hostPath": {"path": "/var/eos"}},
     "volumeMounts": {
