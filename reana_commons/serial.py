@@ -73,6 +73,11 @@ serial_workflow_schema = {
                         "type": "boolean",
                         "default": "false",
                     },
+                    "rucio": {
+                        "$id": "#/properties/steps/properties/rucio",
+                        "type": "boolean",
+                        "default": "false",
+                    },
                     "htcondor_max_runtime": {
                         "$id": "#/properties/steps/properties/htcondor_max_runtime",
                         "type": "string",

@@ -102,6 +102,7 @@ class JobControllerAPIClient(BaseAPIClient):
         kubernetes_memory_limit=None,
         unpacked_img=False,
         voms_proxy=False,
+        rucio=False,
         htcondor_max_runtime="",
         htcondor_accounting_group="",
         slurm_partition="",
@@ -122,6 +123,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :param kerberos: Decides if kerberos should be provided for job container.
         :param voms_proxy: Decides if grid proxy should be provided for job
             container.
+        :param rucio: Decides if a rucio environment should be provided for job.
         :param kubernetes_uid: Overwrites the default user id in the job container.
         :param kubernetes_memory_limit: Overwrites the default memory limit in the job container.
         :param unpacked_img: Decides if unpacked iamges should be used.
@@ -151,6 +153,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if voms_proxy:
             job_spec["voms_proxy"] = voms_proxy
+
+        if rucio:
+            job_spec["rucio"] = rucio
 
         if kubernetes_uid:
             job_spec["kubernetes_uid"] = kubernetes_uid
