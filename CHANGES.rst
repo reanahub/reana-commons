@@ -11,6 +11,7 @@ Version 0.9.0 (UNRELEASED)
 - Adds support for specifying ``slurm_partition`` and ``slurm_time`` for Slurm compute backend jobs.
 - Adds generation of Kerberos sidecar container's configuration.
 - Adds specification of ``retention_days`` in ``reana.yaml`` JSON schema.
+- Adds support for Unicode characters inside email body.
 - Changes REANA specification loading functionality to allow specifying different working directories.
 - Changes the loading of Snakemake specifications to preserve the current working directory.
 - Changes `reana.yaml` specification to allow enabling Kerberos for the whole workflow.

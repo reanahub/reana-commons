@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2020 CERN.
+# Copyright (C) 2020, 2022 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA-Commons email util."""
 
+from email.message import EmailMessage
 import logging
 import os
 import smtplib
@@ -30,10 +31,11 @@ def send_email(
     sender_email=REANA_EMAIL_SENDER,
 ):
     """Send emails from REANA platform."""
-    headers = "From: REANA platform <{from_}>\nTo: {to}\nSubject: {subject}".format(
-        from_=sender_email, to=receiver_email, subject=subject
-    )
-    message = "{headers}\n\n{body}".format(headers=headers, body=body)
+    message = EmailMessage()
+    message["From"] = f"REANA platform <{sender_email}>"
+    message["To"] = receiver_email
+    message["Subject"] = subject
+    message.set_content(body)
 
     context = ssl.create_default_context()
     if not (REANA_EMAIL_SMTP_SERVER and REANA_EMAIL_SMTP_PORT):
@@ -46,7 +48,7 @@ def send_email(
         if os.getenv("FLASK_ENV") != "development":
             server.starttls(context=context)
             server.login(login_email, REANA_EMAIL_PASSWORD)
-        server.sendmail(sender_email, receiver_email, message)
+        server.send_message(message)
         logging.info(
             "Email sent, login: {}, sender: {}, receiver: {}".format(
                 login_email, sender_email, receiver_email
