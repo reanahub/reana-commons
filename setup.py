@@ -19,7 +19,7 @@ readme = open("README.rst").read()
 history = open("CHANGES.rst").read()
 
 tests_require = [
-    "pytest-reana>=0.9.0a3,<0.10.0",
+    "pytest-reana>=0.9.0a6,<0.10.0",
 ]
 
 
@@ -39,8 +39,12 @@ extras_require = {
     ],
     "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
     "cwl": ["cwltool==3.1.20210628163208"],
-    "snakemake": [get_snakemake_pkg()],
-    "snakemake_reports": [get_snakemake_pkg("[reports]"), "pygraphviz<1.8"],
+    "snakemake": [get_snakemake_pkg(), "tabulate<0.9"],
+    "snakemake_reports": [
+        get_snakemake_pkg("[reports]"),
+        "pygraphviz<1.8",
+        "tabulate<0.9",  # tabulate 0.9 crashes snakemake, more info: https://github.com/snakemake/snakemake/issues/1899
+    ],
 }
 
 extras_require["all"] = []
