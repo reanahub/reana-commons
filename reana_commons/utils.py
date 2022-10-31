@@ -255,7 +255,7 @@ def is_directory(directory_path, path):
     """
     secure_path = remove_upper_level_references(path)
     full_path = Path(directory_path, secure_path)
-    if full_path.is_dir():
+    if full_path.is_dir() and not full_path.is_symlink():
         return full_path
     return False
 
