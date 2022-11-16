@@ -190,6 +190,17 @@ def walk(
         os.close(root_fd)
 
 
+def iterdir(workspace: PathLike, path: PathLike) -> Generator[str, None, None]:
+    """Iterate over the contents of a directory."""
+    dir_fd = open_fd(workspace, path)
+    path = Path(path)
+    try:
+        for filename in os.listdir(dir_fd):
+            yield str(path / filename)
+    finally:
+        os.close(dir_fd)
+
+
 def glob(
     workspace: PathLike, pattern: str, topdown: bool = True, include_dirs: bool = True
 ) -> Generator[str, None, None]:

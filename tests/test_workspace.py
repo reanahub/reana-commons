@@ -298,3 +298,18 @@ def test_glob_or_walk_directory(
         test_workspace, path_or_pattern, include_dirs=include_dirs
     )
     assert set(result) == set(expected_result)
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("dir", ["dir/subdir", "dir/z"]),
+        ("dir/subdir", ["dir/subdir/x", "dir/subdir/y"]),
+        ("empty_dir", []),
+    ],
+)
+def test_iterdir(path, expected, test_workspace):
+    """Test that iterdir returns the correct paths."""
+    result = list(workspace.iterdir(test_workspace, path))
+    assert len(result) == len(expected)
+    assert set(result) == set(expected)
