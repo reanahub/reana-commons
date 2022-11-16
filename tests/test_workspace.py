@@ -7,13 +7,20 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 """Workspace utilities tests"""
 
+import contextlib
 import os
-from contextlib import nullcontext as does_not_raise
 from pathlib import Path
 
 import pytest
 
 from reana_commons import workspace
+
+
+# FIXME: use `contextlib.nullcontext` when moving to Python 3.7
+@contextlib.contextmanager
+def does_not_raise():
+    """Context manager that does nothing."""
+    yield None
 
 
 @pytest.fixture()
