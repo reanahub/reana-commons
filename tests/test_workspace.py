@@ -83,7 +83,7 @@ def test_validate_path_component(name, expectation):
         ("file.yaml", does_not_raise()),
         ("empty_dir", does_not_raise()),
         ("dir/subdir", pytest.raises(Exception, match="not a valid path")),
-        ("sym", pytest.raises(Exception, match="Symlinks not allowed")),
+        ("sym", pytest.raises(Exception, match="symlink.*not allowed")),
         ("not_found", pytest.raises(Exception, match="No such file")),
     ],
 )
@@ -213,7 +213,7 @@ def test_move_inside_symlink_directory(test_workspace: Path):
     abs_target = abs_sym.parent / os.readlink(abs_sym)
     assert abs_target.is_dir()
 
-    with pytest.raises(Exception, match="Symlinks not allowed"):
+    with pytest.raises(Exception, match="symlink.*not allowed"):
         workspace.move(test_workspace, "file.yaml", "symdir/subdir")
 
 
@@ -225,7 +225,7 @@ def test_move_inside_symlink_directory(test_workspace: Path):
         ("dir/subdir/x", does_not_raise()),
         ("sym", does_not_raise()),
         ("symdir", does_not_raise()),
-        ("symdir/subdir", pytest.raises(Exception, match="Symlinks not allowed")),
+        ("symdir/subdir", pytest.raises(Exception, match="symlink.*not allowed")),
         ("not_found", pytest.raises(Exception)),
     ],
 )

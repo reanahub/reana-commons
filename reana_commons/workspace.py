@@ -11,6 +11,8 @@ from pathlib import Path
 import stat
 from typing import Generator, Union
 
+from reana_commons.errors import REANAWorkspaceError
+
 
 # O_NOFOLLOW: do not follow symlinks
 # O_NONBLOCK: do not block when opening special files (e.g. pipes)
@@ -31,8 +33,7 @@ def _validate_path_component(component: str) -> None:
         or os.path.sep in component
         or component in [".", ".."]
     ):
-        # TODO: do not use generic `Exception`
-        raise Exception(f"{component} is not a valid path component")
+        raise REANAWorkspaceError(f"'{component}' is not a valid path component")
 
 
 def _open_single_component(name: str, dir_fd: int, flags: int = READ_SAFE_FLAGS) -> int:
@@ -42,8 +43,7 @@ def _open_single_component(name: str, dir_fd: int, flags: int = READ_SAFE_FLAGS)
         fd = os.open(name, flags | SAFE_FLAGS, dir_fd=dir_fd)
     except OSError as e:
         if e.errno == errno.ELOOP:
-            # TODO: do not use generic `Exception`
-            raise Exception("Symlinks not allowed")
+            raise REANAWorkspaceError(f"Opening symlink '{name}' is not allowed")
         raise
     return fd
 
@@ -74,8 +74,7 @@ def open_file(workspace: PathLike, path: PathLike, mode: str = "r"):
         st_mode = os.fstat(fd).st_mode
         if not stat.S_ISREG(st_mode):
             os.close(fd)
-            # TODO: do not use generic `Exception`
-            raise Exception(f"{path} is not a regular file")
+            raise REANAWorkspaceError(f"'{path}' is not a regular file")
         return fd
 
     return open(path, mode=mode, opener=opener)
@@ -94,8 +93,7 @@ def delete(workspace: PathLike, path: PathLike) -> int:
         elif stat.S_ISDIR(st_mode):
             os.rmdir(path.name, dir_fd=parent_fd)
         else:
-            # TODO: do not use generic `Exception`
-            raise Exception("Invalid file type")
+            raise REANAWorkspaceError(f"'{path}' should be a file or a directory")
     finally:
         os.close(parent_fd)
     return st_size
