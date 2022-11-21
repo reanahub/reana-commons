@@ -67,6 +67,7 @@ install_requires = [
     "mock>=3.0,<4",
     "PyYAML>=5.1,<6.0",
     "Werkzeug>=0.14.1",
+    "wcmatch>=8.3<8.5",
 ]
 
 packages = find_packages()

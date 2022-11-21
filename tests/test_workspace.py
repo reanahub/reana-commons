@@ -32,6 +32,9 @@ def test_workspace(tmp_path: Path):
         "dir/subdir/x",
         "dir/subdir/y",
         "dir/z",
+        "another/dir/file2.yaml",
+        ".hidden",
+        "UPPER",
     ]
     directories = [
         "empty_dir",
@@ -270,8 +273,11 @@ def test_walk_exclude_directories(test_workspace):
             "dir/subdir/x",
             "dir/subdir/y",
             "dir/z",
+            "another/dir/file2.yaml",
             "sym",
             "symdir",
+            ".hidden",
+            "UPPER",
         ]
     )
 
@@ -288,6 +294,10 @@ def test_walk_exclude_directories(test_workspace):
         ("symdir/*", True, []),
         ("dir/*", True, ["dir/subdir", "dir/z"]),
         ("dir/*", False, ["dir/z"]),
+        ("**/*.y[abc]ml", False, ["file.yaml", "another/dir/file2.yaml"]),
+        ("*hidden", True, [".hidden"]),
+        ("upp*", True, []),
+        ("UPP*", True, ["UPPER"]),
     ],
 )
 def test_glob_or_walk_directory(

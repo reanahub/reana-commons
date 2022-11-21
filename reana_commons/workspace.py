@@ -7,12 +7,14 @@
 
 import errno
 import os
-from pathlib import Path
+import re
 import stat
+from pathlib import Path
 from typing import Generator, Union
 
-from reana_commons.errors import REANAWorkspaceError
+import wcmatch.glob
 
+from reana_commons.errors import REANAWorkspaceError
 
 # O_NOFOLLOW: do not follow symlinks
 # O_NONBLOCK: do not block when opening special files (e.g. pipes)
@@ -203,12 +205,17 @@ def glob(
     workspace: PathLike, pattern: str, topdown: bool = True, include_dirs: bool = True
 ) -> Generator[str, None, None]:
     """Get the list of entries in a workspace that match a given pattern."""
-    # Make sure that the pattern is matched starting from the beginning of the path
-    if not pattern.startswith("/"):
-        pattern = "/" + pattern
-    for filename in walk(workspace, topdown=topdown, include_dirs=include_dirs):
-        if Path("/", filename).match(pattern):
-            yield filename
+    # `wcmatch` returns two lists of regexps, one for "include" and the other
+    # for "exclude" patterns. We are only interested in the "include" patterns.
+    include_regex, exclude_regex = wcmatch.glob.translate(
+        pattern, flags=wcmatch.glob.GLOBSTAR | wcmatch.glob.DOTGLOB
+    )
+    if len(include_regex) != 1 or len(exclude_regex) != 0:
+        raise REANAWorkspaceError("The provided pattern is not valid")
+    compiled_regex = re.compile(include_regex.pop())
+    for filepath in walk(workspace, topdown=topdown, include_dirs=include_dirs):
+        if compiled_regex.match(filepath):
+            yield filepath
 
 
 def glob_or_walk_directory(
