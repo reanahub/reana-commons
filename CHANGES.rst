@@ -10,7 +10,7 @@ Version 0.9.0 (UNRELEASED)
 - Adds support for networking/v1 API to Kubernetes Python client.
 - Adds new ``/api/launch`` endpoint that allows running workflows from remote sources.
 - Adds support for specifying ``slurm_partition`` and ``slurm_time`` for Slurm compute backend jobs.
-- Adds generation of Kerberos sidecar container's configuration.
+- Adds generation of Kerberos init and renew container's configuration.
 - Adds specification of ``retention_days`` in ``reana.yaml`` JSON schema.
 - Adds support for Unicode characters inside email body.
 - Changes REANA specification loading functionality to allow specifying different working directories.

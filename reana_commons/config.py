@@ -485,8 +485,21 @@ KRB5_CONTAINER_IMAGE = os.getenv(
 )
 """Default docker image of KRB5 sidecar container."""
 
-KRB5_CONTAINER_NAME = "krb5"
-"""Name of KRB5 sidecar container."""
+KRB5_INIT_CONTAINER_NAME = "krb5-init"
+"""Name of KRB5 init container."""
+
+KRB5_RENEW_CONTAINER_NAME = "krb5-renew"
+"""Name of KRB5 sidecar container used for ticket renewal."""
+
+KRB5_STATUS_FILE_LOCATION = "/krb5_cache/status_file"
+"""Status file path used to terminate KRB5 renew container when the main
+job finishes."""
+
+KRB5_STATUS_FILE_CHECK_INTERVAL = 15
+"""Time interval in seconds between checks to the status file."""
+
+KRB5_TICKET_RENEW_INTERVAL = 21600  # 6 hours
+"""Time interval in seconds between renewals of the KRB5 ticket."""
 
 KRB5_TOKEN_CACHE_LOCATION = "/krb5_cache/"
 """Directory of Kerberos tokens cache, shared between job/engine & KRB5 container. It

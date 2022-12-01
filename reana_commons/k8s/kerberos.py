@@ -14,7 +14,11 @@ import os
 from reana_commons.config import (
     KRB5_CONFIGMAP_NAME,
     KRB5_CONTAINER_IMAGE,
-    KRB5_CONTAINER_NAME,
+    KRB5_INIT_CONTAINER_NAME,
+    KRB5_RENEW_CONTAINER_NAME,
+    KRB5_STATUS_FILE_LOCATION,
+    KRB5_STATUS_FILE_CHECK_INTERVAL,
+    KRB5_TICKET_RENEW_INTERVAL,
     KRB5_TOKEN_CACHE_FILENAME,
     KRB5_TOKEN_CACHE_LOCATION,
 )
@@ -23,16 +27,17 @@ from reana_commons.k8s.secrets import REANAUserSecretsStore
 
 
 KerberosConfig = namedtuple(
-    "KerberosConfig", ["volumes", "volume_mounts", "env", "init_container"]
+    "KerberosConfig",
+    ["volumes", "volume_mounts", "env", "init_container", "renew_container"],
 )
 
 
 def get_kerberos_k8s_config(
     secrets_store: REANAUserSecretsStore, kubernetes_uid: int
 ) -> KerberosConfig:
-    """Get the k8s specification for the Kerberos sidecar container.
+    """Get the k8s specification for the Kerberos init and renew containers.
 
-    This container is used as an `initContainer` to generate the Kerberos tickets.
+    These containers are used to generate and renew the Kerberos tickets.
 
     :param secrets_stores: User's secrets store
     :param kubernetes_uid: UID of the user who needs Kerberos
@@ -40,6 +45,8 @@ def get_kerberos_k8s_config(
         - volumes needed by the sidecar container
         - volume mounts needed by the external container that uses Kerberos
         - environment variables needed by the external container that uses Kerberos
+        - specification for init container used to generate Kerberos ticket
+        - specification for renew container used to periodically renew Kerberos ticket
     """
     secrets_volume_mount = secrets_store.get_secrets_volume_mount_as_k8s_spec()
     keytab_file = secrets_store.get_secret_value("CERN_KEYTAB")
@@ -82,7 +89,8 @@ def get_kerberos_k8s_config(
         }
     ]
 
-    krb5_container = {
+    # Kerberos init container generates ticket to access external services
+    krb5_init_container = {
         "image": KRB5_CONTAINER_IMAGE,
         "command": [
             "kinit",
@@ -90,11 +98,32 @@ def get_kerberos_k8s_config(
             f"/etc/reana/secrets/{keytab_file}",
             f"{cern_user}@CERN.CH",
         ],
-        "name": KRB5_CONTAINER_NAME,
+        "name": KRB5_INIT_CONTAINER_NAME,
         "imagePullPolicy": "IfNotPresent",
         "volumeMounts": [secrets_volume_mount] + volume_mounts,
         "env": env,
         "securityContext": {"runAsUser": kubernetes_uid},
     }
 
-    return KerberosConfig(volumes, volume_mounts, env, krb5_container)
+    # Kerberos renew container renews ticket periodically for long-running jobs
+    krb5_renew_container = {
+        "image": KRB5_CONTAINER_IMAGE,
+        "command": ["bash", "-c"],
+        "args": [
+            (
+                "SECONDS=0; "
+                f"while ! test -f {KRB5_STATUS_FILE_LOCATION}; do "
+                f"if [ $SECONDS -ge {KRB5_TICKET_RENEW_INTERVAL} ]; then kinit -R; SECONDS=0; fi; "
+                f"sleep {KRB5_STATUS_FILE_CHECK_INTERVAL}; done"
+            )
+        ],
+        "name": KRB5_RENEW_CONTAINER_NAME,
+        "imagePullPolicy": "IfNotPresent",
+        "volumeMounts": [secrets_volume_mount] + volume_mounts,
+        "env": env,
+        "securityContext": {"runAsUser": kubernetes_uid},
+    }
+
+    return KerberosConfig(
+        volumes, volume_mounts, env, krb5_init_container, krb5_renew_container
+    )
