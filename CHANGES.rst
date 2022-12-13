@@ -1,22 +1,25 @@
 Changes
 =======
 
-Version 0.9.0 (UNRELEASED)
+Version 0.9.0 (2022-12-13)
 --------------------------
 
 - Adds support for Python 3.11.
 - Adds support for Rucio.
 - Adds REANA specification validation and loading logic from ``reana-client``.
-- Adds support for networking/v1 API to Kubernetes Python client.
-- Adds new ``/api/launch`` endpoint that allows running workflows from remote sources.
-- Adds support for specifying ``slurm_partition`` and ``slurm_time`` for Slurm compute backend jobs.
+- Adds common utility functions for managing workspace files.
+- Adds OpenAPI specification support for ``launch`` endpoint that allows running workflows from remote sources.
+- Adds OpenAPI specification support for ``get_workflow_retention_rules`` endpoint that allows to retrieve the workspace file retention rules of a workflow.
 - Adds generation of Kerberos init and renew container's configuration.
-- Adds specification of ``retention_days`` in ``reana.yaml`` JSON schema.
 - Adds support for Unicode characters inside email body.
+- Changes OpenAPI specification to include missing response schema elements and some other small enhancements.
+- Changes the Kubernetes Python client to use the ``networking/v1`` API.
 - Changes REANA specification loading functionality to allow specifying different working directories.
+- Changes REANA specification to allow enabling Kerberos for the whole workflow.
+- Changes REANA specification to allow specifying ``retention_days`` for the workflow.
+- Changes REANA specification to allow specifying ``slurm_partition`` and ``slurm_time`` for Slurm compute backend jobs.
 - Changes the loading of Snakemake specifications to preserve the current working directory.
-- Changes `reana.yaml` specification to allow enabling Kerberos for the whole workflow.
-- Fixes job controller submission API to strip potential leading and trailing whitespaces in image names.
+- Fixes the submission of jobs by stripping potential leading and trailing whitespaces in Docker image names.
 
 Version 0.8.5 (2022-02-23)
 --------------------------
