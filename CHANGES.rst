@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.9.1 (2023-01-18)
+--------------------------
+
+- Changes Kerberos renew container's configuration to log each ticket renewal.
+
 Version 0.9.0 (2022-12-13)
 --------------------------
 
