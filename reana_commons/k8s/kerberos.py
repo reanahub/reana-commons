@@ -113,7 +113,8 @@ def get_kerberos_k8s_config(
             (
                 "SECONDS=0; "
                 f"while ! test -f {KRB5_STATUS_FILE_LOCATION}; do "
-                f"if [ $SECONDS -ge {KRB5_TICKET_RENEW_INTERVAL} ]; then kinit -R; SECONDS=0; fi; "
+                f"if [ $SECONDS -ge {KRB5_TICKET_RENEW_INTERVAL} ]; then "
+                'echo "Renewing Kerberos ticket: $(date)"; kinit -R; SECONDS=0; fi; '
                 f"sleep {KRB5_STATUS_FILE_CHECK_INTERVAL}; done"
             )
         ],
