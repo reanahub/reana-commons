@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit and manage workflows",
     "title": "REANA Workflow Controller",
-    "version": "0.9.0a6"
+    "version": "0.9.0"
   },
   "parameters": {},
   "paths": {
@@ -1118,7 +1118,7 @@
             "type": "string"
           },
           {
-            "description": "Optional. Additional input parameters and operational options for workflow execution. Possible parameters are `CACHE=on/off`, passed to disable caching of results in serial workflows, `all_runs=True/False` deletes all runs of a given workflow if status is set to deleted and `workspace=True/False` which deletes the workspace of a workflow.",
+            "description": "Optional. Additional input parameters and operational options for workflow execution. Possible parameters are `CACHE=on/off`, passed to disable caching of results in serial workflows, `all_runs=True/False` deletes all runs of a given workflow if status is set to deleted, `workspace=True/False` which deletes the workspace of a workflow and `session=True/False` which deletes interactive session of a workflow in case it is open .",
             "in": "body",
             "name": "parameters",
             "required": false,
@@ -1128,6 +1128,9 @@
                   "type": "string"
                 },
                 "all_runs": {
+                  "type": "boolean"
+                },
+                "session": {
                   "type": "boolean"
                 },
                 "workspace": {

@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.9.2 (UNRELEASED)
+--------------------------
+
+- Changes OpenAPI specification to include operational option to delete interactive session of a workflow in case it is open.
+
 Version 0.9.1 (2023-01-18)
 --------------------------
 
