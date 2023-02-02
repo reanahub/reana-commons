@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -67,7 +67,7 @@ install_requires = [
     "mock>=3.0,<4",
     "PyYAML>=5.1,<6.0",
     "Werkzeug>=0.14.1",
-    "wcmatch>=8.3<8.5",
+    "wcmatch>=8.3,<8.5",
 ]
 
 packages = find_packages()
