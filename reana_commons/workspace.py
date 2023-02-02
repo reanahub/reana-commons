@@ -1,5 +1,5 @@
 # This file is part of REANA.
-# Copyright (C) 2022 CERN.
+# Copyright (C) 2022, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -176,7 +176,7 @@ def walk(
     root_fd = open_fd(workspace, path)
     path = Path(path)
     try:
-        for (dirpath, dirnames, filenames, dirfd) in os.fwalk(
+        for dirpath, dirnames, filenames, dirfd in os.fwalk(
             dir_fd=root_fd, topdown=topdown
         ):
             for dirname in dirnames:
