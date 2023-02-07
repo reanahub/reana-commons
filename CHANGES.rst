@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.9.3 (UNRELEASED)
+--------------------------
+
+- Fixes the verbs used to describe changes to the status of a workflow in order to avoid incorrect phrases such as ``workflow has been failed``.
+
 Version 0.9.2 (2023-02-10)
 --------------------------
 

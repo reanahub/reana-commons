@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -14,7 +14,7 @@ import shutil
 from hashlib import md5
 from pathlib import Path
 
-from pytest import raises
+import pytest
 from pytest_reana.fixtures import sample_workflow_workspace
 
 from reana_commons.utils import (
@@ -23,6 +23,7 @@ from reana_commons.utils import (
     calculate_job_input_hash,
     click_table_printer,
     format_cmd,
+    get_workflow_status_change_verb,
 )
 
 
@@ -113,5 +114,29 @@ def test_format_cmd():
     test_cmd = "ls -l"
     test_cmd_fail = 12
     assert isinstance(format_cmd(test_cmd), list)
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         format_cmd(test_cmd_fail)
+
+
+@pytest.mark.parametrize(
+    "status,verb",
+    [
+        ("created", "has been"),
+        ("running", "is"),
+        ("finished", "has"),
+        ("failed", "has"),
+        ("deleted", "has been"),
+        ("stopped", "has been"),
+        ("queued", "has been"),
+        ("pending", "is"),
+    ],
+)
+def test_get_workflow_status_change_verb(status, verb):
+    """Test get_workflow_status_change_verb."""
+    assert get_workflow_status_change_verb(status) == verb
+
+
+def test_get_workflow_status_change_verb_invalid():
+    """Test get_workflow_status_change_verb with an invalid status."""
+    with pytest.raises(ValueError, match="invalid"):
+        get_workflow_status_change_verb("invalid")

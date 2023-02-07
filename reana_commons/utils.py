@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -154,20 +154,18 @@ def copy_openapi_specs(output_path, component):
         )
 
 
-def get_workflow_status_change_verb(status):
+def get_workflow_status_change_verb(status: str) -> str:
     """Give the correct verb conjugation depending on status tense.
 
     :param status: String which represents the status the workflow changed to.
     """
-    verb = ""
-    if status.endswith("ing"):
-        verb = "is"
-    elif status.endswith("ed"):
-        verb = "has been"
-    else:
-        raise ValueError("Unrecognised status {}".format(status))
-
-    return verb
+    if status in ("finished", "failed"):
+        return "has"
+    if status in ("created", "stopped", "queued", "deleted"):
+        return "has been"
+    if status in ("running", "pending"):
+        return "is"
+    raise ValueError(f"Unrecognised status {status}")
 
 
 def build_progress_message(
