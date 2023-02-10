@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.9.2 (2023-02-10)
+--------------------------
+
+- Fixes ``wcmatch`` dependency version specification.
+
 Version 0.9.1 (2023-01-18)
 --------------------------
 
