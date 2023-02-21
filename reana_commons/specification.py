@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022 CERN.
+# Copyright (C) 2022, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -94,11 +94,9 @@ def load_reana_spec(filepath, workspace_path=None):
             **_prepare_kwargs(reana_yaml),
         )
 
-        if (
-            workflow_type == "cwl" or workflow_type == "snakemake"
-        ) and "inputs" in reana_yaml:
-            input_file = reana_yaml["inputs"]["parameters"]["input"]
-            if workspace_path and input_file:
+        input_file = reana_yaml.get("inputs", {}).get("parameters", {}).get("input")
+        if input_file and workflow_type in ("cwl", "snakemake"):
+            if workspace_path:
                 input_file = os.path.join(workspace_path, input_file)
             with open(input_file) as f:
                 reana_yaml["inputs"]["parameters"] = yaml.load(

@@ -64,7 +64,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "reana"
-copyright = "2018-2020, info@reana.io"
+copyright = "2018-2023, info@reana.io"
 author = "info@reana.io"
 
 # The version info for the project you're documenting, acts as replacement for
