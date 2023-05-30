@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2020, 2022 CERN.
+# Copyright (C) 2020, 2022, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA-Commons email util."""
 
+from distutils.util import strtobool
 from email.message import EmailMessage
 import logging
 import os
@@ -21,6 +22,10 @@ REANA_EMAIL_SMTP_PORT = os.getenv("REANA_EMAIL_SMTP_PORT")
 REANA_EMAIL_LOGIN = os.getenv("REANA_EMAIL_LOGIN")
 REANA_EMAIL_SENDER = os.getenv("REANA_EMAIL_SENDER")
 REANA_EMAIL_PASSWORD = os.getenv("REANA_EMAIL_PASSWORD")
+REANA_EMAIL_SMTP_SSL = bool(strtobool(os.getenv("REANA_EMAIL_SMTP_SSL", "False")))
+REANA_EMAIL_SMTP_STARTTLS = bool(
+    strtobool(os.getenv("REANA_EMAIL_SMTP_STARTTLS", "True"))
+)
 
 
 def send_email(
@@ -37,21 +42,30 @@ def send_email(
     message["Subject"] = subject
     message.set_content(body)
 
-    context = ssl.create_default_context()
     if not (REANA_EMAIL_SMTP_SERVER and REANA_EMAIL_SMTP_PORT):
         raise REANAEmailNotificationError(
             "Cannot send email, missing server and port configuration. "
             "Please provide the following environment variables:\n"
             "REANA_EMAIL_SMTP_SERVER\nREANA_EMAIL_SMTP_PORT"
         )
-    with smtplib.SMTP(REANA_EMAIL_SMTP_SERVER, REANA_EMAIL_SMTP_PORT) as server:
-        if os.getenv("FLASK_ENV") != "development":
-            server.starttls(context=context)
-            server.login(login_email, REANA_EMAIL_PASSWORD)
-        server.send_message(message)
-        logging.info(
-            "Email sent, login: {}, sender: {}, receiver: {}".format(
-                login_email, sender_email, receiver_email
-            )
+
+    context = ssl.create_default_context()
+    if REANA_EMAIL_SMTP_SSL:
+        smtp_server = smtplib.SMTP_SSL(
+            REANA_EMAIL_SMTP_SERVER, REANA_EMAIL_SMTP_PORT, context=context
         )
-        logging.info("Body:\n{}".format(message))
+    else:
+        smtp_server = smtplib.SMTP(REANA_EMAIL_SMTP_SERVER, REANA_EMAIL_SMTP_PORT)
+
+    with smtp_server:
+        if REANA_EMAIL_SMTP_STARTTLS:
+            smtp_server.starttls(context=context)
+        if login_email or REANA_EMAIL_PASSWORD:
+            smtp_server.login(login_email, REANA_EMAIL_PASSWORD)
+        smtp_server.send_message(message)
+
+    logging.info(
+        f"Email sent, login: {login_email}, "
+        f"sender: {sender_email}, receiver: {receiver_email}\n"
+        f"Body:\n{message}"
+    )
