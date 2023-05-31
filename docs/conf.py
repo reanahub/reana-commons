@@ -207,5 +207,5 @@ texinfo_documents = [
 
 # Intersphinx configuration
 intersphinx_mapping = {
-    "kombu": ("https://docs.celeryq.dev/projects/kombu/en/latest/", None),
+    "kombu": ("https://docs.celeryq.dev/projects/kombu/en/stable/", None),
 }
