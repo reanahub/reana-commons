@@ -27,7 +27,6 @@
           "type": "array",
           "title": "Analysis input files.",
           "description": "List of files provided as input for a given analysis.",
-          "optional": true,
           "items": {
             "id": "/properties/inputs/properties/files/items",
             "type": "string",
@@ -39,7 +38,6 @@
           "type": "array",
           "title": "Analysis input directories.",
           "description": "List of directories provided as input for a given analysis.",
-          "optional": true,
           "items": {
             "id": "/properties/inputs/properties/directories/items",
             "type": "string",
@@ -50,8 +48,7 @@
           "id": "/properties/inputs/properties/parameters",
           "type": "object",
           "title": "Analysis parameters.",
-          "description": "Key value data structure which represents the analysis parameters.",
-          "optional": true
+          "description": "Key value data structure which represents the analysis parameters."
         },
         "options": {
           "id": "/properties/workflow/properties/options",
@@ -100,8 +97,7 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "title": "CVMFS repos",
-                "optional": false
+                "title": "CVMFS repos"
               }
             },
             "kerberos": {
@@ -138,7 +134,6 @@
           "type": "array",
           "title": "Analysis result files.",
           "description": "Expected output from analysis represented by a set of files.",
-          "optional": true,
           "items": {
             "id": "/properties/outputs/properties/files/items",
             "type": "string",
@@ -150,11 +145,29 @@
           "type": "array",
           "title": "Analysis result directories.",
           "description": "Expected output from analysis represented by a set of directories.",
-          "optional": true,
           "items": {
             "id": "/properties/outputs/properties/directories/items",
             "type": "string",
             "title": "Relative path to the directory."
+          }
+        }
+      }
+    },
+    "tests": {
+      "id": "/properties/tests",
+      "type": "object",
+      "title": "Analysis tests.",
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "id": "/properties/tests/properties/files",
+          "type": "array",
+          "title": "Analysis test files.",
+          "description": "Gherkin test feature files.",
+          "items": {
+            "id": "/properties/tests/properties/files/items",
+            "type": "string",
+            "title": "Relative path to the file."
           }
         }
       }
