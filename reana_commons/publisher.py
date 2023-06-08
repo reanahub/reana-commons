@@ -36,15 +36,15 @@ class BasePublisher(object):
     ):
         """Initialise the BasePublisher class.
 
-        :param connection: A :class:`kombu.Connection`, if not provided a
-            :class:`kombu.Connection` with the default configuration will
+        :param connection: A class:`kombu.Connection`, if not provided a
+            class:`kombu.Connection` with the default configuration will
             be instantiated.
         :param queue: String which represents the queue the messages will
             be sent to.
         :param routing_key: String which represents the routing key which
             will be used to send the messages, if not provided default
             routing key will be used.
-        :param exchange: A :class:`kombu.Exchange` where the messages will
+        :param exchange: A class:`kombu.Exchange` where the messages will
             be delivered to, if not provided, it will be instantiated with
             the default configuration.
         """
@@ -69,7 +69,7 @@ class BasePublisher(object):
         self.producer = self._build_producer()
 
     def _build_producer(self):
-        """Instantiate a :class:`kombu.Producer`."""
+        """Instantiate a class:`kombu.Producer`."""
         return self._connection.Producer(serializer=MQ_DEFAULT_FORMAT)
 
     @staticmethod
