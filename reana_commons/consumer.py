@@ -24,10 +24,10 @@ class BaseConsumer(ConsumerMixin):
     def __init__(self, queue=None, connection=None, message_default_format=None):
         """Construct a BaseConsumer.
 
-        :param connection: A :class:`kombu.Connection`, if not provided a
-            :class:`kombu.Connection` with the default configuration will
+        :param connection: A class:`kombu.Connection`, if not provided a
+            class:`kombu.Connection` with the default configuration will
             be instantiated.
-        :param queue: Name or :class:`kombu.Queue` where the messages will
+        :param queue: Name or class:`kombu.Queue` where the messages will
             be consumed from.
         :param message_default_format: Defines the format the consuemer is
             configured to deserialize the messages to.
@@ -40,15 +40,15 @@ class BaseConsumer(ConsumerMixin):
         self.message_default_format = message_default_format or MQ_DEFAULT_FORMAT
 
     def _build_default_exchange(self):
-        """Build :class:`kombu.Exchange` with default values."""
+        """Build class:`kombu.Exchange` with default values."""
         return Exchange(MQ_DEFAULT_EXCHANGE, type="direct")
 
     def get_consumers(self, Consumer, channel):
         """Map consumers to specific queues.
 
-        :param Consumer: A :class:`kombu.Consumer` to use for instantiating
+        :param Consumer: A class:`kombu.Consumer` to use for instantiating
             consumers.
-        :param channel: A :class:`kombu.transport.virtual.AbstractChannel`.
+        :param channel: A class:`kombu.transport.virtual.AbstractChannel`.
         """
         # return [Consumer(queues=self.queues,
         #                  callbacks=[self.on_message],
@@ -63,6 +63,6 @@ class BaseConsumer(ConsumerMixin):
 
         :param body: The received message already decoded in the specified
             format.
-        :param message: A :class:`kombu.transport.virtual.Message`.
+        :param message: A class:`kombu.transport.virtual.Message`.
         """
         raise NotImplementedError("Implement this method to react to events.")
