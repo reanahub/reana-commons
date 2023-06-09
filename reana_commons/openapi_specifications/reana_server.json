@@ -3,7 +3,7 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.9.1a1"
+    "version": "0.9.1a3"
   },
   "parameters": {},
   "paths": {
@@ -444,6 +444,18 @@
                   "type": "object"
                 },
                 "kubernetes_max_memory_limit": {
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string",
+                      "x-nullable": true
+                    }
+                  },
+                  "type": "object"
+                },
+                "maximum_interactive_session_inactivity_period": {
                   "properties": {
                     "title": {
                       "type": "string"
