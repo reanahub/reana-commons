@@ -13,6 +13,7 @@ include .flake8
 include LICENSE
 include pytest.ini
 include tox.ini
+exclude .readthedocs.yaml
 prune docs/_build
 recursive-include docs *.png
 recursive-include docs *.py
