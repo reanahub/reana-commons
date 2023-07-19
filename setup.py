@@ -65,7 +65,7 @@ install_requires = [
     "jsonschema[format]>=3.0.1,<4.0.0",
     "kombu>=4.6",
     "mock>=3.0,<4",
-    "PyYAML>=5.1,<6.0",
+    "PyYAML>=5.1,<7.0",
     "Werkzeug>=0.14.1",
     "wcmatch>=8.3,<8.5",
 ]
