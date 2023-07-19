@@ -1,7 +1,7 @@
 Changes
 =======
 
-Version 0.9.2.1 (UNRELEASED)
+Version 0.9.2.1 (2023-07-19)
 ----------------------------
 
 - Changes ``PyYAML`` dependency version bounds in order to fix installation on Python 3.10+.
