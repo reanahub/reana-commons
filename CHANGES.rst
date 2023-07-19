@@ -8,6 +8,7 @@ Version 0.9.3 (UNRELEASED)
 - Adds support for ``tests.files`` in ``reana.yaml`` allowing to specify Gherking feature files for testing.
 - Changes the server OpenAPI specification to add the `maximum_interactive_session_inactivity_period` value to the `info` endpoint.
 - Changes email sending to allow configuring authentication and encryption options.
+- Changes ``PyYAML`` dependency version bounds in order to fix installation on Python 3.10+.
 - Fixes the verbs used to describe changes to the status of a workflow in order to avoid incorrect phrases such as ``workflow has been failed``.
 - Fixes the loading of Snakemake and CWL workflow specifications when no parameters are specified.
 
