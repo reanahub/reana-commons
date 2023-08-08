@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -467,7 +467,7 @@ REANA_COMPUTE_BACKENDS = {
 REANA_WORKFLOW_ENGINES = ["yadage", "cwl", "serial", "snakemake"]
 """Available workflow engines."""
 
-REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "snakemake/snakemake:v6.8.0"
+REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "docker.io/snakemake/snakemake:v6.8.0"
 """Snakemake default job environment image."""
 
 REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP = float(
@@ -481,7 +481,7 @@ COMMAND_DANGEROUS_OPERATIONS = ["sudo ", "cd /"]
 # Kerberos configurations
 
 KRB5_CONTAINER_IMAGE = os.getenv(
-    "KRB5_CONTAINER_IMAGE", "reanahub/reana-auth-krb5:1.0.1"
+    "KRB5_CONTAINER_IMAGE", "docker.io/reanahub/reana-auth-krb5:1.0.1"
 )
 """Default docker image of KRB5 sidecar container."""
 

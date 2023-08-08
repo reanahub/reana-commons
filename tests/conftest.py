@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2021 CERN.
+# Copyright (C) 2018, 2019, 2021, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -27,7 +27,7 @@ rule foo:
     output:
         "results/foo.txt"
     container:
-        "docker://python:3.10.0-buster"
+        "docker://docker.io/library/python:3.10.0-buster"
     resources:
         kubernetes_memory_limit="256Mi"
     shell:
@@ -39,7 +39,7 @@ rule bar:
     output:
         "results/bar.txt"
     container:
-        "docker://python:3.10.0-buster"
+        "docker://docker.io/library/python:3.10.0-buster"
     resources:
         kubernetes_memory_limit="256Mi"
     shell:
@@ -52,7 +52,7 @@ rule baz:
     output:
         "results/baz.txt"
     container:
-        "docker://python:3.10.0-buster"
+        "docker://docker.io/library/python:3.10.0-buster"
     resources:
         kubernetes_memory_limit="256Mi"
     shell:
