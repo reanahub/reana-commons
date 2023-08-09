@@ -9,6 +9,7 @@
 """REANA-Commons validation testing."""
 
 import pytest
+from jsonschema.exceptions import ValidationError
 
 from reana_commons.validation.utils import validate_reana_yaml
 
@@ -27,4 +28,46 @@ def test_validation_retention_days(yadage_workflow_spec_loaded, retention_days):
     """Test the validation of ``retention_days`` section of ``reana.yaml``."""
     reana_yaml = yadage_workflow_spec_loaded
     reana_yaml.setdefault("workspace", {}).update({"retention_days": retention_days})
-    validate_reana_yaml(reana_yaml)
+    warnings = validate_reana_yaml(reana_yaml)
+    assert warnings == {}
+
+
+@pytest.mark.parametrize(
+    "extra_keys,expected_warnings",
+    [
+        (["wrong_key"], {"additional_properties": ["wrong_key"]}),
+        (
+            ["wrong_key", "wrong_key2"],
+            {"additional_properties": ["wrong_key", "wrong_key2"]},
+        ),
+        ([], {}),
+    ],
+)
+def test_warnings_reana_yaml(
+    yadage_workflow_spec_loaded, extra_keys, expected_warnings
+):
+    """Test the validation of the ``reana.yaml`` file.
+
+    Check that the validation returns the expected warnings when there is an
+    unexpected key in the specification.
+    """
+    reana_yaml = yadage_workflow_spec_loaded
+    for key in extra_keys:
+        reana_yaml[key] = "value"
+    warnings = validate_reana_yaml(reana_yaml)
+    assert set(expected_warnings.keys()) == set(warnings.keys())
+    for key, value in expected_warnings.items():
+        assert set(value) == set(warnings[key])
+
+
+def test_critical_errors_reana_yaml(yadage_workflow_spec_loaded):
+    """Test the validation of the ``reana.yaml`` file.
+
+    Test that the validation raises an error when a required key
+    is missing in the specification (critical error).
+    """
+    # Delete a required key
+    reana_yaml = yadage_workflow_spec_loaded
+    del reana_yaml["workflow"]
+    with pytest.raises(ValidationError):
+        validate_reana_yaml(reana_yaml)

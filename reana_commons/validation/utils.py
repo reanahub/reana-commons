@@ -11,9 +11,12 @@
 import json
 import logging
 import os
+import re
 from typing import Dict, List
 
-from jsonschema import ValidationError, validate
+from jsonschema import ValidationError
+from jsonschema.exceptions import best_match
+from jsonschema.validators import validator_for
 
 from reana_commons.config import (
     REANA_WORKFLOW_NAME_ILLEGAL_CHARACTERS,
@@ -23,7 +26,54 @@ from reana_commons.config import (
 from reana_commons.errors import REANAValidationError
 
 
-def validate_reana_yaml(reana_yaml: Dict) -> None:
+def _get_schema_validation_warnings(errors: List[ValidationError]) -> Dict:
+    """Parse a list of JSON schema validation errors.
+
+    When validating the REANA specification file against the REANA specification
+    schema, the validator can return many ValidationError object. This function parses
+    the list of errors and returns a dictionary of warnings, in the form of
+    {warning_key: [warning_value1, warning_value2, ...]}.
+    """
+    non_critical_validators = ["additionalProperties"]
+    # Depending on whether a validator is critical or not,
+    # separate errors into 'critical' and 'warnings'
+    critical_errors = []
+    validator_to_warning = {
+        "additionalProperties": "additional_properties",
+    }
+    # The warning dictionary has as keys the properties that are not
+    # respected, and as values, a list of strings that invalidates the property
+    # or describe the error
+    warnings = {}
+    for e in errors:
+        if e.validator in non_critical_validators:
+            warning_value = [e.message]
+            if e.validator == "additionalProperties":
+                # If the error is about additional properties, we want to return the
+                # name(s) of the additional properties in a list.
+                # There is no easy way to extract the name of the additional properties,
+                # so we parse the error message. See https://github.com/reanahub/reana-commons/pull/405
+
+                # The error message is of the form:
+                # "Additional properties are not allowed ('<property>' was unexpected)"
+                # "Additional properties are not allowed ('<property1>', '<property2>' were unexpected)"
+                content_inside_parentheses = re.search(r"\((.*?)\)", e.message).group(1)
+                warning_value = re.findall(r"'(.*?)'", content_inside_parentheses or "")
+            warning_key = validator_to_warning.get(e.validator, e.validator)
+            warnings.setdefault(warning_key, []).extend(warning_value)
+        else:
+            critical_errors.append(e)
+
+    # If there are critical errors, log and raise exception
+    if critical_errors:
+        err = best_match(critical_errors)
+        logging.error("Invalid REANA specification: {error}".format(error=err.message))
+        raise err
+
+    return warnings
+
+
+def validate_reana_yaml(reana_yaml: Dict) -> Dict:
     """Validate REANA specification file according to jsonschema.
 
     :param reana_yaml: Dictionary which represents REANA specification file.
@@ -32,17 +82,21 @@ def validate_reana_yaml(reana_yaml: Dict) -> None:
     """
     try:
         with open(reana_yaml_schema_file_path, "r") as f:
+            # Create validator from REANA specification schema
             reana_yaml_schema = json.loads(f.read())
-            validate(reana_yaml, reana_yaml_schema)
+            validator_class = validator_for(reana_yaml_schema)
+            validator_class.check_schema(reana_yaml_schema)
+            validator = validator_class(reana_yaml_schema)
+
+            # Collect all validation errors
+            errors = [e for e in validator.iter_errors(reana_yaml)]
+            return _get_schema_validation_warnings(errors)
     except IOError as e:
         logging.info(
             "Something went wrong when reading REANA validation schema from "
             "{filepath} : \n"
             "{error}".format(filepath=reana_yaml_schema_file_path, error=e.strerror)
         )
-        raise e
-    except ValidationError as e:
-        logging.info("Invalid REANA specification: {error}".format(error=e.message))
         raise e
 
 
