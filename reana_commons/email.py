@@ -17,10 +17,14 @@ import ssl
 from reana_commons.errors import REANAEmailNotificationError
 
 # Email configuration
+REANA_NOTIFICATIONS_ENABLED = bool(
+    strtobool(os.getenv("REANA_NOTIFICATIONS_ENABLED", "True"))
+)
 REANA_EMAIL_SMTP_SERVER = os.getenv("REANA_EMAIL_SMTP_SERVER")
 REANA_EMAIL_SMTP_PORT = os.getenv("REANA_EMAIL_SMTP_PORT")
 REANA_EMAIL_LOGIN = os.getenv("REANA_EMAIL_LOGIN")
 REANA_EMAIL_SENDER = os.getenv("REANA_EMAIL_SENDER")
+REANA_EMAIL_RECEIVER = os.getenv("REANA_EMAIL_RECEIVER")
 REANA_EMAIL_PASSWORD = os.getenv("REANA_EMAIL_PASSWORD")
 REANA_EMAIL_SMTP_SSL = bool(strtobool(os.getenv("REANA_EMAIL_SMTP_SSL", "False")))
 REANA_EMAIL_SMTP_STARTTLS = bool(
@@ -35,12 +39,27 @@ def send_email(
     login_email=REANA_EMAIL_LOGIN,
     sender_email=REANA_EMAIL_SENDER,
 ):
-    """Send emails from REANA platform."""
+    """Send emails from REANA platform.
+
+    :param receiver_email: Email address of the receiver.
+    :param subject: Subject of the email.
+    :param body: Body of the email.
+    :param login_email: Email address of the logged user.
+    :param sender_email: Email address of the sender.
+    :raises REANAEmailNotificationError: If email cannot be sent, e.g. due to
+        missing configuration.
+    """
     message = EmailMessage()
     message["From"] = f"REANA platform <{sender_email}>"
     message["To"] = receiver_email
     message["Subject"] = subject
     message.set_content(body)
+
+    if not REANA_NOTIFICATIONS_ENABLED:
+        raise REANAEmailNotificationError(
+            "An email was about to be sent, but REANA notifications are disabled, "
+            "therefore it won't be dispatched."
+        )
 
     if not (REANA_EMAIL_SMTP_SERVER and REANA_EMAIL_SMTP_PORT):
         raise REANAEmailNotificationError(
