@@ -23,11 +23,6 @@ tests_require = [
 ]
 
 
-def get_snakemake_pkg(extras=""):
-    """Get Snakemake dependency string, adding appropiate extras."""
-    return f"snakemake{extras}==6.8.0"
-
-
 extras_require = {
     "docs": [
         "Sphinx>=1.5.1",
@@ -39,9 +34,14 @@ extras_require = {
     ],
     "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
     "cwl": ["cwltool==3.1.20210628163208"],
-    "snakemake": [get_snakemake_pkg(), "tabulate<0.9"],
+    "snakemake": [
+        "snakemake==6.8.0 ; python_version<'3.12'",
+        "snakemake==7.9.0 ; python_version>='3.12'",
+        "tabulate<0.9",
+    ],
     "snakemake_reports": [
-        get_snakemake_pkg("[reports]"),
+        "snakemake[reports]==6.8.0 ; python_version<'3.12'",
+        "snakemake[reports]==7.9.0 ; python_version>='3.12'",
         "pygraphviz<1.8",
         "tabulate<0.9",  # tabulate 0.9 crashes snakemake, more info: https://github.com/snakemake/snakemake/issues/1899
     ],
@@ -110,6 +110,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",

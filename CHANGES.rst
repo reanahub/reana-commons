@@ -4,6 +4,7 @@ Changes
 Version 0.9.3 (UNRELEASED)
 --------------------------
 
+- Adds support for Python 3.12.
 - Adds OpenAPI specification support for ``prune_workspace`` endpoint that allows to delete files that are neither inputs nor outputs from the workspace.
 - Adds support for ``tests.files`` in ``reana.yaml`` allowing to specify Gherking feature files for testing.
 - Changes the OpenAPI specification to include the ``run_stopped_at`` property in the workflow progress information returned by the workflow list and workflow status endpoints.
