@@ -1,17 +1,21 @@
 Changes
 =======
 
-Version 0.9.3 (UNRELEASED)
+Version 0.9.3 (2023-09-26)
 --------------------------
 
 - Adds support for Python 3.12.
-- Adds OpenAPI specification support for ``prune_workspace`` endpoint that allows to delete files that are neither inputs nor outputs from the workspace.
-- Adds support for ``tests.files`` in ``reana.yaml`` allowing to specify Gherking feature files for testing.
+- Adds the OpenAPI specification support for ``prune_workspace`` endpoint that allows to delete files that are neither inputs nor outputs from the workspace.
+- Adds support for ``tests.files`` in ``reana.yaml`` allowing to specify Gherkin feature files for testing runnable examples.
 - Changes the OpenAPI specification to include the ``run_stopped_at`` property in the workflow progress information returned by the workflow list and workflow status endpoints.
-- Changes the server OpenAPI specification to add the `maximum_interactive_session_inactivity_period` value to the `info` endpoint.
-- Changes email sending to allow configuring authentication and encryption options.
-- Fixes the verbs used to describe changes to the status of a workflow in order to avoid incorrect phrases such as ``workflow has been failed``.
+- Changes the OpenAPI specification to include the ``maximum_interactive_session_inactivity_period`` value to the ``info`` endpoint.
+- Changes the email sending utility to allow configuring authentication and encryption options.
+- Changes validation of REANA specification to emit warnings about unknown properties.
+- Fixes the verbs used to describe changes to the status of a workflow in order to avoid incorrect grammatical phrases such as ``workflow has been failed``.
 - Fixes the loading of Snakemake and CWL workflow specifications when no parameters are specified.
+- Fixes the OpenAPI specification of GitLab OAuth endpoint return statuses.
+- Fixes container image names to be Podman-compatible.
+- Fixes the email sending utility to not send emails when notifications are disabled globally.
 
 Version 0.9.2.1 (2023-07-19)
 ----------------------------
