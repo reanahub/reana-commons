@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.9.4 (UNRELEASED)
+--------------------------
+
+- Changes validation of REANA specification to expose functions for loading workflow input parameters and workflow specifications.
+
 Version 0.9.3 (2023-09-26)
 --------------------------
 

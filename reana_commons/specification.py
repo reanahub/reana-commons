@@ -56,15 +56,20 @@ def load_workflow_spec(workflow_type, workflow_file, **kwargs):
     return {}
 
 
-def load_reana_spec(filepath, workspace_path=None):
-    """Load reana specification file.
+def load_workflow_spec_from_reana_yaml(reana_yaml, workspace_path=None):
+    """Load the workflow specification from the REANA specification.
 
-    :raises IOError: Error while reading REANA spec file from given `filepath`.
+    For example, for a Snakemake workflow, load and return the Snakefile
+    in a dictionary-like format.
+
+    :param reana_yaml: A dictionary which represents the REANA specification.
+    :param workspace_path: A path to the workspace where the workflow is located.
+    :returns: A dictionary which represents the valid workflow specification.
     """
 
     def _prepare_kwargs(reana_yaml):
-        kwargs = {}
         workflow_type = reana_yaml["workflow"]["type"]
+        kwargs = {}
         if workflow_type == "serial":
             kwargs["specification"] = reana_yaml["workflow"].get("specification")
             kwargs["parameters"] = reana_yaml.get("inputs", {}).get("parameters", {})
@@ -83,25 +88,49 @@ def load_reana_spec(filepath, workspace_path=None):
             kwargs["toplevel"] = workspace_path or "."
         return kwargs
 
-    try:
-        with open(filepath) as f:
-            reana_yaml = yaml.load(f.read(), Loader=yaml.FullLoader)
-        workflow_type = reana_yaml["workflow"]["type"]
-        workflow_file = reana_yaml["workflow"].get("file")
-        reana_yaml["workflow"]["specification"] = load_workflow_spec(
-            workflow_type,
-            workflow_file,
-            **_prepare_kwargs(reana_yaml),
-        )
+    workflow_type = reana_yaml["workflow"]["type"]
+    workflow_file = reana_yaml["workflow"].get("file")
+    return load_workflow_spec(
+        workflow_type, workflow_file, **_prepare_kwargs(reana_yaml)
+    )
 
+
+def load_input_parameters(reana_yaml, workspace_path=None):
+    """Load the input parameters from the REANA specifications.
+
+    At the moment, this is needed only for CWL and Snakemake workflows.
+    The input parameters are loaded from the file specified in the
+    `inputs.parameters.input` field of the REANA specification.
+
+    :param reana_yaml: A dictionary which represents the REANA specification.
+    :param workspace_path: A path to the workspace where the workflow is located.
+    :returns: A dictionary which represents the input parameters.
+    """
+    workflow_type = reana_yaml["workflow"]["type"]
+    if workflow_type in ("cwl", "snakemake"):
         input_file = reana_yaml.get("inputs", {}).get("parameters", {}).get("input")
-        if input_file and workflow_type in ("cwl", "snakemake"):
+        if input_file:
             if workspace_path:
                 input_file = os.path.join(workspace_path, input_file)
             with open(input_file) as f:
-                reana_yaml["inputs"]["parameters"] = yaml.load(
-                    f, Loader=yaml.FullLoader
-                )
+                return yaml.safe_load(f)
+    return None
+
+
+def load_reana_spec(filepath, workspace_path=None):
+    """Load reana specification file.
+
+    :raises IOError: Error while reading REANA spec file from given `filepath`.
+    """
+    try:
+        with open(filepath) as f:
+            reana_yaml = yaml.safe_load(f)
+        reana_yaml["workflow"]["specification"] = load_workflow_spec_from_reana_yaml(
+            reana_yaml, workspace_path
+        )
+        input_params = load_input_parameters(reana_yaml, workspace_path)
+        if input_params is not None:
+            reana_yaml["inputs"]["parameters"] = input_params
         return reana_yaml
     except IOError as e:
         logging.info(
