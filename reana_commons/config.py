@@ -269,7 +269,7 @@ CVMFS_REPOSITORIES = {
 """CVMFS repositories available for mounting."""
 
 REANA_CVMFS_PVC_TEMPLATE = {
-    "metadata": {"name": ""},
+    "metadata": {"name": "", "namespace": ""},
     "spec": {
         "accessModes": ["ReadOnlyMany"],
         "storageClassName": "",

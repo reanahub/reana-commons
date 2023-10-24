@@ -8,6 +8,7 @@
 """REANA-Commons utils."""
 
 
+import copy
 import datetime
 import json
 import logging
@@ -20,7 +21,7 @@ import time
 import uuid
 from hashlib import md5
 from pathlib import Path
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional, Tuple
 
 import click
 import requests
@@ -33,6 +34,7 @@ from reana_commons.config import (
     REANA_CVMFS_PVC_TEMPLATE,
     REANA_CVMFS_SC_TEMPLATE,
     REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP,
+    REANA_RUNTIME_KUBERNETES_NAMESPACE,
 )
 from reana_commons.errors import REANAMissingWorkspaceError
 
@@ -360,17 +362,18 @@ def get_disk_usage(
 def render_cvmfs_pvc(cvmfs_volume):
     """Render REANA_CVMFS_PVC_TEMPLATE."""
     name = CVMFS_REPOSITORIES[cvmfs_volume]
-    rendered_template = dict(REANA_CVMFS_PVC_TEMPLATE)
-    rendered_template["metadata"]["name"] = "csi-cvmfs-{}-pvc".format(name)
-    rendered_template["spec"]["storageClassName"] = "csi-cvmfs-{}".format(name)
+    rendered_template = copy.deepcopy(REANA_CVMFS_PVC_TEMPLATE)
+    rendered_template["metadata"]["name"] = f"csi-cvmfs-{name}-pvc"
+    rendered_template["metadata"]["namespace"] = REANA_RUNTIME_KUBERNETES_NAMESPACE
+    rendered_template["spec"]["storageClassName"] = f"csi-cvmfs-{name}"
     return rendered_template
 
 
 def render_cvmfs_sc(cvmfs_volume):
     """Render REANA_CVMFS_SC_TEMPLATE."""
     name = CVMFS_REPOSITORIES[cvmfs_volume]
-    rendered_template = dict(REANA_CVMFS_SC_TEMPLATE)
-    rendered_template["metadata"]["name"] = "csi-cvmfs-{}".format(name)
+    rendered_template = copy.deepcopy(REANA_CVMFS_SC_TEMPLATE)
+    rendered_template["metadata"]["name"] = f"csi-cvmfs-{name}"
     rendered_template["parameters"]["repository"] = cvmfs_volume
     return rendered_template
 
@@ -396,7 +399,7 @@ def create_cvmfs_persistent_volume_claim(cvmfs_volume):
 
     try:
         current_k8s_corev1_api_client.create_namespaced_persistent_volume_claim(
-            "default", render_cvmfs_pvc(cvmfs_volume)
+            REANA_RUNTIME_KUBERNETES_NAMESPACE, render_cvmfs_pvc(cvmfs_volume)
         )
     except ApiException as e:
         if e.status != 409:
