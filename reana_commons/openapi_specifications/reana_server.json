@@ -2,7 +2,7 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.9.1a3"
+    "version": "0.9.1"
   },
   "paths": {
     "/account/settings/linkedaccounts/": {},
@@ -1316,6 +1316,12 @@
             "description": "Include size information of the workspace.",
             "in": "query",
             "name": "include_workspace_size",
+            "type": "boolean"
+          },
+          {
+            "description": "Include information about the current command.",
+            "in": "query",
+            "name": "include_last_command",
             "type": "boolean"
           },
           {
@@ -3368,6 +3374,13 @@
             "name": "access_token",
             "required": false,
             "type": "string"
+          },
+          {
+            "description": "Include additional information about the current command.",
+            "in": "query",
+            "name": "include_last_command",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "produces": [

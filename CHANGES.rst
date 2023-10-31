@@ -4,6 +4,7 @@ Changes
 Version 0.9.4 (UNRELEASED)
 --------------------------
 
+- Changes the OpenAPI specifications to add the ``include_last_command`` flag in the endpoints to get the list and the status of workflows.
 - Changes validation of REANA specification to expose functions for loading workflow input parameters and workflow specifications.
 - Changes CVMFS support to allow users to automatically mount any available repository.
 - Fixes the mounting of CVMFS volumes for the REANA deployments that use non-default Kubernetes namespace.

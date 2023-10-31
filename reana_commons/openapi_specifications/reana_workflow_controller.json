@@ -2,7 +2,7 @@
   "info": {
     "description": "Submit and manage workflows",
     "title": "REANA Workflow Controller",
-    "version": "0.9.1a2"
+    "version": "0.9.1"
   },
   "paths": {
     "/api/workflows": {
@@ -80,6 +80,13 @@
             "description": "Include size information of the workspace.",
             "in": "query",
             "name": "include_workspace_size",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "description": "Include current command information.",
+            "in": "query",
+            "name": "include_last_command",
             "required": false,
             "type": "boolean"
           },
@@ -1011,6 +1018,13 @@
             "name": "workflow_id_or_name",
             "required": true,
             "type": "string"
+          },
+          {
+            "description": "Include information about the current command.",
+            "in": "query",
+            "name": "include_last_command",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "produces": [
