@@ -97,8 +97,12 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "title": "CVMFS repos"
-              }
+                "title": "CVMFS repos",
+                "minLength": 1,
+                "maxLength": 60,
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9.\\-_]*$"
+              },
+              "uniqueItems": true
             },
             "kerberos": {
               "id": "/properties/workflow/properties/resources/properties/kerberos",

@@ -239,51 +239,24 @@ REANA_LOG_FORMAT = os.getenv(
 )
 """REANA components log format."""
 
-CVMFS_REPOSITORIES = {
-    "alice-ocdb.cern.ch": "alice-ocdb",
-    "alice.cern.ch": "alice",
-    "ams.cern.ch": "ams",
-    "atlas-condb.cern.ch": "atlas-condb",
-    "atlas-nightlies.cern.ch": "atlas-nightlies",
-    "atlas.cern.ch": "atlas",
-    "cernvm-prod.cern.ch": "cernvm-prod",
-    "cms-ib.cern.ch": "cms-ib",
-    "cms-opendata-conddb.cern.ch": "cms-opendata-conddb",
-    "cms.cern.ch": "cms",
-    "compass-condb.cern.ch": "compass-condb",
-    "compass.cern.ch": "compass",
-    "cvmfs-config.cern.ch": "cvmfs-config",
-    "fcc.cern.ch": "fcc",
-    "geant4.cern.ch": "geant4",
-    "grid.cern.ch": "grid",
-    "ilc.desy.de": "ilc-desy",
-    "lhcb-condb.cern.ch": "lhcb-condb",
-    "lhcb.cern.ch": "lhcb",
-    "lhcbdev.cern.ch": "lhcbdev",
-    "na61.cern.ch": "na61",
-    "na62.cern.ch": "na62",
-    "projects.cern.ch": "projects",
-    "sft.cern.ch": "sft",
-    "unpacked.cern.ch": "unpacked",
-}
-"""CVMFS repositories available for mounting."""
+REANA_CVMFS_STORAGE_CLASS_NAME = f"{REANA_COMPONENT_PREFIX}-cvmfs"
+"""Name of the StorageClass used to mount CVMFS repositories."""
 
-REANA_CVMFS_PVC_TEMPLATE = {
-    "metadata": {"name": "", "namespace": ""},
+REANA_CVMFS_PVC_NAME = f"{REANA_COMPONENT_PREFIX}-cvmfs"
+"""Name of the PersistentVolumeClaim used to mount CVMFS repositories."""
+
+REANA_CVMFS_PVC = {
+    "metadata": {
+        "name": REANA_CVMFS_PVC_NAME,
+        "namespace": REANA_RUNTIME_KUBERNETES_NAMESPACE,
+    },
     "spec": {
         "accessModes": ["ReadOnlyMany"],
-        "storageClassName": "",
-        "resources": {"requests": {"storage": "1G"}},
+        "storageClassName": REANA_CVMFS_STORAGE_CLASS_NAME,
+        "resources": {"requests": {"storage": 1}},
     },
 }
-"""CVMFS persistent volume claim template."""
-
-REANA_CVMFS_SC_TEMPLATE = {
-    "metadata": {"name": ""},
-    "provisioner": "cvmfs.csi.cern.ch",
-    "parameters": {"repository": ""},
-}
-"""CVMFS storage claim template."""
+"""PersistentVolumeClaim used to mount CVMFS repositories."""
 
 INTERACTIVE_SESSION_TYPES = ["jupyter"]
 """List of supported interactive systems."""

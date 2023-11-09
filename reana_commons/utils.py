@@ -8,7 +8,6 @@
 """REANA-Commons utils."""
 
 
-import copy
 import datetime
 import json
 import logging
@@ -27,14 +26,10 @@ import click
 import requests
 
 from reana_commons.config import (
-    CVMFS_REPOSITORIES,
     REANA_COMPONENT_NAMING_SCHEME,
     REANA_COMPONENT_PREFIX,
     REANA_COMPONENT_TYPES,
-    REANA_CVMFS_PVC_TEMPLATE,
-    REANA_CVMFS_SC_TEMPLATE,
     REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP,
-    REANA_RUNTIME_KUBERNETES_NAMESPACE,
 )
 from reana_commons.errors import REANAMissingWorkspaceError
 
@@ -357,53 +352,6 @@ def get_disk_usage(
                 filesizes.append(file_data)
         return filesizes
     return disk_usage_info
-
-
-def render_cvmfs_pvc(cvmfs_volume):
-    """Render REANA_CVMFS_PVC_TEMPLATE."""
-    name = CVMFS_REPOSITORIES[cvmfs_volume]
-    rendered_template = copy.deepcopy(REANA_CVMFS_PVC_TEMPLATE)
-    rendered_template["metadata"]["name"] = f"csi-cvmfs-{name}-pvc"
-    rendered_template["metadata"]["namespace"] = REANA_RUNTIME_KUBERNETES_NAMESPACE
-    rendered_template["spec"]["storageClassName"] = f"csi-cvmfs-{name}"
-    return rendered_template
-
-
-def render_cvmfs_sc(cvmfs_volume):
-    """Render REANA_CVMFS_SC_TEMPLATE."""
-    name = CVMFS_REPOSITORIES[cvmfs_volume]
-    rendered_template = copy.deepcopy(REANA_CVMFS_SC_TEMPLATE)
-    rendered_template["metadata"]["name"] = f"csi-cvmfs-{name}"
-    rendered_template["parameters"]["repository"] = cvmfs_volume
-    return rendered_template
-
-
-def create_cvmfs_storage_class(cvmfs_volume):
-    """Create CVMFS storage class."""
-    from kubernetes.client.rest import ApiException
-    from reana_commons.k8s.api_client import current_k8s_storagev1_api_client
-
-    try:
-        current_k8s_storagev1_api_client.create_storage_class(
-            render_cvmfs_sc(cvmfs_volume)
-        )
-    except ApiException as e:
-        if e.status != 409:
-            raise e
-
-
-def create_cvmfs_persistent_volume_claim(cvmfs_volume):
-    """Create CVMFS persistent volume claim."""
-    from kubernetes.client.rest import ApiException
-    from reana_commons.k8s.api_client import current_k8s_corev1_api_client
-
-    try:
-        current_k8s_corev1_api_client.create_namespaced_persistent_volume_claim(
-            REANA_RUNTIME_KUBERNETES_NAMESPACE, render_cvmfs_pvc(cvmfs_volume)
-        )
-    except ApiException as e:
-        if e.status != 409:
-            raise e
 
 
 def format_cmd(cmd):

@@ -5,6 +5,7 @@ Version 0.9.4 (UNRELEASED)
 --------------------------
 
 - Changes validation of REANA specification to expose functions for loading workflow input parameters and workflow specifications.
+- Changes CVMFS support to allow users to automatically mount any available repository.
 - Fixes the mounting of CVMFS volumes for the REANA deployments that use non-default Kubernetes namespace.
 
 Version 0.9.3 (2023-09-26)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2019, 2020, 2021 CERN.
+# Copyright (C) 2019, 2020, 2021, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -10,7 +10,13 @@
 
 import os
 
+from kubernetes.client.rest import ApiException
+from reana_commons.k8s.api_client import current_k8s_corev1_api_client
+
 from reana_commons.config import (
+    REANA_CVMFS_PVC,
+    REANA_CVMFS_PVC_NAME,
+    REANA_RUNTIME_KUBERNETES_NAMESPACE,
     REANA_SHARED_PVC_NAME,
     REANA_STORAGE_BACKEND,
     SHARED_VOLUME_PATH,
@@ -43,17 +49,47 @@ def get_reana_shared_volume():
     return volume
 
 
-def get_k8s_cvmfs_volume(repository):
-    """Render k8s CVMFS volume template.
+def create_cvmfs_persistent_volume_claim():
+    """Create CVMFS persistent volume claim."""
+    try:
+        current_k8s_corev1_api_client.create_namespaced_persistent_volume_claim(
+            REANA_RUNTIME_KUBERNETES_NAMESPACE,
+            REANA_CVMFS_PVC,
+        )
+    except ApiException as e:
+        # If PVC already exists, ignore the exception
+        if e.status != 409:
+            raise e
 
-    :param repository: CVMFS repository to be mounted.
-    :returns: k8s CVMFS volume spec as a dictionary.
+
+def get_k8s_cvmfs_volumes(cvmfs_repositories):
+    """Get volume mounts and volumes need to mount CVMFS in pods.
+
+    :param cvmfs_repositories: List of CVMFS repositories to be mounted.
     """
-    return {
-        "name": "{}-cvmfs-volume".format(repository),
-        "persistentVolumeClaim": {"claimName": "csi-cvmfs-{}-pvc".format(repository)},
-        "readOnly": True,
-    }
+    if not cvmfs_repositories:
+        return [], []
+
+    # Since CVMFS CSI v2 supports automounting, only one PVC is needed
+    volumes = [
+        {
+            "name": "cvmfs",
+            "persistentVolumeClaim": {"claimName": REANA_CVMFS_PVC_NAME},
+            "readOnly": True,
+        }
+    ]
+    # Mount the `cvmfs` volume once per each repository, each time at the correct subPath
+    volume_mounts = [
+        {
+            "name": "cvmfs",
+            "mountPath": f"/cvmfs/{repository}",
+            "subPath": repository,
+            "mountPropagation": "HostToContainer",
+            "readOnly": True,
+        }
+        for repository in cvmfs_repositories
+    ]
+    return volume_mounts, volumes
 
 
 def get_shared_volume(workflow_workspace):
