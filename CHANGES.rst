@@ -4,6 +4,7 @@ Changes
 Version 0.9.4 (UNRELEASED)
 --------------------------
 
+- Changes the REANA specification schema to use the ``draft-07`` version of the JSON schema specification.
 - Changes validation of REANA specification to expose functions for loading workflow input parameters and workflow specifications.
 - Changes CVMFS support to allow users to automatically mount any available repository.
 - Fixes the mounting of CVMFS volumes for the REANA deployments that use non-default Kubernetes namespace.

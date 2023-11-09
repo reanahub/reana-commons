@@ -1,7 +1,7 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "definitions": {},
-  "id": "reana_spec",
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$defs": {},
+  "$id": "reana_spec",
   "type": "object",
   "title": "REANA analysis specification",
   "description": "Full analysis specification including data, sofware, environment and workflow enabling reproducibility on a REANA cluster.",
@@ -11,47 +11,47 @@
   "additionalProperties": false,
   "properties": {
     "version": {
-      "id": "/properties/version",
+      "$id": "/properties/version",
       "type": "string",
       "title": "REANA version.",
       "description": "REANA platform version to which the analysis was written for."
     },
     "inputs": {
-      "id": "/properties/inputs",
+      "$id": "/properties/inputs",
       "type": "object",
       "title": "Analysis inputs.",
       "additionalProperties": false,
       "properties": {
         "files": {
-          "id": "/properties/inputs/properties/files",
+          "$id": "/properties/inputs/properties/files",
           "type": "array",
           "title": "Analysis input files.",
           "description": "List of files provided as input for a given analysis.",
           "items": {
-            "id": "/properties/inputs/properties/files/items",
+            "$id": "/properties/inputs/properties/files/items",
             "type": "string",
             "title": "Relative path to the file."
           }
         },
         "directories": {
-          "id": "/properties/inputs/properties/directories",
+          "$id": "/properties/inputs/properties/directories",
           "type": "array",
           "title": "Analysis input directories.",
           "description": "List of directories provided as input for a given analysis.",
           "items": {
-            "id": "/properties/inputs/properties/directories/items",
+            "$id": "/properties/inputs/properties/directories/items",
             "type": "string",
             "title": "Relative path to the directory."
           }
         },
         "parameters": {
-          "id": "/properties/inputs/properties/parameters",
+          "$id": "/properties/inputs/properties/parameters",
           "type": "object",
           "title": "Analysis parameters.",
           "description": "Key value data structure which represents the analysis parameters."
         },
         "options": {
-          "id": "/properties/workflow/properties/options",
+          "$id": "/properties/workflow/properties/options",
           "type": "object",
           "title": "Workflow operational options.",
           "description": "Extra operational options accepted by workflow engines."
@@ -59,24 +59,24 @@
       }
     },
     "workflow": {
-      "id": "/properties/workflow",
+      "$id": "/properties/workflow",
       "type": "object",
       "title": "Analysis workflow.",
       "description": "Workflow which represents the steps that need to be run to reproduce an analysis.",
       "additionalProperties": false,
       "properties": {
         "specification": {
-          "id": "/properties/workflow/properties/specification",
+          "$id": "/properties/workflow/properties/specification",
           "type": "object",
           "title": "Workflow specification in yaml format."
         },
         "file": {
-          "id": "/properties/workflow/properties/file",
+          "$id": "/properties/workflow/properties/file",
           "type": "string",
           "title": "Workflow file name."
         },
         "type": {
-          "id": "/properties/workflow/properties/type",
+          "$id": "/properties/workflow/properties/type",
           "type": "string",
           "title": "Workflow engine.",
           "description": "Name which represents a supported workflow engine to be used to reproduce the analysis.",
@@ -88,12 +88,12 @@
           ]
         },
         "resources": {
-          "id": "/properties/workflow/properties/resources",
+          "$id": "/properties/workflow/properties/resources",
           "type": "object",
           "title": "Workflow resources in yaml format.",
           "properties": {
             "cvmfs": {
-              "id": "/properties/workflow/properties/resources/properties/cvmfs",
+              "$id": "/properties/workflow/properties/resources/properties/cvmfs",
               "type": "array",
               "items": {
                 "type": "string",
@@ -105,7 +105,7 @@
               "uniqueItems": true
             },
             "kerberos": {
-              "id": "/properties/workflow/properties/resources/properties/kerberos",
+              "$id": "/properties/workflow/properties/resources/properties/kerberos",
               "type": "boolean",
               "title": "Kerberos authentication for the whole workflow."
             }
@@ -128,29 +128,29 @@
       ]
     },
     "outputs": {
-      "id": "/properties/outputs",
+      "$id": "/properties/outputs",
       "type": "object",
       "title": "Analysis outputs.",
       "additionalProperties": false,
       "properties": {
         "files": {
-          "id": "/properties/outputs/properties/files",
+          "$id": "/properties/outputs/properties/files",
           "type": "array",
           "title": "Analysis result files.",
           "description": "Expected output from analysis represented by a set of files.",
           "items": {
-            "id": "/properties/outputs/properties/files/items",
+            "$id": "/properties/outputs/properties/files/items",
             "type": "string",
             "title": "Relative path to the file."
           }
         },
         "directories": {
-          "id": "/properties/outputs/properties/directories",
+          "$id": "/properties/outputs/properties/directories",
           "type": "array",
           "title": "Analysis result directories.",
           "description": "Expected output from analysis represented by a set of directories.",
           "items": {
-            "id": "/properties/outputs/properties/directories/items",
+            "$id": "/properties/outputs/properties/directories/items",
             "type": "string",
             "title": "Relative path to the directory."
           }
@@ -158,18 +158,18 @@
       }
     },
     "tests": {
-      "id": "/properties/tests",
+      "$id": "/properties/tests",
       "type": "object",
       "title": "Analysis tests.",
       "additionalProperties": false,
       "properties": {
         "files": {
-          "id": "/properties/tests/properties/files",
+          "$id": "/properties/tests/properties/files",
           "type": "array",
           "title": "Analysis test files.",
           "description": "Gherkin test feature files.",
           "items": {
-            "id": "/properties/tests/properties/files/items",
+            "$id": "/properties/tests/properties/files/items",
             "type": "string",
             "title": "Relative path to the file."
           }
@@ -177,19 +177,19 @@
       }
     },
     "workspace": {
-      "id": "/properties/workspace",
+      "$id": "/properties/workspace",
       "type": "object",
       "title": "Workflow workspace.",
       "description": "Full workspace path in which the workflow will run.",
       "additionalProperties": false,
       "properties": {
         "root_path": {
-          "id": "/properties/workspace/properties/root_path",
+          "$id": "/properties/workspace/properties/root_path",
           "type": "string",
           "title": "Workspace root path."
         },
         "retention_days": {
-          "id": "/properties/workspace/properties/retention_days",
+          "$id": "/properties/workspace/properties/retention_days",
           "type": "object",
           "title": "Retention rules for the files in the workspace.",
           "minProperties": 1,
