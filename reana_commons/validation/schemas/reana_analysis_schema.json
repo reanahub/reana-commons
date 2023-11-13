@@ -109,7 +109,8 @@
               "type": "boolean",
               "title": "Kerberos authentication for the whole workflow."
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "anyOf": [
@@ -196,6 +197,126 @@
           "additionalProperties": {
             "type": "integer",
             "minimum": 0
+          }
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "workflow": {
+        "properties": {
+          "type": {
+            "const": "serial"
+          }
+        }
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "workflow": {
+        "properties": {
+          "specification": {
+            "type": "object",
+            "title": "Serial workflow specification.",
+            "description": "Serial workflow specification.",
+            "additionalProperties": false,
+            "properties": {
+              "steps": {
+                "type": "array",
+                "title": "Serial workflow steps.",
+                "description": "List of steps which represent the workflow.",
+                "items": {
+                  "type": "object",
+                  "title": "Serial workflow step.",
+                  "description": "Serial workflow step.",
+                  "additionalProperties": false,
+                  "properties": {
+                    "commands": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "title": "Step commands",
+                      "description": "List of commands to be run in the step."
+                    },
+                    "compute_backend": {
+                      "type": "string",
+                        "enum": [
+                          "kubernetes",
+                          "htcondorcern",
+                          "slurmcern"
+                        ],
+                      "title": "Compute backend"
+                    },
+                    "environment": {
+                      "type": "string",
+                      "title": "Container image for the step",
+                      "description": "Image to be used by the container in which the step should be run."
+                    },
+                    "htcondor_accounting_group": {
+                      "type": "string",
+                      "title": "HTCondor accounting group"
+                    },
+                    "htcondor_max_runtime": {
+                      "type": "string",
+                      "title": "HTCondor maximum runtime"
+                    },
+                    "kerberos": {
+                      "type": "boolean",
+                      "title": "Use Kerberos authentication",
+                      "description": "Whether to use Kerberos authentication for the step. This would require you to upload a valid Kerberos ticket as a REANA secret."
+                    },
+                    "kubernetes_job_timeout": {
+                      "type": "integer",
+                      "title": "Kubernetes job timeout",
+                      "description": "Maximum time for the step to run (number of seconds)"
+                    },
+                    "kubernetes_memory_limit": {
+                      "type": "string",
+                      "title": "Kubernetes memory limit",
+                      "description": "Kubernetes memory limit (e.g. 256Mi - read more about the expected memory values on the official Kubernetes documentation: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory)"
+                    },
+                    "name": {
+                      "type": "string",
+                      "title": "Step name"
+                    },
+                    "rucio": {
+                      "type": "boolean",
+                      "title": "Rucio integration",
+                      "description": "Whether to use Rucio integration."
+                    },
+                    "unpacked_img": {
+                      "type": "boolean",
+                      "title": "Unpacked container image",
+                      "description": "Whether to use an unpacked container image. Useful for Singularity images stored on CVMFS"
+                    },
+                    "voms_proxy": {
+                      "type": "boolean",
+                      "title": "VOMS proxy",
+                      "description": "Whether to use a VOMS proxy for the step. This would require you to upload a valid VOMS proxy as a REANA secret."
+                    }
+                  },
+                  "required": [
+                    "commands",
+                    "environment"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "else": {
+    "properties": {
+      "workflow": {
+        "properties": {
+          "file": {
+            "type": "string"
           }
         }
       }

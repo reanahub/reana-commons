@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022 CERN.
+# Copyright (C) 2022, 2023 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -12,10 +12,11 @@ import json
 import logging
 import os
 import re
+from collections import deque
 from typing import Dict, List
 
 from jsonschema import ValidationError
-from jsonschema.exceptions import best_match
+from jsonschema.exceptions import best_match, ErrorTree
 from jsonschema.validators import validator_for
 
 from reana_commons.config import (
@@ -46,8 +47,12 @@ def _get_schema_validation_warnings(errors: List[ValidationError]) -> Dict:
     # or describe the error
     warnings = {}
     for e in errors:
+        # Get the path of the error (where in reana.yaml it occurred).
+        # The `path` property of a ValidationError is only relative to its `parent`.
+        error_path = e.absolute_path
+        error_path = ".".join(map(str, error_path))
         if e.validator in non_critical_validators:
-            warning_value = [e.message]
+            warning_value = [{"message": e.message, "path": error_path}]
             if e.validator == "additionalProperties":
                 # If the error is about additional properties, we want to return the
                 # name(s) of the additional properties in a list.
@@ -58,8 +63,14 @@ def _get_schema_validation_warnings(errors: List[ValidationError]) -> Dict:
                 # "Additional properties are not allowed ('<property>' was unexpected)"
                 # "Additional properties are not allowed ('<property1>', '<property2>' were unexpected)"
                 content_inside_parentheses = re.search(r"\((.*?)\)", e.message).group(1)
-                warning_value = re.findall(r"'(.*?)'", content_inside_parentheses or "")
-            warning_key = validator_to_warning.get(e.validator, e.validator)
+                additional_properties = re.findall(
+                    r"'(.*?)'", content_inside_parentheses or ""
+                )
+                warning_value = [
+                    {"property": additional_property, "path": error_path}
+                    for additional_property in additional_properties
+                ]
+            warning_key = validator_to_warning.get(str(e.validator), str(e.validator))
             warnings.setdefault(warning_key, []).extend(warning_value)
         else:
             critical_errors.append(e)
@@ -77,6 +88,8 @@ def validate_reana_yaml(reana_yaml: Dict) -> Dict:
     """Validate REANA specification file according to jsonschema.
 
     :param reana_yaml: Dictionary which represents REANA specification file.
+    :returns: Dictionary of non-critical warnings, in the form of
+    {warning_key: [warning_value1, warning_value2, ...]}.
     :raises ValidationError: Given REANA spec file does not validate against
         REANA specification schema.
     """

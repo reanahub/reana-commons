@@ -7,6 +7,7 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 
 """REANA-Commons validation testing."""
+import operator
 
 import pytest
 from jsonschema.exceptions import ValidationError
@@ -35,10 +36,18 @@ def test_validation_retention_days(yadage_workflow_spec_loaded, retention_days):
 @pytest.mark.parametrize(
     "extra_keys,expected_warnings",
     [
-        (["wrong_key"], {"additional_properties": ["wrong_key"]}),
+        (
+            ["wrong_key"],
+            {"additional_properties": [{"property": "wrong_key", "path": ""}]},
+        ),
         (
             ["wrong_key", "wrong_key2"],
-            {"additional_properties": ["wrong_key", "wrong_key2"]},
+            {
+                "additional_properties": [
+                    {"property": "wrong_key", "path": ""},
+                    {"property": "wrong_key2", "path": ""},
+                ]
+            },
         ),
         ([], {}),
     ],
@@ -57,7 +66,12 @@ def test_warnings_reana_yaml(
     warnings = validate_reana_yaml(reana_yaml)
     assert set(expected_warnings.keys()) == set(warnings.keys())
     for key, value in expected_warnings.items():
-        assert set(value) == set(warnings[key])
+        if isinstance(value, list):
+            assert len(value) == len(warnings[key])
+            for warning_value in value:
+                assert warning_value in warnings[key]
+        else:
+            assert value == warnings[key]
 
 
 def test_critical_errors_reana_yaml(yadage_workflow_spec_loaded):
