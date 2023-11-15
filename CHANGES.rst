@@ -4,6 +4,7 @@ Changes
 Version 0.9.4 (UNRELEASED)
 --------------------------
 
+- Changes the OpenAPI specification of the ``start_workflow`` endpoint's response to add missing ``run_number`` field.
 - Changes validation of REANA specification to expose functions for loading workflow input parameters and workflow specifications.
 - Changes CVMFS support to allow users to automatically mount any available repository.
 - Fixes the mounting of CVMFS volumes for the REANA deployments that use non-default Kubernetes namespace.
