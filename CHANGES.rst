@@ -1,6 +1,11 @@
 Changes
 =======
 
+Version 0.9.5 (UNRELEASED)
+--------------------------
+
+- Fixes installation by pinning ``bravado-core`` to versions lower than 6.1.1.
+
 Version 0.9.4 (2023-11-30)
 --------------------------
 

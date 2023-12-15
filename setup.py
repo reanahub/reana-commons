@@ -59,6 +59,9 @@ setup_requires = [
 
 install_requires = [
     "bravado>=10.2,<10.4",
+    # bravado-core 6.1.1 breaks compatibility with jsonschema<4.9.0
+    # see https://github.com/reanahub/reana-commons/issues/430
+    "bravado-core<6.1.1",
     "checksumdir>=1.1.4,<1.2",
     "click>=7.0",
     "fs>=2.0",
