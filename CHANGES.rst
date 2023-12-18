@@ -15,6 +15,7 @@ Version 0.9.4 (2023-11-30)
 - Changes validation of REANA specification to raise a warning for unexpected properties for the steps of serial workflows.
 - Changes CVMFS support to allow users to automatically mount any available repository.
 - Fixes the mounting of CVMFS volumes for the REANA deployments that use non-default Kubernetes namespace.
+- CWL: upgraded the version of the CWL reference runner (cwltool) to the last one supporting Python 3.6.
 
 Version 0.9.3 (2023-09-26)
 --------------------------

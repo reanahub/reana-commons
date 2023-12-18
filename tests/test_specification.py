@@ -17,7 +17,14 @@ from reana_commons.specification import load_reana_spec
 def test_empty_parameters(tmp_path: pathlib.Path):
     """Test loading the specification of a workflow with empty parameters."""
     cwl_spec = tmp_path / "spec.cwl"
-    cwl_spec.write_text("cwlVersion: v1.0\nclass: Workflow")
+    cwl_spec.write_text(
+        """cwlVersion: v1.0
+class: Workflow
+inputs: []
+steps: []
+outputs: []
+"""
+    )
 
     reana_yaml = tmp_path / "reana.yaml"
     reana_yaml.write_text(
@@ -37,7 +44,14 @@ def test_empty_parameters(tmp_path: pathlib.Path):
 def test_parameters_file(tmp_path: pathlib.Path):
     """Test loading the workflow parameters from an external file."""
     cwl_spec = tmp_path / "spec.cwl"
-    cwl_spec.write_text("cwlVersion: v1.0\nclass: Workflow")
+    cwl_spec.write_text(
+        """cwlVersion: v1.0
+class: Workflow
+inputs: []
+steps: []
+outputs: []
+"""
+    )
 
     reana_yaml = tmp_path / "reana.yaml"
     reana_yaml.write_text(
