@@ -93,7 +93,7 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
         if workdir:
             workflow.workdir(workdir)
 
-        workflow.include(snakefile=snakefile, overwrite_first_rule=True)
+        workflow.include(snakefile=snakefile, overwrite_default_target=True)
         workflow.check()
 
         # code copied and adapted from `snakemake.workflow.Workflow.execute()`
@@ -113,16 +113,20 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
         else:
 
             def files(items):
-                relpath = (
-                    lambda f: f
-                    if os.path.isabs(f) or f.startswith("root://")
-                    else os.path.relpath(f)
-                )
+                def relpath(f):
+                    return (
+                        f
+                        if os.path.isabs(f) or f.startswith("root://")
+                        else os.path.relpath(f)
+                    )
+
                 return map(relpath, filterfalse(workflow.is_rule, items))
 
         if not kwargs.get("targets"):
             targets = (
-                [workflow.first_rule] if workflow.first_rule is not None else list()
+                [workflow.default_target]
+                if workflow.default_target is not None
+                else list()
             )
 
         prioritytargets = kwargs.get("prioritytargets", [])
@@ -157,7 +161,11 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
             omitrules=omitrules,
         )
 
-        workflow.persistence = Persistence(dag=dag)
+        if hasattr(workflow, "_persistence"):
+            workflow._persistence = Persistence(dag=dag)
+        else:
+            # for backwards compatibility (Snakemake < 7 for Python 3.6)
+            workflow.persistence = Persistence(dag=dag)
         dag.init()
         dag.update_checkpoint_dependencies()
         dag.check_dynamic()

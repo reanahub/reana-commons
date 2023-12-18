@@ -17,10 +17,6 @@ from reana_commons.snakemake import snakemake_load
 
 def test_snakemake_load(tmpdir, dummy_snakefile):
     """Test that Snakemake metadata is loaded properly."""
-    if sys.version_info.major == 3 and sys.version_info.minor in (11, 12):
-        pytest.xfail(
-            "Snakemake features of reana-client are not supported on Python 3.11"
-        )
     workdir = tmpdir.mkdir("sub")
     # write Snakefile
     p = workdir.join("Snakefile")

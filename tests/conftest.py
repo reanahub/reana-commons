@@ -20,6 +20,7 @@ rule all:
         "results/foo.txt",
         "results/bar.txt",
         "results/baz.txt"
+    default_target: True
 
 rule foo:
     input:
