@@ -9,18 +9,14 @@
 set -o errexit
 set -o nounset
 
-check_shellcheck () {
-    shellcheck run-tests.sh
-}
-
 check_commitlint () {
     from=${2:-master}
     to=${3:-HEAD}
-    npx commitlint --from="$from" --to="$to" --verbose
+    npx commitlint --from="$from" --to="$to"
     found=0
     while IFS= read -r line; do
         if echo "$line" | grep -qP "\(\#[0-9]+\)$"; then
-            echo "✔   PR number present in $line"
+            true
         else
             echo "✖   PR number missing in $line"
             found=1
@@ -29,6 +25,10 @@ check_commitlint () {
     if [ $found -gt 0 ]; then
         exit 1
     fi
+}
+
+check_shellcheck () {
+    find . -name "*.sh" -exec shellcheck {} \;
 }
 
 check_pydocstyle () {
