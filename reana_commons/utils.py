@@ -14,6 +14,7 @@ import logging
 import os
 import platform
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -25,6 +26,7 @@ from typing import Dict, Optional, Tuple
 import click
 import requests
 
+from reana_commons import workspace
 from reana_commons.config import (
     REANA_COMPONENT_NAMING_SCHEME,
     REANA_COMPONENT_PREFIX,
@@ -113,13 +115,20 @@ def calculate_job_input_hash(job_spec, workflow_json):
 def calculate_file_access_time(workflow_workspace):
     """Calculate access times of files in workspace."""
     access_times = {}
-    for subdir, dirs, files in os.walk(workflow_workspace):
-        for file in files:
-            file_path = os.path.join(subdir, file)
-            # skip symlinks
-            if os.path.islink(file_path):
-                continue
-            access_times[file_path] = os.stat(file_path).st_atime
+    for file_path in workspace.walk(workflow_workspace, include_dirs=False):
+        try:
+            file_stat = workspace.lstat(workflow_workspace, file_path)
+        except FileNotFoundError:
+            logging.warn(
+                f"Could not get stats of '{file_path}' in '{workflow_workspace}' "
+                "while calculating access times. "
+                "Maybe file was deleted or moved?"
+            )
+            continue
+        if stat.S_ISLNK(file_stat.st_mode):
+            continue
+        full_path = os.path.join(workflow_workspace, file_path)
+        access_times[full_path] = file_stat.st_atime
     return access_times
 
 

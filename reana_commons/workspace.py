@@ -180,10 +180,18 @@ def walk(
             dir_fd=root_fd, topdown=topdown
         ):
             for dirname in dirnames:
-                if include_dirs or stat.S_ISLNK(
-                    os.lstat(dirname, dir_fd=dirfd).st_mode
-                ):
+                if include_dirs:
                     yield str(path.joinpath(dirpath, dirname))
+                else:
+                    # dirname could be a symlink, if so we return it even if
+                    # include_dirs is False, given that we treat symlinks as files
+                    try:
+                        st = os.lstat(dirname, dir_fd=dirfd)
+                    except FileNotFoundError:
+                        # we skip this path, as it does not exist anymore
+                        continue
+                    if stat.S_ISLNK(st.st_mode):
+                        yield str(path.joinpath(dirpath, dirname))
             for filename in filenames:
                 yield str(path.joinpath(dirpath, filename))
     finally:

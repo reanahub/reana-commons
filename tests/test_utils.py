@@ -9,11 +9,11 @@
 """REANA-Commons utilities testing."""
 
 import os
-import pkg_resources
 import shutil
+import time
 from hashlib import md5
-from pathlib import Path
 
+import pkg_resources
 import pytest
 from pytest_reana.fixtures import sample_workflow_workspace
 
@@ -100,13 +100,23 @@ def test_calculate_job_input_hash():
     ) == calculate_job_input_hash(job_spec_2, workflow_json)
 
 
-def test_calculate_file_access_time(sample_workflow_workspace):  # noqa: F811
+def test_calculate_file_access_time(tmp_path):
     """Test calculate_file_access_time."""
-    sample_workflow_workspace_path = next(sample_workflow_workspace("sample"))
-    access_times = calculate_file_access_time(sample_workflow_workspace_path)
-    all_file_paths = list(Path(sample_workflow_workspace_path).rglob("*.*"))
-    for file_path in all_file_paths:
-        assert str(file_path) in access_times
+    before_writing_files = time.time() - 1
+    tmp_path.joinpath("a.txt").write_text("content of a")
+    tmp_path.joinpath("subdir").mkdir()
+    tmp_path.joinpath("subdir", "b.txt").write_text("content of b")
+    tmp_path.joinpath("c.txt").symlink_to("a.txt")
+    tmp_path.joinpath("another_subdir").mkdir()
+    after_writing_files = time.time() + 1
+
+    access_times = calculate_file_access_time(str(tmp_path))
+
+    assert len(access_times) == 2
+    assert str(tmp_path / "a.txt") in access_times
+    assert str(tmp_path / "subdir" / "b.txt") in access_times
+    for access_time in access_times.values():
+        assert before_writing_files <= access_time <= after_writing_files
 
 
 def test_format_cmd():
