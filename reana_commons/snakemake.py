@@ -113,11 +113,13 @@ def snakemake_load(workflow_file: str, **kwargs: Any) -> Dict:
         else:
 
             def files(items):
-                relpath = lambda f: (
-                    f
-                    if os.path.isabs(f) or f.startswith("root://")
-                    else os.path.relpath(f)
-                )
+                def relpath(f):
+                    return (
+                        f
+                        if os.path.isabs(f) or f.startswith("root://")
+                        else os.path.relpath(f)
+                    )
+
                 return map(relpath, filterfalse(workflow.is_rule, items))
 
         if not kwargs.get("targets"):
