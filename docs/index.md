@@ -1,86 +1,98 @@
-.. include:: ../README.rst
-   :end-before: About
+```{include} ../README.md
+:end-before: "## About"
+```
 
-.. include:: ../README.rst
-   :start-after: =====
-   :end-before: Features
+```{include} ../README.md
+:start-after: "## About"
+:end-before: "## Useful links"
 
-Features:
+```
 
-.. include:: ../README.rst
-   :start-line: 35
-   :end-before: Useful links
+## Configuration
 
-
-Configuration
-=============
-
+```{eval-rst}
 .. automodule:: reana_commons.config
    :members:
+```
 
-API
-===
+## API
 
-REANA API client
-----------------
+### REANA API client
 
+```{eval-rst}
 .. automodule:: reana_commons.api_client
    :members:
+```
 
-REANA Kubernetes API client
----------------------------
+### REANA Kubernetes API client
 
+```{eval-rst}
 .. automodule:: reana_commons.k8s.api_client
    :members:
+```
 
+```{eval-rst}
 .. automodule:: reana_commons.k8s.volumes
    :members:
+```
 
-REANA AMQP Publisher
---------------------
+### REANA AMQP Publisher
 
+```{eval-rst}
 .. automodule:: reana_commons.publisher
    :members:
 
+```
 
-REANA AMQP Consumer
---------------------
+### REANA AMQP Consumer
 
+```{eval-rst}
 .. automodule:: reana_commons.consumer
    :members:
 
+```
 
-REANA Serial workflow utilities
--------------------------------
+### REANA Serial workflow utilities
 
+```{eval-rst}
 .. automodule:: reana_commons.serial
    :members:
 
+```
 
-REANA utilities
----------------
+### REANA utilities
 
+```{eval-rst}
 .. automodule:: reana_commons.utils
    :members:
+```
 
-REANA errors
-------------
+### REANA errors
 
+```{eval-rst}
 .. automodule:: reana_commons.errors
    :members:
 
+```
 
-.. include:: ../CHANGES.rst
+```{include} ../CHANGELOG.md
+:heading-offset: 1
+```
 
-.. include:: ../CONTRIBUTING.rst
+```{include} ../CONTRIBUTING.md
+:heading-offset: 1
+```
 
-License
-=======
+## License
 
+```{eval-rst}
 .. include:: ../LICENSE
+```
 
 In applying this license, CERN does not waive the privileges and immunities
 granted to it by virtue of its status as an Intergovernmental Organization or
 submit itself to any jurisdiction.
 
-.. include:: ../AUTHORS.rst
+```{include} ../AUTHORS.md
+:heading-offset: 1
+```
