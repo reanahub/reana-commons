@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.9.6](https://github.com/reanahub/reana-commons/compare/0.9.5...0.9.6) (2024-02-13)
+
+
+### Features
+
+* **config:** allow customisation of runtime group name ([#440](https://github.com/reanahub/reana-commons/issues/440)) ([5cec305](https://github.com/reanahub/reana-commons/commit/5cec30561ba21e2ea695e20eaea8171226f06e52))
+* **snakemake:** upgrade to Snakemake 7.32.4 ([#435](https://github.com/reanahub/reana-commons/issues/435)) ([20ae9ce](https://github.com/reanahub/reana-commons/commit/20ae9cebf19a1fdb77ad08956db04ef026521b5d))
+
+
+### Bug fixes
+
+* **cache:** handle deleted files when calculating access times ([#437](https://github.com/reanahub/reana-commons/issues/437)) ([698900f](https://github.com/reanahub/reana-commons/commit/698900fc63e20bd54dcc4a5faa6cac0be5d0d8de))
+
+
+### Code refactoring
+
+* **docs:** move from reST to Markdown ([#441](https://github.com/reanahub/reana-commons/issues/441)) ([36ce4e0](https://github.com/reanahub/reana-commons/commit/36ce4e0a86484e3a7006e20545a892424ce0f3a2))
+
+
+### Continuous integration
+
+* **commitlint:** addition of commit message linter ([#432](https://github.com/reanahub/reana-commons/issues/432)) ([a67906f](https://github.com/reanahub/reana-commons/commit/a67906fe8620e1f624e24e8a4511694a9b60378d))
+* **commitlint:** check for the presence of concrete PR number ([#438](https://github.com/reanahub/reana-commons/issues/438)) ([d3035dc](https://github.com/reanahub/reana-commons/commit/d3035dc12cecf16edcbec462dfdb1386da16f6d6))
+* **release-please:** initial configuration ([#432](https://github.com/reanahub/reana-commons/issues/432)) ([687f2f4](https://github.com/reanahub/reana-commons/commit/687f2f4ea8c5c49a70c6f121faf7e59a98dd3138))
+* **shellcheck:** check all shell scripts recursively ([#436](https://github.com/reanahub/reana-commons/issues/436)) ([709a685](https://github.com/reanahub/reana-commons/commit/709a685b3a8586b069a98c0338283a6bd2721005))
+* **shellcheck:** fix exit code propagation ([#438](https://github.com/reanahub/reana-commons/issues/438)) ([85d9a2a](https://github.com/reanahub/reana-commons/commit/85d9a2a68e3929f442e03d5422a37ffd6b7169c6))
+
 ## 0.9.5 (2023-12-15)
 
 - Fixes installation by pinning `bravado-core` to versions lower than 6.1.1.
@@ -213,4 +240,3 @@
 - Provides basic AMQP pub/sub methods for REANA components.
 - Utilities for caching used in different REANA components.
 - Click formatting helpers.
-
