@@ -355,7 +355,8 @@
                   "value": [
                     "kubernetes",
                     "htcondorcern",
-                    "slurmcern"
+                    "slurmcern",
+                    "compute4punch"
                   ]
                 },
                 "default_kubernetes_jobs_timeout": {

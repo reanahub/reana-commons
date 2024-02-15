@@ -247,7 +247,8 @@
                         "enum": [
                           "kubernetes",
                           "htcondorcern",
-                          "slurmcern"
+                          "slurmcern",
+                          "compute4punch"
                         ],
                       "title": "Compute backend"
                     },
