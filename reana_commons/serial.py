@@ -50,7 +50,12 @@ serial_workflow_schema = {
                     "compute_backend": {
                         "$id": "#/properties/steps/properties/compute_backend",
                         "type": "string",
-                        "enum": ["kubernetes", "htcondorcern", "slurmcern"],
+                        "enum": [
+                            "kubernetes",
+                            "htcondorcern",
+                            "slurmcern",
+                            "compute4punch",
+                        ],
                     },
                     "kerberos": {
                         "$id": "#/properties/steps/properties/kerberos",
@@ -95,6 +100,21 @@ serial_workflow_schema = {
                     },
                     "slurm_time": {
                         "$id": "#/properties/steps/properties/slurm_time",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "c4p_cpu_cores": {
+                        "$id": "#/properties/steps/properties/c4p_cpu_cores",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "c4p_memory_limit": {
+                        "$id": "#/properties/steps/properties/c4p_memory_limit",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "c4p_additional_requirements": {
+                        "$id": "#/properties/steps/properties/c4p_additional_requirements",
                         "type": "string",
                         "default": "",
                     },

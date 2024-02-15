@@ -87,7 +87,7 @@ class BaseAPIClient(object):
 class JobControllerAPIClient(BaseAPIClient):
     """REANA-Job-Controller http client class."""
 
-    def submit(
+    def submit(  # noqa: C901
         self,
         workflow_uuid="",
         image="",
@@ -108,6 +108,9 @@ class JobControllerAPIClient(BaseAPIClient):
         slurm_partition="",
         slurm_time="",
         kubernetes_job_timeout: Optional[int] = None,
+        c4p_cpu_cores="",
+        c4p_memory_limit="",
+        c4p_additional_requirements="",
     ):
         """Submit a job to RJC API.
 
@@ -132,6 +135,9 @@ class JobControllerAPIClient(BaseAPIClient):
         :param slurm_partition: Partition of a Slurm job.
         :param slurm_time: Maximum timelimit of a Slurm job.
         :param kubernetes_job_timeout: Timeout for the job in seconds.
+        :param c4p_cpu_cores: Amount of CPU cores requested to process C4P job
+        :param c4p_memory_limit: Amount of memory requested to process C4P job
+        :param c4p_additional_requirements: Additional requirements requested to process C4P job like GPU, etc.
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {
@@ -180,6 +186,15 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if slurm_time:
             job_spec["slurm_time"] = slurm_time
+
+        if c4p_cpu_cores:
+            job_spec["c4p_cpu_cores"] = c4p_cpu_cores
+
+        if c4p_memory_limit:
+            job_spec["c4p_memory_limit"] = c4p_memory_limit
+
+        if c4p_additional_requirements:
+            job_spec["c4p_additional_requirements"] = c4p_additional_requirements
 
         try:
             response, http_response = self._client.jobs.create_job(
