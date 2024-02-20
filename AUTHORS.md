@@ -8,6 +8,7 @@ The list of contributors in alphabetical order:
 - [Bruno Rosendo](https://orcid.org/0000-0002-0923-3148)
 - [Burt Holzman](https://orcid.org/0000-0001-5235-6314)
 - [Camila Diaz](https://orcid.org/0000-0001-5543-797X)
+- [Clemens Lange](https://orcid.org/0000-0002-3632-3157)
 - [Daniel Prelipcean](https://orcid.org/0000-0002-4855-194X)
 - [Diego Rodriguez](https://orcid.org/0000-0003-0649-2002)
 - [Dinos Kousidis](https://orcid.org/0000-0002-4914-4289)

@@ -39,12 +39,14 @@ extras_require = {
         "snakemake==6.15.5 ; python_version<'3.7'",  # Snakemake v7 requires Python 3.7+
         "snakemake==7.32.4 ; python_version>='3.7'",
         "tabulate<0.9",
+        "pulp>=2.7.0,<2.8.0",
     ],
     "snakemake_reports": [
         "snakemake==6.15.5 ; python_version<'3.7'",
         "snakemake==7.32.4 ; python_version>='3.7'",
         "pygraphviz<1.8",
         "tabulate<0.9",  # tabulate 0.9 crashes snakemake, more info: https://github.com/snakemake/snakemake/issues/1899
+        "pulp>=2.7.0,<2.8.0",
     ],
 }
 
