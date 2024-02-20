@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.7](https://github.com/reanahub/reana-commons/compare/0.9.6...0.9.7) (2024-02-20)
+
+
+### Build
+
+* **snakemake:** require pulp&lt;2.8.0 ([#444](https://github.com/reanahub/reana-commons/issues/444)) ([5daa109](https://github.com/reanahub/reana-commons/commit/5daa109a58066126c2d8a35e7cd7da70d4137f62))
+
+
+### Documentation
+
+* **authors:** complete list of contributors ([#442](https://github.com/reanahub/reana-commons/issues/442)) ([4a74c10](https://github.com/reanahub/reana-commons/commit/4a74c10e7a248f580778ebc772bffe94e533e7ed))
+
 ## [0.9.6](https://github.com/reanahub/reana-commons/compare/0.9.5...0.9.6) (2024-02-13)
 
 
