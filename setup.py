@@ -41,7 +41,7 @@ extras_require = {
         "tabulate<0.9",
         "pulp>=2.7.0,<2.8.0",
     ],
-    "snakemake_reports": [
+    "snakemake-reports": [
         "snakemake==6.15.5 ; python_version<'3.7'",
         "snakemake==7.32.4 ; python_version>='3.7'",
         "pygraphviz<1.8",
@@ -49,6 +49,9 @@ extras_require = {
         "pulp>=2.7.0,<2.8.0",
     ],
 }
+
+# backwards compatibility with extras before PEP 685
+extras_require["snakemake_reports"] = extras_require["snakemake-reports"]
 
 extras_require["all"] = []
 for key, reqs in extras_require.items():
