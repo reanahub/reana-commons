@@ -40,6 +40,7 @@ extras_require = {
         "snakemake==7.32.4 ; python_version>='3.7'",
         "tabulate<0.9",
         "pulp>=2.7.0,<2.8.0",
+        "smart-open<7 ; python_version<'3.7'",  # see https://github.com/piskvorky/smart_open/issues/806
     ],
     "snakemake-reports": [
         "snakemake==6.15.5 ; python_version<'3.7'",
@@ -47,6 +48,7 @@ extras_require = {
         "pygraphviz<1.8",
         "tabulate<0.9",  # tabulate 0.9 crashes snakemake, more info: https://github.com/snakemake/snakemake/issues/1899
         "pulp>=2.7.0,<2.8.0",
+        "smart-open<7 ; python_version<'3.7'",  # see https://github.com/piskvorky/smart_open/issues/806
     ],
 }
 
