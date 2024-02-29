@@ -43,8 +43,8 @@ extras_require = {
         "smart-open<7 ; python_version<'3.7'",  # see https://github.com/piskvorky/smart_open/issues/806
     ],
     "snakemake-reports": [
-        "snakemake==6.15.5 ; python_version<'3.7'",
-        "snakemake==7.32.4 ; python_version>='3.7'",
+        "snakemake[reports]==6.15.5 ; python_version<'3.7'",
+        "snakemake[reports]==7.32.4 ; python_version>='3.7'",
         "pygraphviz<1.8",
         "tabulate<0.9",  # tabulate 0.9 crashes snakemake, more info: https://github.com/snakemake/snakemake/issues/1899
         "pulp>=2.7.0,<2.8.0",
