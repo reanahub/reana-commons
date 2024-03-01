@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.8](https://github.com/reanahub/reana-commons/compare/0.9.7...0.9.8) (2024-03-01)
+
+
+### Build
+
+* **python:** change extra names to comply with PEP 685 ([#446](https://github.com/reanahub/reana-commons/issues/446)) ([9dad6da](https://github.com/reanahub/reana-commons/commit/9dad6da7b80bc07423d45dab7b6799911740a082))
+* **python:** require smart-open&lt;7 for Python 3.6 ([#446](https://github.com/reanahub/reana-commons/issues/446)) ([17fd581](https://github.com/reanahub/reana-commons/commit/17fd581d4928d5c377f67bcb77c4f245e661c395))
+* **python:** restore snakemake `reports` extra ([#446](https://github.com/reanahub/reana-commons/issues/446)) ([904178f](https://github.com/reanahub/reana-commons/commit/904178fe454b9af39164a0c327f1ecd1663132af))
+
+
+### Continuous integration
+
+* **commitlint:** allow release commit style ([#447](https://github.com/reanahub/reana-commons/issues/447)) ([1208ccf](https://github.com/reanahub/reana-commons/commit/1208ccf2de844afe788d7bbccbd4f63b24af427e))
+
 ## [0.9.7](https://github.com/reanahub/reana-commons/compare/0.9.6...0.9.7) (2024-02-20)
 
 
