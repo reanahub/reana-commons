@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023, 2024 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -19,7 +19,8 @@ readme = open("README.md").read()
 history = open("CHANGELOG.md").read()
 
 tests_require = [
-    "pytest-reana>=0.9.2,<0.10.0",
+    "pytest-reana>=0.95.0a1,<0.96.0",
+    "reana-db>=0.95.0a1,<0.96.0",
 ]
 
 
