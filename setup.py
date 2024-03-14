@@ -19,8 +19,7 @@ readme = open("README.md").read()
 history = open("CHANGELOG.md").read()
 
 tests_require = [
-    "pytest-reana>=0.95.0a1,<0.96.0",
-    "reana-db>=0.95.0a1,<0.96.0",
+    "pytest-reana>=0.95.0a2,<0.96.0",
 ]
 
 
