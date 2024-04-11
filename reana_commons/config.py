@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023, 2024 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -461,7 +461,7 @@ COMMAND_DANGEROUS_OPERATIONS = ["sudo ", "cd /"]
 # Kerberos configurations
 
 KRB5_CONTAINER_IMAGE = os.getenv(
-    "KRB5_CONTAINER_IMAGE", "docker.io/reanahub/reana-auth-krb5:1.0.1"
+    "KRB5_CONTAINER_IMAGE", "docker.io/reanahub/reana-auth-krb5:1.0.3"
 )
 """Default docker image of KRB5 sidecar container."""
 
@@ -470,10 +470,6 @@ KRB5_INIT_CONTAINER_NAME = "krb5-init"
 
 KRB5_RENEW_CONTAINER_NAME = "krb5-renew"
 """Name of KRB5 sidecar container used for ticket renewal."""
-
-KRB5_STATUS_FILE_LOCATION = "/krb5_cache/status_file"
-"""Status file path used to terminate KRB5 renew container when the main
-job finishes."""
 
 KRB5_STATUS_FILE_CHECK_INTERVAL = 15
 """Time interval in seconds between checks to the status file."""
@@ -488,6 +484,16 @@ should match `default_ccache_name` in krb5.conf.
 
 KRB5_TOKEN_CACHE_FILENAME = "krb5_{}"
 """Name of the Kerberos token cache file."""
+
+KRB5_STATUS_FILENAME = "status_file"
+"""Name of status file used to terminate KRB5 renew container when the main
+job finishes."""
+
+KRB5_STATUS_FILE_LOCATION = os.path.join(
+    KRB5_TOKEN_CACHE_LOCATION, KRB5_STATUS_FILENAME
+)
+"""Status file path used to terminate KRB5 renew container when the main
+job finishes."""
 
 KRB5_CONFIGMAP_NAME = os.getenv(
     "REANA_KRB5_CONFIGMAP_NAME", f"{REANA_COMPONENT_PREFIX}-krb5-conf"

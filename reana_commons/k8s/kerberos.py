@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022 CERN.
+# Copyright (C) 2022, 2024 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -115,7 +115,10 @@ def get_kerberos_k8s_config(
                 f"while ! test -f {KRB5_STATUS_FILE_LOCATION}; do "
                 f"if [ $SECONDS -ge {KRB5_TICKET_RENEW_INTERVAL} ]; then "
                 'echo "Renewing Kerberos ticket: $(date)"; kinit -R; SECONDS=0; fi; '
-                f"sleep {KRB5_STATUS_FILE_CHECK_INTERVAL}; done"
+                # wait until status file is created or for a given timeout, whichever comes first
+                f"inotifywait --quiet --format 'Detected job status change' --timeout {KRB5_STATUS_FILE_CHECK_INTERVAL} --event create {KRB5_TOKEN_CACHE_LOCATION}; "
+                "done; "
+                "echo 'Stopping Kerberos ticket renewal sidecar'"
             )
         ],
         "name": KRB5_RENEW_CONTAINER_NAME,
