@@ -126,6 +126,12 @@ def get_kerberos_k8s_config(
         "volumeMounts": [secrets_volume_mount] + volume_mounts,
         "env": env,
         "securityContext": {"runAsUser": kubernetes_uid},
+        "lifecycle": {
+            # make sure we stop the sidecar container when the pod is stopped,
+            # for example when the run-batch pod is terminated by reana-workflow-controller
+            # after the workflow finishes (either successfully or with an error)
+            "preStop": {"exec": {"command": ["touch", KRB5_STATUS_FILE_LOCATION]}}
+        },
     }
 
     return KerberosConfig(
