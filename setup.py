@@ -25,7 +25,7 @@ extras_require = {
         "sphinx-rtd-theme>=0.1.9",
     ],
     "tests": [
-        "pytest-reana>=0.95.0a2,<0.96.0",
+        "pytest-reana>=0.95.0a3,<0.96.0",
     ],
     "kubernetes": [
         "kubernetes>=22.0.0,<23.0.0",
