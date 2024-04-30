@@ -23,7 +23,7 @@ from reana_commons.config import (
     KRB5_TOKEN_CACHE_LOCATION,
 )
 from reana_commons.errors import REANASecretDoesNotExist
-from reana_commons.k8s.secrets import REANAUserSecretsStore
+from reana_commons.k8s.secrets import UserSecrets
 
 
 KerberosConfig = namedtuple(
@@ -33,7 +33,7 @@ KerberosConfig = namedtuple(
 
 
 def get_kerberos_k8s_config(
-    secrets_store: REANAUserSecretsStore, kubernetes_uid: int
+    secrets_store: UserSecrets, kubernetes_uid: int
 ) -> KerberosConfig:
     """Get the k8s specification for the Kerberos init and renew containers.
 
@@ -49,13 +49,16 @@ def get_kerberos_k8s_config(
         - specification for renew container used to periodically renew Kerberos ticket
     """
     secrets_volume_mount = secrets_store.get_secrets_volume_mount_as_k8s_spec()
-    keytab_file = secrets_store.get_secret_value("CERN_KEYTAB")
-    cern_user = secrets_store.get_secret_value("CERN_USER")
+    keytab_file_name = secrets_store.get_secret("CERN_KEYTAB")
+    cern_user = secrets_store.get_secret("CERN_USER")
 
-    if not keytab_file:
+    if not keytab_file_name:
         raise REANASecretDoesNotExist(missing_secrets_list=["CERN_KEYTAB"])
     if not cern_user:
         raise REANASecretDoesNotExist(missing_secrets_list=["CERN_USER"])
+
+    keytab_file_name = keytab_file_name.value_str
+    cern_user = cern_user.value_str
 
     ticket_cache_volume = {
         "name": "krb5-cache",
@@ -95,7 +98,7 @@ def get_kerberos_k8s_config(
         "command": [
             "kinit",
             "-kt",
-            f"/etc/reana/secrets/{keytab_file}",
+            f"/etc/reana/secrets/{keytab_file_name}",
             f"{cern_user}@CERN.CH",
         ],
         "name": KRB5_INIT_CONTAINER_NAME,

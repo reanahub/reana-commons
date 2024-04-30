@@ -8,13 +8,15 @@
 
 """REANA Kubernetes secrets."""
 import base64
+import binascii
 import json
 import logging
+from typing import Any, Dict, List, Optional, Sequence, Union
+from uuid import UUID
 
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from reana_commons.config import (
-    REANA_COMPONENT_PREFIX,
     REANA_RUNTIME_KUBERNETES_NAMESPACE,
     REANA_USER_SECRET_MOUNT_PATH,
 )
@@ -25,273 +27,242 @@ from reana_commons.utils import build_unique_component_name
 log = logging.getLogger(__name__)
 
 
-class REANAUserSecretsStore(object):
-    """REANA user secrets store."""
+class Secret:
+    """User secret.
 
-    def __init__(self, user_secret_store_id):
-        """Initialise the secret store object."""
-        self.user_secret_store_id = build_unique_component_name(
-            "secretsstore", str(user_secret_store_id)
+    This class accepts either `bytes` or `str` values.
+    """
+
+    types = ["env", "file"]
+
+    @classmethod
+    def from_base64(cls, name: str, type_: str, value: str):
+        """Initialise Secret from base64 encoded value."""
+        try:
+            decoded = base64.b64decode(value, validate=True)
+        except binascii.Error:
+            raise ValueError("Invalid base64 value.")
+        return cls(name, type_, decoded)
+
+    def __init__(self, name: str, type_: str, value: Union[str, bytes]):
+        """Initialise Secret."""
+        if type_ not in self.types:
+            raise ValueError(f"type_ must be one of: {self.types}")
+        self.name: str = name
+        self.type_: str = type_
+        self.set_value(value)
+
+    @property
+    def value_str(self) -> str:
+        """Get secret value as string."""
+        return self._value_bytes.decode()
+
+    @property
+    def value_bytes(self) -> bytes:
+        """Get secret value as bytes."""
+        return self._value_bytes
+
+    def set_value(self, value: Union[str, bytes]):
+        """Set secret value."""
+        self._value_bytes = value.encode() if isinstance(value, str) else bytes(value)
+
+    def __eq__(self, other):
+        """Check if two secrets are equal."""
+        if not isinstance(other, Secret):
+            return False
+        return (
+            self.name == other.name
+            and self.type_ == other.type_
+            and self._value_bytes == other._value_bytes
         )
 
-    def _initialise_user_secrets_store(self):
-        """Initialise an empty Kubernetes secret for a given user."""
-        try:
-            empty_k8s_secret = client.V1Secret(
-                api_version="v1",
-                metadata=client.V1ObjectMeta(
-                    name=str(self.user_secret_store_id),
-                    namespace=REANA_RUNTIME_KUBERNETES_NAMESPACE,
-                ),
-                data={},
-            )
-            empty_k8s_secret.metadata.annotations = {"secrets_types": "{}"}
-            current_k8s_corev1_api_client.create_namespaced_secret(
-                REANA_RUNTIME_KUBERNETES_NAMESPACE, empty_k8s_secret
-            )
-            return empty_k8s_secret
-        except ApiException:
-            log.error(
-                "Something went wrong while creating "
-                "Kubernetes secret for user {0}.".format(
-                    str(self.user_secret_store_id)
-                ),
-                exc_info=True,
-            )
 
-    def _update_store(self, k8s_user_secrets):
-        """Update Kubernetes secret store.
+class UserSecrets:
+    """Collections of secrets of a given user."""
 
-        :param k8s_user_secrets: A Kubernetes secrets object containing a new
-                                 version of the store.
-        """
-        current_k8s_corev1_api_client.replace_namespaced_secret(
-            str(self.user_secret_store_id),
-            REANA_RUNTIME_KUBERNETES_NAMESPACE,
-            k8s_user_secrets,
+    def __init__(self, user_id: str, k8s_secret_name: str, secrets: List[Secret] = []):
+        """Initialise UserSecrets."""
+        self.user_id = user_id
+        self.k8s_secret_name = k8s_secret_name
+        self.secrets = {secret.name: secret for secret in secrets}
+
+    @classmethod
+    def from_k8s_secret(cls, user_id: str, k8s_secret: client.V1Secret):
+        """Initialise from k8s secret object."""
+        secrets = []
+        types = json.loads(k8s_secret.metadata.annotations["secrets_types"])
+        for secret_name, secret_value in k8s_secret.data.items():
+            secrets.append(
+                Secret.from_base64(secret_name, types[secret_name], secret_value)
+            )
+        return cls(
+            user_id=user_id,
+            k8s_secret_name=k8s_secret.metadata.name,
+            secrets=secrets,
         )
 
-    def _get_k8s_user_secrets_store(self):
-        """Retrieve the Kubernetes secret which contains all user secrets."""
-        try:
-            k8s_user_secrets_store = (
-                current_k8s_corev1_api_client.read_namespaced_secret(
-                    str(self.user_secret_store_id), REANA_RUNTIME_KUBERNETES_NAMESPACE
-                )
-            )
-            k8s_user_secrets_store.data = k8s_user_secrets_store.data or {}
-            return k8s_user_secrets_store
-        except ApiException as api_e:
-            if api_e.status == 404:
-                log.info(
-                    "Kubernetes secret for user {0} does not "
-                    "exist, creating...".format(str(self.user_secret_store_id))
-                )
-                return self._initialise_user_secrets_store()
-            else:
-                log.error(
-                    "Something went wrong while retrieving "
-                    "Kubernetes secret for user {0}.".format(
-                        str(self.user_secret_store_id)
-                    ),
-                    exc_info=True,
-                )
+    def to_k8s_secret(self) -> client.V1Secret:
+        """Return user secrets as Kubernetes secret."""
+        secrets_types = {secret.name: secret.type_ for secret in self.secrets.values()}
+        k8s_secret = client.V1Secret(
+            api_version="v1",
+            metadata=client.V1ObjectMeta(
+                name=self.k8s_secret_name,
+                namespace=REANA_RUNTIME_KUBERNETES_NAMESPACE,
+                annotations={"secrets_types": json.dumps(secrets_types)},
+            ),
+            data={
+                secret.name: base64.standard_b64encode(secret.value_bytes).decode()
+                for secret in self.secrets.values()
+            },
+        )
+        return k8s_secret
 
-    def _dump_json_annotation_to_k8s_object(
-        self, k8s_object, annotation_key, annotation_value
-    ):
-        """Dump Python object as annotation to Kubernetes object."""
-        try:
-            k8s_object.metadata.annotations[annotation_key] = json.dumps(
-                annotation_value
-            )
-        except TypeError as e:
-            log.error(
-                "Could not add annotations to user secrets:\n" "{}".format(str(e)),
-                exc_info=True,
-            )
-
-    def _load_json_annotation_from_k8s_object(self, k8s_object, annotation_key):
-        """Load string annotations from Kubernetes object."""
-        try:
-            return json.loads(k8s_object.metadata.annotations[annotation_key])
-        except ValueError:
-            log.error(
-                "Annotations for user {} secret store could not be"
-                "loaded as json.".format(annotation_key)
-            )
-        except KeyError:
-            log.error(
-                "Annotation key {annotation_key} does not exist for"
-                " user {user} secret store, so it can not be loaded".format(
-                    annotation_key=annotation_key, user=k8s_object.metadata.name
+    def add_secrets(self, secrets: Sequence[Secret], overwrite: bool = False):
+        """Add new secrets to the user's secrets."""
+        for secret in secrets:
+            if secret.name in self.secrets and not overwrite:
+                raise REANASecretAlreadyExists(
+                    "Operation cancelled. Secret {} already exists. "
+                    "If you want change it use overwrite".format(secret.name)
                 )
-            )
+            self.secrets[secret.name] = secret
 
-    def add_secrets(self, secrets_dict, overwrite=False):
-        """Add a new secret to the user's Kubernetes secret.
+    def delete_secrets(self, names: Sequence[str]) -> List[str]:
+        """Delete one or more of users secrets."""
+        missing_secrets = [name for name in names if name not in self.secrets]
+        if missing_secrets:
+            raise REANASecretDoesNotExist(missing_secrets)
 
-        :param secrets: Dictionary containing new secrets, where keys are
-            secret names and corresponding values are dictionaries containing
-            base64 encoded value and a type (which determines how the secret
-            should be mounted).
-        :returns: Updated user secret list.
-        """
-        try:
-            k8s_user_secrets = self._get_k8s_user_secrets_store()
-            for secret_name in secrets_dict:
-                if k8s_user_secrets.data.get(secret_name) and not overwrite:
-                    raise REANASecretAlreadyExists(
-                        "Operation cancelled. Secret {} already exists. "
-                        "If you want change it use overwrite".format(secret_name)
-                    )
-                secrets_types = self._load_json_annotation_from_k8s_object(
-                    k8s_user_secrets, "secrets_types"
-                )
-                secrets_types[secret_name] = secrets_dict[secret_name]["type"]
-                self._dump_json_annotation_to_k8s_object(
-                    k8s_user_secrets, "secrets_types", secrets_types
-                )
-                k8s_user_secrets.data[secret_name] = secrets_dict[secret_name]["value"]
-            self._update_store(k8s_user_secrets)
-            return k8s_user_secrets.data.keys()
-        except ApiException:
-            log.error(
-                "Something went wrong while adding secrets to "
-                "Kubernetes secret for user {0}.".format(
-                    str(self.user_secret_store_id)
-                ),
-                exc_info=True,
-            )
+        for secret_name in names:
+            del self.secrets[secret_name]
+        return list(names)
 
-    def get_secrets(self):
+    def get_secret(self, name: str) -> Optional[Secret]:
+        """Get secret of given user by name."""
+        return self.secrets.get(name)
+
+    def get_secrets(self) -> List[Secret]:
         """List all secrets for a given user."""
-        secrets_store = self._get_k8s_user_secrets_store()
-        secrets_with_types = []
-        for secret_name in secrets_store.data:
-            secrets_types = self._load_json_annotation_from_k8s_object(
-                secrets_store, "secrets_types"
-            )
-            secrets_with_types.append(
-                {"name": secret_name, "type": secrets_types[secret_name]}
-            )
+        return list(self.secrets.values())
 
-        return secrets_with_types
+    def get_env_secrets_as_k8s_spec(self) -> List:
+        """Get the list of specification items for env-type secrets for k8s.
 
-    def get_env_secrets_as_k8s_spec(self):
-        """Return a list of specification items for env type secrets for k8s.
-
-        Return all environment variable secrets as a list of Kubernetes
-         environment variable specs.
+        Return all environment variable secrets as a list of dicts.
 
         Object reference: https://github.com/kubernetes-client/python/
         blob/master/kubernetes/docs/V1EnvVar.md.
         """
-        all_secrets = self.get_secrets()
         env_secrets = []
-        for secret in all_secrets:
-            name = secret["name"]
-            if secret["type"] == "env":
+        for secret in self.secrets.values():
+            if secret.type_ == "env":
                 env_secrets.append(
                     {
-                        "name": name,
+                        "name": secret.name,
                         "valueFrom": {
                             "secretKeyRef": {
-                                "name": self.user_secret_store_id,
-                                "key": name,
+                                "name": self.k8s_secret_name,
+                                "key": secret.name,
                             }
                         },
                     }
                 )
         return env_secrets
 
-    def get_file_secrets_as_k8s_specs(self):
-        """Return a list of k8s specification items for file-type secrets.
-
-        API Reference: https://kubernetes.io/docs/concepts/configuration/
-        secret/#using-secrets-as-files-from-a-pod
-        """
-        all_secrets = self.get_secrets()
-        file_secrets = []
-        for secret in all_secrets:
-            name = secret["name"]
-            if secret["type"] == "file":
-                file_secrets.append(
-                    {
-                        "key": name,
-                        "path": name,
-                    }
-                )
-        return file_secrets
+    def get_secrets_volume_mount_as_k8s_spec(self) -> Dict[str, Any]:
+        """Return a volume mount object for the file-type secrets."""
+        return {
+            "name": self.k8s_secret_name,
+            "mountPath": REANA_USER_SECRET_MOUNT_PATH,
+            "readOnly": True,
+        }
 
     def get_file_secrets_volume_as_k8s_specs(self):
-        """Return the k8s specification item for file-type secrets.
+        """Get the k8s specification of a volume for file-type secrets.
 
-        Return the specification for Kubernetes secret store API,
+        Return the specification of volume adapted from a k8s secret,
         specifying the secrets that should be mounted as files.
 
         Object reference: https://github.com/kubernetes-client/python/
         blob/master/kubernetes/docs/V1SecretVolumeSource.md
         """
-        user_id = self.user_secret_store_id
+        file_secrets = []
+        for secret in self.secrets.values():
+            if secret.type_ == "file":
+                file_secrets.append(
+                    {
+                        "key": secret.name,
+                        "path": secret.name,
+                    }
+                )
         return {
-            "name": user_id,
+            "name": self.k8s_secret_name,
             "secret": {
-                "secretName": user_id,
-                "items": self.get_file_secrets_as_k8s_specs(),
+                "secretName": self.k8s_secret_name,
+                "items": file_secrets,
             },
         }
 
-    def get_secrets_volume_mount_as_k8s_spec(self):
-        """Return a secret volume mount object for secret store id."""
-        return {
-            "name": self.user_secret_store_id,
-            "mountPath": REANA_USER_SECRET_MOUNT_PATH,
-            "readOnly": True,
-        }
 
-    def delete_secrets(self, secrets):
-        """Delete one or more of users secrets.
+class UserSecretsStore:
+    """Utility class to fetch and update user secrets stored in Kubernetes."""
 
-        :param secrets: List of secret names to be deleted form the store.
-        :returns: List with the names of the deleted secrets.
-        """
+    @staticmethod
+    def init(user_id: Union[str, UUID]) -> UserSecrets:
+        """Initialise the secret store of a given user through the k8s API."""
+        user_id = str(user_id)
+        user_secret_store_id = build_unique_component_name("secretsstore", user_id)
+        empty_secrets = UserSecrets(user_id, user_secret_store_id)
         try:
-            k8s_user_secrets = self._get_k8s_user_secrets_store()
-            deleted = []
-            missing_secrets_list = []
-            for secret_name in secrets:
-                try:
-                    secrets_types = self._load_json_annotation_from_k8s_object(
-                        k8s_user_secrets, "secrets_types"
-                    )
-                    del secrets_types[secret_name]
-                    self._dump_json_annotation_to_k8s_object(
-                        k8s_user_secrets, "secrets_types", secrets_types
-                    )
-                    del k8s_user_secrets.data[secret_name]
-                    deleted.append(secret_name)
-                except KeyError:
-                    missing_secrets_list.append(secret_name)
-            if missing_secrets_list:
-                raise REANASecretDoesNotExist(missing_secrets_list=missing_secrets_list)
-            self._update_store(k8s_user_secrets)
-            return deleted
+            current_k8s_corev1_api_client.create_namespaced_secret(
+                REANA_RUNTIME_KUBERNETES_NAMESPACE, empty_secrets.to_k8s_secret()
+            )
+            return empty_secrets
         except ApiException:
             log.error(
-                "Something went wrong while deleting secrets from "
-                "Kubernetes secret for user {0}.".format(
-                    str(self.user_secret_store_id)
-                ),
+                "Something went wrong while creating "
+                "Kubernetes secret for user {0}.".format(user_secret_store_id),
                 exc_info=True,
             )
+            raise
 
-    def get_secret_value(self, name):
-        """Return secret value if secret with specified name is present."""
-        secrets = self.get_secrets()
-        secret_names = [secret["name"] for secret in secrets]
-        if name in secret_names:
-            secrets_store = self._get_k8s_user_secrets_store()
-            secret_value = base64.standard_b64decode(secrets_store.data[name]).decode()
-            return secret_value
-        return None
+    @staticmethod
+    def fetch(user_id: Union[str, UUID]) -> UserSecrets:
+        """Fetch the secret store of a given user through the k8s API.
+
+        If the secret store does not exist, it will be created.
+        """
+        user_id = str(user_id)
+        user_secret_store_id = build_unique_component_name("secretsstore", user_id)
+        try:
+            k8s_user_secrets_store = (
+                current_k8s_corev1_api_client.read_namespaced_secret(
+                    user_secret_store_id, REANA_RUNTIME_KUBERNETES_NAMESPACE
+                )
+            )
+            k8s_user_secrets_store.data = k8s_user_secrets_store.data or {}
+            return UserSecrets.from_k8s_secret(user_id, k8s_user_secrets_store)
+        except ApiException as api_e:
+            if api_e.status == 404:
+                log.info(
+                    "Kubernetes secret for user {0} does not "
+                    "exist, creating...".format(user_secret_store_id)
+                )
+                return UserSecretsStore.init(user_id)
+            else:
+                log.error(
+                    "Something went wrong while retrieving "
+                    "Kubernetes secret for user {0}.".format(user_secret_store_id),
+                    exc_info=True,
+                )
+                raise
+
+    @staticmethod
+    def update(secrets: UserSecrets):
+        """Update the secret store of a given user through the k8s API."""
+        current_k8s_corev1_api_client.replace_namespaced_secret(
+            secrets.k8s_secret_name,
+            REANA_RUNTIME_KUBERNETES_NAMESPACE,
+            secrets.to_k8s_secret(),
+        )
