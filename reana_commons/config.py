@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023, 2024 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -99,9 +99,7 @@ REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE = os.getenv(
 """Kubernetes namespace in which REANA infrastructure is currently deployed."""
 
 REANA_INFRASTRUCTURE_COMPONENTS_HOSTNAMES = {
-    component_name: (
-        "{component_prefix}-{component_name}.{namespace}.svc.cluster.local"
-    ).format(
+    component_name: ("{component_prefix}-{component_name}.{namespace}").format(
         component_prefix=REANA_COMPONENT_PREFIX,
         component_name=component_name,
         namespace=REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE,
