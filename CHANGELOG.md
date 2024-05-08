@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.95.0](https://github.com/reanahub/reana-commons/compare/0.9.8...0.95.0) (2024-05-08)
+
+
+### Bug fixes
+
+* **kerberos:** stop ticket renewal when pod is terminated ([#454](https://github.com/reanahub/reana-commons/issues/454)) ([a7bcf7a](https://github.com/reanahub/reana-commons/commit/a7bcf7a655dad59478f6fb0a332b9ce348539e63))
+
+
+### Performance improvements
+
+* **kerberos:** stop ticket renewal as soon as possible ([#454](https://github.com/reanahub/reana-commons/issues/454)) ([08cbfa1](https://github.com/reanahub/reana-commons/commit/08cbfa16f08a4e814350791b5de40a40d34841b1))
+
+
+### Continuous integration
+
+* **actions:** update GitHub actions due to Node 16 deprecation ([#452](https://github.com/reanahub/reana-commons/issues/452)) ([ac2a01b](https://github.com/reanahub/reana-commons/commit/ac2a01b4162f5889837b7328eefb5d7908929ad9))
+
+
+### Chores
+
+* **master:** release 0.95.0a1 ([024776f](https://github.com/reanahub/reana-commons/commit/024776f707e8573a19daa4eaf5b239e7dc1257f0))
+
 ## [0.9.8](https://github.com/reanahub/reana-commons/compare/0.9.7...0.9.8) (2024-03-01)
 
 
