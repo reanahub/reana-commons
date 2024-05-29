@@ -36,19 +36,12 @@ extras_require = {
     "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
     "cwl": ["cwltool==3.1.20210628163208"],
     "snakemake": [
-        "snakemake==6.15.5 ; python_version<'3.7'",  # Snakemake v7 requires Python 3.7+
-        "snakemake==7.32.4 ; python_version>='3.7'",
-        "tabulate<0.9",
+        "snakemake==7.32.4",
         "pulp>=2.7.0,<2.8.0",
-        "smart-open<7 ; python_version<'3.7'",  # see https://github.com/piskvorky/smart_open/issues/806
     ],
     "snakemake-reports": [
-        "snakemake[reports]==6.15.5 ; python_version<'3.7'",
-        "snakemake[reports]==7.32.4 ; python_version>='3.7'",
-        "pygraphviz<1.8",
-        "tabulate<0.9",  # tabulate 0.9 crashes snakemake, more info: https://github.com/snakemake/snakemake/issues/1899
+        "snakemake[reports]==7.32.4",
         "pulp>=2.7.0,<2.8.0",
-        "smart-open<7 ; python_version<'3.7'",  # see https://github.com/piskvorky/smart_open/issues/806
     ],
 }
 
@@ -104,7 +97,7 @@ setup(
     ],
     zip_safe=False,
     include_package_data=True,
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=install_requires,
     extras_require=extras_require,
     setup_requires=setup_requires,
@@ -116,8 +109,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
