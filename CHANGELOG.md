@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.9](https://github.com/reanahub/reana-commons/compare/0.9.8...0.9.9) (2024-07-05)
+
+
+### Features
+
+* **schema:** allow Compute4PUNCH backend options ([#445](https://github.com/reanahub/reana-commons/issues/445)) ([0570f4a](https://github.com/reanahub/reana-commons/commit/0570f4ade9135a2d340009d2091c97dfc81a2e60))
+
+
+### Bug fixes
+
+* **config:** remove hard-coded component host name domain ([#458](https://github.com/reanahub/reana-commons/issues/458)) ([f2faeaa](https://github.com/reanahub/reana-commons/commit/f2faeaa76f42c4484db70766fc1d7a3a122ee38f)), closes [#457](https://github.com/reanahub/reana-commons/issues/457)
+
 ## [0.9.8](https://github.com/reanahub/reana-commons/compare/0.9.7...0.9.8) (2024-03-01)
 
 
