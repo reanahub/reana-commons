@@ -33,7 +33,12 @@ extras_require = {
     "kubernetes": [
         "kubernetes>=22.0.0,<23.0.0",
     ],
-    "yadage": ["adage~=0.10.1", "yadage~=0.20.1", "yadage-schemas~=0.10.6"],
+    "yadage": [
+        "adage~=0.11.0",
+        "yadage~=0.20.1",
+        "yadage-schemas~=0.10.6",
+        "jsonschema<4.10.0",  # see https://github.com/yadage/yadage-schemas/issues/38
+    ],
     "cwl": ["cwltool==3.1.20210628163208"],
     "snakemake": [
         "snakemake==7.32.4",
@@ -66,7 +71,7 @@ install_requires = [
     "checksumdir>=1.1.4,<1.2",
     "click>=7.0",
     "fs>=2.0",
-    "jsonschema[format]>=3.0.1,<4.0.0",
+    "jsonschema[format]>=3.0.1",
     "kombu>=4.6",
     "mock>=3.0,<4",
     "PyYAML>=5.1,<7.0",
