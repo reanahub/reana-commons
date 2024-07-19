@@ -4,6 +4,7 @@ The list of contributors in alphabetical order:
 
 - [Adelina Lintuluoto](https://orcid.org/0000-0002-0726-1452)
 - [Agisilaos Kounelis](https://orcid.org/0000-0001-9312-3189)
+- [Alastair Lyall](https://orcid.org/0009-0000-4955-8935)
 - [Audrius Mecionis](https://orcid.org/0000-0002-3759-1663)
 - [Bruno Rosendo](https://orcid.org/0000-0002-0923-3148)
 - [Burt Holzman](https://orcid.org/0000-0001-5235-6314)

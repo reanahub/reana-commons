@@ -9,6 +9,8 @@
 """Pytest configuration for REANA-Commons."""
 
 import pytest
+from unittest.mock import create_autospec
+from reana_commons.gherkin_parser.data_fetcher import DataFetcherBase
 
 
 @pytest.fixture()
@@ -59,3 +61,52 @@ rule baz:
     shell:
         "mkdir -p results && touch {output}"
 """
+
+
+@pytest.fixture()
+def mock_data_fetcher():
+    """Mock data fetcher for gherkin_parser tests."""
+    mock_data_fetcher = create_autospec(DataFetcherBase)
+    mock_data_fetcher.get_workflow_status.return_value = {
+        "logs": {
+            "step-id-1": {
+                "job_name": "jobname",
+                "status": "finished",
+                "started_at": "2018-10-29T12:51:04",
+                "finished_at": "2018-10-29T12:51:37",
+            }
+        },
+        "name": "test_workflow",
+        "progress": {
+            "run_started_at": "2018-10-29T12:51:04",
+            "run_finished_at": "2018-10-29T12:55:01",
+        },
+        "created": "2018-10-29T12:51:04",
+        "status": "finished",
+        "user": "00000000-0000-0000-0000-000000000000",
+    }
+    mock_data_fetcher.get_workflow_disk_usage.return_value = {
+        "disk_usage_info": [
+            {
+                "name": "output1.png",
+                "size": {"human_readable": "12 MiB", "raw": 12580000},
+            },
+            {
+                "name": "output/data.txt",
+                "size": {"human_readable": "100 KiB", "raw": 184320},
+            },
+            {
+                "name": "input.txt",
+                "size": {"human_readable": "12 MiB", "raw": 12580000},
+            },
+            {"name": "", "size": {"human_readable": "24 MiB", "raw": 25344320}},
+        ]
+    }
+    mock_data_fetcher.get_workflow_logs.return_value = {
+        "logs": '{"engine_specific": "", "workflow_logs": "This is the workflow engine log output.And\\nthis\\nis a\\nmultiline string", "job_logs": {"job-id-1": {"name": "job-name-1", "logs": "Job logs of the job 1", "started_at": "2018-10-29T12:51:04", "finished_at": "2018-10-29T12:51:37"}, "job-id-2": {"name": "job-name-2", "logs": "Job logs of the job 2", "finished_at": "2018-10-29T12:55:01", "started_at": "2018-10-29T12:51:38"}}}'
+    }
+    mock_data_fetcher.get_workflow_specification.return_value = {
+        "specification": {"outputs": {"files": ["output1.png", "output/data.txt"]}}
+    }
+
+    return mock_data_fetcher
