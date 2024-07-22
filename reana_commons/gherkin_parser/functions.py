@@ -224,7 +224,7 @@ def _engine_logs_contain(workflow, access_token, content):
 @when("the workflow execution completes")
 def _check_workflow_finished(workflow, access_token):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Workflow execution completed
 
@@ -248,7 +248,7 @@ def _check_workflow_finished(workflow, access_token):
 @when("the workflow status is {status_workflow}")
 def _check_workflow_status(workflow, access_token, status_workflow):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
        Status of the workflow
 
@@ -270,7 +270,7 @@ def _check_workflow_status(workflow, access_token, status_workflow):
 @then("the workflow status should be {status_workflow}")
 def _test_workflow_status(workflow, access_token, status_workflow):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
        Status of the workflow
 
@@ -292,7 +292,7 @@ def _test_workflow_status(workflow, access_token, status_workflow):
 @then("all the outputs should be included in the workspace")
 def workspace_include_all_outputs(workflow, access_token):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Presence of all the outputs in the workspace
 
@@ -318,7 +318,7 @@ def workspace_include_all_outputs(workflow, access_token):
 @then("{filename} should be in the workspace")
 def workspace_include_specific_file(workflow, access_token, filename):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Presence of a specific file in the workspace
 
@@ -340,7 +340,7 @@ def workspace_include_specific_file(workflow, access_token, filename):
 @then("{filename} should not be in the workspace")
 def workspace_do_not_include_specific_file(workflow, access_token, filename):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Absence of a specific file in the workspace
 
@@ -360,7 +360,7 @@ def workspace_do_not_include_specific_file(workflow, access_token, filename):
 @then('the logs should contain "{content}"')
 def logs_contain(workflow, access_token, content):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Content of the logs of the workflow
 
@@ -379,7 +379,7 @@ def logs_contain(workflow, access_token, content):
 @then('the engine logs should contain "{content}"')
 def logs_engine_contain(workflow, access_token, content):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Content of the engine logs of the workflow
 
@@ -398,7 +398,7 @@ def logs_engine_contain(workflow, access_token, content):
 @then('the job logs should contain "{content}"')
 def logs_job_contain(workflow, access_token, content):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Content of the job logs of the workflow
 
@@ -418,7 +418,7 @@ def logs_job_contain(workflow, access_token, content):
 @then('the job logs for the {step_name} step should contain "{content}"')
 def logs_step_contain(workflow, access_token, step_name, content):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Content of the job logs for a particular step
 
@@ -451,7 +451,7 @@ def logs_step_contain(workflow, access_token, step_name, content):
 @then('the file {filename} should contain "{content}"')
 def file_content_contain(workflow, access_token, filename, content):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Content of a specific file in the workspace
 
@@ -481,7 +481,7 @@ def file_content_contain(workflow, access_token, filename, content):
 @then("the {algorithm} checksum of the file {filename} should be {checksum}")
 def file_checksum(workflow, access_token, algorithm, filename, checksum):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Checksum of a specific file in the workspace
 
@@ -522,7 +522,7 @@ def file_checksum(workflow, access_token, algorithm, filename, checksum):
 @then("the workflow run duration should be less than {n_minutes} minutes")
 def duration_minimum_workflow(workflow, access_token, n_minutes):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Minimum duration of the workflow
 
@@ -549,7 +549,7 @@ def duration_minimum_workflow(workflow, access_token, n_minutes):
 @then("the duration of the step {step_name} should be less than {n_minutes} minutes")
 def duration_minimum_step(workflow, access_token, step_name, n_minutes):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Minimum duration of each step of the workflow
 
@@ -590,7 +590,7 @@ def duration_minimum_step(workflow, access_token, step_name, n_minutes):
 @then("the size of the file {filename} should be exactly {dim}")
 def exact_file_size(workflow, access_token, filename, dim):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Exact size of a specific file in the workspace
 
@@ -613,7 +613,7 @@ def exact_file_size(workflow, access_token, filename, dim):
 @then("the size of the file {filename} should be between {dim1} and {dim2}")
 def approximate_file_size(workflow, access_token, filename, dim1, dim2):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Approximate size of a specific file in the workspace
 
@@ -642,7 +642,7 @@ def approximate_file_size(workflow, access_token, filename, dim1, dim2):
 @then("the workspace size should be less than {dim}")
 def workspace_size_maximum(workflow, access_token, dim):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Maximum workspace size
 
@@ -662,7 +662,7 @@ def workspace_size_maximum(workflow, access_token, dim):
 @then("the workspace size should be more than {dim}")
 def workspace_size_minimum(workflow, access_token, dim):
     """
-    .. container:: testcase-title
+    .. container:: testcase-title.
 
         Minimum workspace size
 

@@ -71,7 +71,6 @@ def parse_feature_file(feature_file_path: str) -> Tuple[str, List[Dict]]:
     :raise IOError: If there is an error while reading the feature file.
     :raise FeatureFileError: If there is an error while parsing or compiling the feature file.
     """
-
     try:
         with open(feature_file_path) as f:
             file_content = f.read()
