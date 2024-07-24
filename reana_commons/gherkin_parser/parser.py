@@ -48,7 +48,9 @@ def validate_feature_file(feature_file_path: str, data_fetcher: DataFetcherInter
     :return A tuple containing the feature name, the parsed feature object and the dictionary mapping
     the step texts to their function definitions.
     :raise StepDefinitionNotFound: If the feature file contains a step for which no step definition is found.
-    :raise FeatureFileError: If the feature file does not exist, or if there is an error while reading it, including parsing or compiling errors.
+    :raise FeatureFileError: If there is an error while parsing or compiling the feature file.
+    :raise FileNotFoundError: If the feature file does not exist.
+    :raise IOError: If there is an error while reading the feature file.
     """
     feature_name, parsed_feature = parse_feature_file(feature_file_path)
     steps_list = get_steps_list(parsed_feature)
@@ -211,6 +213,7 @@ def run_tests(
                 "failed_testcase": failed_testcase,
                 "result": result,
                 "error_log": error_log,
+                "analysis_run_id": analysis_run_id,
                 "feature": feature_name,
                 "checked_at": datetime.now(),
             }
