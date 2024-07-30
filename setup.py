@@ -59,10 +59,6 @@ for key, reqs in extras_require.items():
         continue
     extras_require["all"].extend(reqs)
 
-setup_requires = [
-    "pytest-runner>=2.7",
-]
-
 install_requires = [
     "bravado>=10.2,<10.4",
     # bravado-core 6.1.1 breaks compatibility with jsonschema<4.9.0
@@ -105,7 +101,6 @@ setup(
     python_requires=">=3.8",
     install_requires=install_requires,
     extras_require=extras_require,
-    setup_requires=setup_requires,
     tests_require=tests_require,
     classifiers=[
         "Development Status :: 3 - Alpha",
