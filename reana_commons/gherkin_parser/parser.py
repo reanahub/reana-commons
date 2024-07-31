@@ -12,14 +12,13 @@ from typing import Dict, List, Tuple
 from gherkin.parser import Parser
 from gherkin.pickles.compiler import Compiler
 from parse import parse
-
 from reana_commons.gherkin_parser.errors import (
     StepDefinitionNotFound,
     StepSkipped,
     FeatureFileError,
 )
 from reana_commons.gherkin_parser.functions import _get_step_definition_lists
-from reana_commons.gherkin_parser.data_fetcher import DataFetcherInterface
+from reana_commons.gherkin_parser.data_fetcher import DataFetcherBase
 
 
 class AnalysisTestStatus(enum.Enum):
@@ -41,7 +40,7 @@ def _get_step_text(step: Dict) -> str:
     return step["text"]
 
 
-def validate_feature_file(feature_file_path: str, data_fetcher: DataFetcherInterface):
+def validate_feature_file(feature_file_path: str, data_fetcher: DataFetcherBase):
     """Validate the feature file.
 
     :param feature_file_path: The path to the feature file to be validated.
@@ -119,7 +118,7 @@ def get_steps_list(feature_file: List[Dict]) -> List[Tuple[str, str]]:
     return steps
 
 
-def map_steps_to_functions(steps: list, data_fetcher: DataFetcherInterface):
+def map_steps_to_functions(steps: list, data_fetcher: DataFetcherBase):
     """Map each step to the corresponding step definition (function).
 
     :param steps: A list of tuples, each containing the step type, and the step text.
@@ -165,7 +164,6 @@ def map_steps_to_functions(steps: list, data_fetcher: DataFetcherInterface):
 def run_tests(
     analysis_run_id: str,
     workflow: str,
-    access_token,
     feature_name: str,
     feature_file,
     step_mapping: Dict,
@@ -174,7 +172,6 @@ def run_tests(
 
     :param feature_name: The name of the feature inside the feature file.
     :param analysis_run_id:
-    :param access_token:
     :param workflow: The name of the workflow in REANA
     :param feature_file: The parsed and compiled feature file, as returned by `parse_feature_file`.
     :param step_mapping: A dictionary mapping each step to the corresponding step definition (function).
@@ -194,7 +191,7 @@ def run_tests(
             arguments = step_mapping[step_type].get(step_text).get("arguments")
             if function is not None:
                 try:
-                    function(workflow, access_token, **arguments)
+                    function(workflow, **arguments)
                 except StepSkipped:
                     logging.info(f"Scenario skipped! Current testcase: {step_text}")
                     result = AnalysisTestStatus.skipped
@@ -228,13 +225,11 @@ def parse_and_run_tests(
     analysis_run_id: str,
     feature_file_path: str,
     workflow: str,
-    access_token: str,
-    data_fetcher: DataFetcherInterface,
+    data_fetcher: DataFetcherBase,
 ) -> Tuple[str, List]:
     """Parse the feature file and run all the tests in it.
 
     :param analysis_run_id: The UUID of the analysis run.
-    :param access_token: The REANA access token.
     :param workflow: The name of the workflow on REANA.
     :param feature_file_path: The path to the feature file to be parsed.
     :return: A tuple in which the first element is the feature name, and the second is
@@ -250,7 +245,6 @@ def parse_and_run_tests(
     results = run_tests(
         analysis_run_id=analysis_run_id,
         workflow=workflow,
-        access_token=access_token,
         feature_name=feature_name,
         feature_file=parsed_feature,
         step_mapping=step_mapping,

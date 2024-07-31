@@ -10,7 +10,7 @@
 
 import pytest
 from unittest.mock import create_autospec
-from reana_commons.gherkin_parser.data_fetcher import DataFetcherInterface
+from reana_commons.gherkin_parser.data_fetcher import DataFetcherBase
 
 
 @pytest.fixture()
@@ -65,8 +65,8 @@ rule baz:
 
 @pytest.fixture()
 def mock_data_fetcher():
-    """Mocked data fetcher for gherkin_parser tests."""
-    mock_data_fetcher = create_autospec(DataFetcherInterface)
+    """Mock data fetcher for gherkin_parser tests."""
+    mock_data_fetcher = create_autospec(DataFetcherBase)
     mock_data_fetcher.get_workflow_status.return_value = {
         "logs": {
             "step-id-1": {

@@ -54,7 +54,6 @@ def test_workflow_execution_completes(
         "run-id",
         feature_file_path,
         "test-workflow",
-        "0000000",
         mock_data_fetcher,
     )
     for scenario in test_results:
@@ -68,7 +67,7 @@ def test_log_content(mock_data_fetcher):
         current_dir, "gherkin_test_files", "features", "log-content.feature"
     )
     _, test_results = parse_and_run_tests(
-        "run-id", feature_file_path, "test-workflow", "0000000", mock_data_fetcher
+        "run-id", feature_file_path, "test-workflow", mock_data_fetcher
     )
     for scenario in test_results:
         assert scenario["result"] in (
@@ -86,7 +85,6 @@ def test_workflow_duration(mock_data_fetcher):
         "run-id",
         feature_file_path,
         "test-workflow",
-        "0000000",
         mock_data_fetcher,
     )
     for scenario in test_results:
@@ -99,7 +97,7 @@ def test_workflow_duration(mock_data_fetcher):
 def test_workspace_content(mock_data_fetcher):
     """Test the step definitions relative to the workspace content."""
 
-    def get_mocked_workflow_disk_usage(workflow, parameters, access_token):
+    def get_mocked_workflow_disk_usage(workflow, parameters):
         if parameters.get("summarize", False):
             return {
                 "disk_usage_info": [
@@ -117,7 +115,7 @@ def test_workspace_content(mock_data_fetcher):
         get_mocked_workflow_disk_usage
     )
     _, test_results = parse_and_run_tests(
-        "run-id", feature_file_path, "test-workflow", "0000000", mock_data_fetcher
+        "run-id", feature_file_path, "test-workflow", mock_data_fetcher
     )
 
     for scenario in test_results:

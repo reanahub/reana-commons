@@ -56,7 +56,7 @@ def test_get_steps_list():
     assert steps[5] == ("Outcome", "this should be tested")
 
 
-@patch("reana_commons.gherkin_parser.data_fetcher.DataFetcherInterface")
+@patch("reana_commons.gherkin_parser.data_fetcher.DataFetcherBase")
 def test_map_steps_to_functions(mock_data_fetcher):
     """Test for the map_steps_to_functions method."""
     feature_file_path = os.path.join(
@@ -81,7 +81,6 @@ def test_run_tests(mock_data_fetcher):
     step_mapping = map_steps_to_functions(steps, mock_data_fetcher)
     test_results = run_tests(
         workflow="test_wf",
-        access_token="00000",
         analysis_run_id="00000",
         feature_name=feature_name,
         feature_file=feature,
@@ -89,7 +88,6 @@ def test_run_tests(mock_data_fetcher):
     )
     # Assert that each of the test results has a status of "passed"
     for test_result in test_results:
-        print(test_result)
         assert test_result["result"] == AnalysisTestStatus.passed
 
 
@@ -103,7 +101,6 @@ def test_run_tests_no_feature_file():
             analysis_run_id="00000",
             feature_file_path=feature_file_path,
             workflow="test_wf",
-            access_token="00000",
             data_fetcher=None,
         )
 
@@ -131,7 +128,6 @@ def test_test_result_fail(mock_data_fetcher):
         "run-id",
         feature_file_path,
         "test-workflow",
-        "0000000",
         mock_data_fetcher,
     )
     assert test_results[0]["result"] == AnalysisTestStatus.passed
@@ -169,7 +165,6 @@ def test_test_expected_workflow_fail_not_skipped(
         "run-id",
         feature_file_path,
         "test-workflow",
-        "0000000",
         mock_data_fetcher,
     )
     for scenario in test_results:

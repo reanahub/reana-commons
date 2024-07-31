@@ -20,13 +20,13 @@ import hashlib
 import json
 import re
 import zlib
-
+import inspect
+from functools import partial, update_wrapper
 from typing import List, Dict
 from reana_commons.gherkin_parser.errors import StepSkipped
-from reana_commons.gherkin_parser.data_fetcher import DataFetcherInterface
+from reana_commons.gherkin_parser.data_fetcher import DataFetcherBase
 from datetime import datetime
-
-DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
+from reana_commons.config import WORKFLOW_TIME_FORMAT as DATETIME_FORMAT
 
 
 def given(step_pattern):
@@ -75,15 +75,12 @@ def then(step_pattern):
     return wrapper
 
 
-def _get_step_definition_lists(fetcher: DataFetcherInterface):
+def _get_step_definition_lists(fetcher: DataFetcherBase):
     """Return a dictionary containing the lists of all the step definitions in this module.
 
     The dictionary has three keys: "Outcome", "Action", and "Context".
     Each key contains a list of functions (step definitions) for that step type.
     """
-    global data_fetcher  # used across the module
-    data_fetcher = fetcher
-
     step_definition_list = {
         "Outcome": [],
         "Action": [],
@@ -91,20 +88,29 @@ def _get_step_definition_lists(fetcher: DataFetcherInterface):
     }
     for type in step_definition_list.keys():
         step_definition_list[type] = [
-            f
+            (
+                update_wrapper(partial(f, data_fetcher=fetcher), f)
+                if "data_fetcher" in (inspect.signature(f).parameters)
+                else f
+            )
             for f in globals().values()
             if callable(f) and hasattr(f, "_step_type") and (f._step_type == type)
         ]
     return step_definition_list
 
 
-def _get_single_file_size(workflow, access_token, filename) -> Dict:
+def has_argument(func, arg_name):
+    """Check if a function has an argument with a given name."""
+    return arg_name in func.__code__.co_varnames
+
+
+def _get_single_file_size(workflow, filename, data_fetcher) -> Dict:
     """Return a dictionary with the size of a single file.
 
     The dictionary has two keys: "raw" and "human_readable", which contain the size
     in bytes and in human-readable format, respectively.
     """
-    files_info = data_fetcher.list_files(workflow, access_token, file_name=filename)
+    files_info = data_fetcher.list_files(workflow, file_name=filename)
     if len(files_info) == 1:
         return files_info[0]["size"]
     else:
@@ -113,11 +119,11 @@ def _get_single_file_size(workflow, access_token, filename) -> Dict:
         )
 
 
-def _get_total_workspace_size(workflow, access_token) -> int:
+def _get_total_workspace_size(workflow, data_fetcher) -> int:
     """Return the total workspace size, as raw number of bytes."""
-    disk_usage = data_fetcher.get_workflow_disk_usage(
-        workflow, {"summarize": True}, access_token
-    )["disk_usage_info"][0]
+    disk_usage = data_fetcher.get_workflow_disk_usage(workflow, {"summarize": True})[
+        "disk_usage_info"
+    ][0]
     return disk_usage["size"]["raw"]
 
 
@@ -162,12 +168,12 @@ def _human_readable_to_raw(dim: str) -> int:
     raise ValueError(f'Unable to parse "{dim}"')
 
 
-def _is_file_in_workspace(workflow: str, access_token: str, filename: str) -> bool:
+def _is_file_in_workspace(workflow: str, filename: str, data_fetcher) -> bool:
     """Check whether a file is in the workspace of the workflow."""
     parameters = {"summarize": False}
-    disk_usage_info = data_fetcher.get_workflow_disk_usage(
-        workflow, parameters, access_token
-    )["disk_usage_info"]
+    disk_usage_info = data_fetcher.get_workflow_disk_usage(workflow, parameters)[
+        "disk_usage_info"
+    ]
     workflow_files = [file["name"] for file in disk_usage_info]
     # When checking, try to add a trailing slash, in case the user forgot it
     return filename in workflow_files or f"/{filename}" in workflow_files
@@ -204,8 +210,8 @@ def _remove_prefixes(string: str, prefixes: List[str]) -> str:
     return string
 
 
-def _job_logs_contain(workflow, access_token, content):
-    log_data = data_fetcher.get_workflow_logs(workflow, access_token)["logs"]
+def _job_logs_contain(workflow, content, data_fetcher):
+    log_data = data_fetcher.get_workflow_logs(workflow)["logs"]
     job_logs = json.loads(log_data)["job_logs"]
     for step_info in job_logs.values():
         if content in step_info["logs"]:
@@ -213,8 +219,8 @@ def _job_logs_contain(workflow, access_token, content):
     return False
 
 
-def _engine_logs_contain(workflow, access_token, content):
-    log_data = data_fetcher.get_workflow_logs(workflow, access_token)["logs"]
+def _engine_logs_contain(workflow, content, data_fetcher):
+    log_data = data_fetcher.get_workflow_logs(workflow)["logs"]
     engine_log = (json.loads(log_data)["workflow_logs"] or "") + (
         json.loads(log_data)["engine_specific"] or ""
     )
@@ -222,7 +228,7 @@ def _engine_logs_contain(workflow, access_token, content):
 
 
 @when("the workflow execution completes")
-def _check_workflow_finished(workflow, access_token):
+def _check_workflow_finished(workflow, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -233,8 +239,7 @@ def _check_workflow_finished(workflow, access_token):
     The tests in this scenario will run only if the workflow has completed its execution (regardless of whether
     the execution was successful or not).
     """
-    response = data_fetcher.get_workflow_status(workflow, access_token)
-    print(response["status"])
+    response = data_fetcher.get_workflow_status(workflow)
     if response["status"] not in [
         "finished",
         "failed",
@@ -246,7 +251,7 @@ def _check_workflow_finished(workflow, access_token):
 
 @when("the workflow is {status_workflow}")
 @when("the workflow status is {status_workflow}")
-def _check_workflow_status(workflow, access_token, status_workflow):
+def _check_workflow_status(workflow, status_workflow, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -259,7 +264,7 @@ def _check_workflow_status(workflow, access_token, status_workflow):
     The tests in this scenario will run only if the workflow is in the specified status.
     """
     status_workflow = _strip_quotes(status_workflow)
-    response = data_fetcher.get_workflow_status(workflow, access_token)
+    response = data_fetcher.get_workflow_status(workflow)
     if response["status"] != status_workflow:
         raise StepSkipped(
             f"The workflow {workflow} is not in {status_workflow} status. Its status is '{response['status']}'."
@@ -268,7 +273,7 @@ def _check_workflow_status(workflow, access_token, status_workflow):
 
 @then("the workflow should be {status_workflow}")
 @then("the workflow status should be {status_workflow}")
-def _test_workflow_status(workflow, access_token, status_workflow):
+def _test_workflow_status(workflow, status_workflow, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -282,7 +287,7 @@ def _test_workflow_status(workflow, access_token, status_workflow):
     This test will pass only if the workflow is in the specified status.
     """
     status_workflow = _strip_quotes(status_workflow)
-    response = data_fetcher.get_workflow_status(workflow, access_token)
+    response = data_fetcher.get_workflow_status(workflow)
     assert (
         response["status"] == status_workflow
     ), f"The workflow {workflow} is not in status '{status_workflow}'. Its status is {response['status']}."
@@ -290,7 +295,7 @@ def _test_workflow_status(workflow, access_token, status_workflow):
 
 @then("the outputs should be included in the workspace")
 @then("all the outputs should be included in the workspace")
-def workspace_include_all_outputs(workflow, access_token):
+def workspace_include_all_outputs(workflow, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -302,21 +307,21 @@ def workspace_include_all_outputs(workflow, access_token):
     This test will pass only if the workspace contains all the files and directories
     specified under the "output" section of the REANA specification file.
     """
-    specs = data_fetcher.get_workflow_specification(workflow, access_token)
+    specs = data_fetcher.get_workflow_specification(workflow)
     spec_outputs = specs.get("specification", {}).get("outputs", {})
     outputs = (
         spec_outputs.get("files", []) or [] + spec_outputs.get("directories", []) or []
     )
     for filename in outputs:
         assert (
-            _is_file_in_workspace(workflow, access_token, filename) is True
+            _is_file_in_workspace(workflow, filename, data_fetcher) is True
         ), f"The workspace does not contain {filename}!"
 
 
 @then('the workspace should include "{filename}"')
 @then('the workspace should contain "{filename}"')
 @then("{filename} should be in the workspace")
-def workspace_include_specific_file(workflow, access_token, filename):
+def workspace_include_specific_file(workflow, filename, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -331,14 +336,14 @@ def workspace_include_specific_file(workflow, access_token, filename):
     This test will pass only if the workspace contains ``{filename}``.
     """
     assert (
-        _is_file_in_workspace(workflow, access_token, filename) is True
+        _is_file_in_workspace(workflow, filename, data_fetcher) is True
     ), f"The workspace does not contain {filename}!"
 
 
 @then("the workspace should not include {filename}")
 @then("the workspace should not contain {filename}")
 @then("{filename} should not be in the workspace")
-def workspace_do_not_include_specific_file(workflow, access_token, filename):
+def workspace_do_not_include_specific_file(workflow, filename, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -353,12 +358,12 @@ def workspace_do_not_include_specific_file(workflow, access_token, filename):
     This test will pass only if the workspace does not contain ``{filename}``.
     """
     assert (
-        _is_file_in_workspace(workflow, access_token, filename) is False
+        _is_file_in_workspace(workflow, filename, data_fetcher) is False
     ), f"The workspace contains {filename}!"
 
 
 @then('the logs should contain "{content}"')
-def logs_contain(workflow, access_token, content):
+def logs_contain(workflow, content, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -371,13 +376,13 @@ def logs_contain(workflow, access_token, content):
 
     This test will pass only if the logs (either engine or job logs) contain ``{content}``.
     """
-    assert _engine_logs_contain(workflow, access_token, content) or _job_logs_contain(
-        workflow, access_token, content
+    assert _engine_logs_contain(workflow, content, data_fetcher) or _job_logs_contain(
+        workflow, content, data_fetcher
     ), f"The logs do not contain {content}!"
 
 
 @then('the engine logs should contain "{content}"')
-def logs_engine_contain(workflow, access_token, content):
+def logs_engine_contain(workflow, content, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -391,12 +396,12 @@ def logs_engine_contain(workflow, access_token, content):
     This test will pass only if the engine logs contain ``{content}``.
     """
     assert _engine_logs_contain(
-        workflow, access_token, content
+        workflow, content, data_fetcher
     ), f"The engine logs do not contain {content}!"
 
 
 @then('the job logs should contain "{content}"')
-def logs_job_contain(workflow, access_token, content):
+def logs_job_contain(workflow, content, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -410,13 +415,13 @@ def logs_job_contain(workflow, access_token, content):
     This test will pass only if the job logs contain ``{content}``.
     """
     assert _job_logs_contain(
-        workflow, access_token, content
+        workflow, content, data_fetcher
     ), f"The job logs do not contain {content}!"
 
 
 @then('the job logs for the step {step_name} should contain "{content}"')
 @then('the job logs for the {step_name} step should contain "{content}"')
-def logs_step_contain(workflow, access_token, step_name, content):
+def logs_step_contain(workflow, step_name, content, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -432,12 +437,10 @@ def logs_step_contain(workflow, access_token, step_name, content):
     This test will pass only if the job logs relative to the step ``{step_name}`` contain ``{content}``.
     """
     step_name = _strip_quotes(step_name)
-    logs_contain(workflow, access_token, content)
+    logs_contain(workflow, content, data_fetcher)
     try:
         _, logs_for_step = json.loads(
-            data_fetcher.get_workflow_logs(workflow, access_token, steps=[step_name])[
-                "logs"
-            ]
+            data_fetcher.get_workflow_logs(workflow, steps=[step_name])["logs"]
         )["job_logs"].popitem()
     except KeyError:
         # The dictionary is empty, thus the step name is invalid
@@ -449,7 +452,7 @@ def logs_step_contain(workflow, access_token, step_name, content):
 
 @then('the file {filename} should include "{content}"')
 @then('the file {filename} should contain "{content}"')
-def file_content_contain(workflow, access_token, filename, content):
+def file_content_contain(workflow, filename, content, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -469,7 +472,7 @@ def file_content_contain(workflow, access_token, filename, content):
     if not filename.startswith("/"):
         filename = f"/{filename}"  # Add leading slash if needed
     (file_content, file_name, is_archive) = data_fetcher.download_file(
-        workflow, filename, access_token
+        workflow, filename
     )
     if is_archive:
         raise StepSkipped("This test is not supported for archive files.")
@@ -479,7 +482,7 @@ def file_content_contain(workflow, access_token, filename, content):
 
 
 @then("the {algorithm} checksum of the file {filename} should be {checksum}")
-def file_checksum(workflow, access_token, algorithm, filename, checksum):
+def file_checksum(workflow, algorithm, filename, checksum, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -503,7 +506,7 @@ def file_checksum(workflow, access_token, algorithm, filename, checksum):
             f"The specified checksum algorithm is not supported! Supported algorithms: {supported_algorithms}"
         )
     (file_content, file_name, is_archive) = data_fetcher.download_file(
-        workflow, filename, access_token
+        workflow, filename
     )
     # Checksum the file content
     if algorithm.lower() == "adler32":
@@ -520,7 +523,7 @@ def file_checksum(workflow, access_token, algorithm, filename, checksum):
 
 
 @then("the workflow run duration should be less than {n_minutes} minutes")
-def duration_minimum_workflow(workflow, access_token, n_minutes):
+def duration_minimum_workflow(workflow, n_minutes, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -533,7 +536,7 @@ def duration_minimum_workflow(workflow, access_token, n_minutes):
     This test will pass only if the analysis run took less than ``{n_minutes}`` minutes.
     """
     n_minutes = _strip_quotes(n_minutes)
-    status = data_fetcher.get_workflow_status(workflow, access_token)
+    status = data_fetcher.get_workflow_status(workflow)
     run_finished_at = datetime.strptime(
         status["progress"]["run_finished_at"], DATETIME_FORMAT
     )
@@ -547,7 +550,7 @@ def duration_minimum_workflow(workflow, access_token, n_minutes):
 
 
 @then("the duration of the step {step_name} should be less than {n_minutes} minutes")
-def duration_minimum_step(workflow, access_token, step_name, n_minutes):
+def duration_minimum_step(workflow, step_name, n_minutes, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -564,15 +567,11 @@ def duration_minimum_step(workflow, access_token, step_name, n_minutes):
     step_name = _strip_quotes(step_name)
     n_minutes = _strip_quotes(n_minutes)
     _, logs_for_step = json.loads(
-        data_fetcher.get_workflow_logs(workflow, access_token, steps=[step_name])[
-            "logs"
-        ]
+        data_fetcher.get_workflow_logs(workflow, steps=[step_name])["logs"]
     )["job_logs"].popitem()
     try:
         _, logs_for_step = json.loads(
-            data_fetcher.get_workflow_logs(workflow, access_token, steps=[step_name])[
-                "logs"
-            ]
+            data_fetcher.get_workflow_logs(workflow, steps=[step_name])["logs"]
         )["job_logs"].popitem()
     except KeyError:
         # The dictionary is empty, thus the step name is invalid
@@ -588,7 +587,7 @@ def duration_minimum_step(workflow, access_token, step_name, n_minutes):
 
 
 @then("the size of the file {filename} should be exactly {dim}")
-def exact_file_size(workflow, access_token, filename, dim):
+def exact_file_size(workflow, filename, dim, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -604,14 +603,14 @@ def exact_file_size(workflow, access_token, filename, dim):
     """
     dim = _human_readable_to_raw(_strip_quotes(dim))
     filename = _remove_prefixes(_strip_quotes(filename), ["./", "/"])
-    file_size_dict = _get_single_file_size(workflow, access_token, filename)
+    file_size_dict = _get_single_file_size(workflow, filename, data_fetcher)
     assert (
         file_size_dict["raw"] == dim
     ), f"The size of the file {filename} is not {dim}! Actual size: {file_size_dict['raw']} bytes ({file_size_dict['human_readable']})"
 
 
 @then("the size of the file {filename} should be between {dim1} and {dim2}")
-def approximate_file_size(workflow, access_token, filename, dim1, dim2):
+def approximate_file_size(workflow, filename, dim1, dim2, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -633,14 +632,14 @@ def approximate_file_size(workflow, access_token, filename, dim1, dim2):
     if dim1_raw > dim2_raw:
         dim1_raw, dim2_raw = dim2_raw, dim1_raw
     filename = _remove_prefixes(_strip_quotes(filename), ["./", "/"])
-    file_size_dict = _get_single_file_size(workflow, access_token, filename)
+    file_size_dict = _get_single_file_size(workflow, filename, data_fetcher)
     assert (
         dim1_raw <= file_size_dict["raw"] <= dim2_raw
     ), f"The size of the file {filename} is not between {dim1} and {dim2} bytes! Actual size: {file_size_dict['raw']} bytes ({file_size_dict['human_readable']})."
 
 
 @then("the workspace size should be less than {dim}")
-def workspace_size_maximum(workflow, access_token, dim):
+def workspace_size_maximum(workflow, dim, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -653,14 +652,14 @@ def workspace_size_maximum(workflow, access_token, dim):
     This test will pass only if the total size of the workspace is less than ``{dim}``.
     """
     dim_raw = _human_readable_to_raw(_strip_quotes(dim))
-    workspace_dim = _get_total_workspace_size(workflow, access_token)
+    workspace_dim = _get_total_workspace_size(workflow, data_fetcher)
     assert (
         workspace_dim <= dim_raw
     ), f"The workspace size is more than {dim}! Workspace size: {workspace_dim} bytes"
 
 
 @then("the workspace size should be more than {dim}")
-def workspace_size_minimum(workflow, access_token, dim):
+def workspace_size_minimum(workflow, dim, data_fetcher):
     """
     .. container:: testcase-title.
 
@@ -673,7 +672,7 @@ def workspace_size_minimum(workflow, access_token, dim):
     This test will pass only if the total size of the workspace is more than ``{dim}``.
     """
     dim_raw = _human_readable_to_raw(_strip_quotes(dim))
-    workspace_dim = _get_total_workspace_size(workflow, access_token)
+    workspace_dim = _get_total_workspace_size(workflow, data_fetcher)
     assert (
         workspace_dim >= dim_raw
     ), f"The workspace size is less than {dim}! Workspace size: {workspace_dim} bytes"
