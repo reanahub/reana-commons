@@ -38,11 +38,15 @@ extras_require = {
     ],
     "cwl": ["cwltool==3.1.20210628163208"],
     "snakemake": [
-        "snakemake==7.32.4",
+        # install patched version of snakemake v7 that works with Python 3.12
+        # see https://github.com/snakemake/snakemake/issues/2480
+        # see https://github.com/snakemake/snakemake/issues/2648
+        # see https://github.com/snakemake/snakemake/issues/2657
+        "snakemake @ git+https://github.com/mdonadoni/snakemake.git@cea31624976989ad0645eb2e1751260d32259506",  # branch `7.32.4-python3.12`
         "pulp>=2.7.0,<2.8.0",
     ],
     "snakemake-reports": [
-        "snakemake[reports]==7.32.4",
+        "snakemake[reports] @ git+https://github.com/mdonadoni/snakemake.git@cea31624976989ad0645eb2e1751260d32259506",  # branch `7.32.4-python3.12`
         "pulp>=2.7.0,<2.8.0",
     ],
 }
