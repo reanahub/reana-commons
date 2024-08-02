@@ -57,7 +57,7 @@ def test_workflow_execution_completes(
         mock_data_fetcher,
     )
     for scenario in test_results:
-        assert scenario["result"] == expected_tests_result
+        assert scenario.result == expected_tests_result
 
 
 def test_log_content(mock_data_fetcher):
@@ -70,7 +70,7 @@ def test_log_content(mock_data_fetcher):
         "run-id", feature_file_path, "test-workflow", mock_data_fetcher
     )
     for scenario in test_results:
-        assert scenario["result"] in (
+        assert scenario.result in (
             AnalysisTestStatus.passed,
             AnalysisTestStatus.skipped,
         )
@@ -88,7 +88,7 @@ def test_workflow_duration(mock_data_fetcher):
         mock_data_fetcher,
     )
     for scenario in test_results:
-        assert scenario["result"] in (
+        assert scenario.result in (
             AnalysisTestStatus.passed,
             AnalysisTestStatus.skipped,
         )
@@ -119,7 +119,7 @@ def test_workspace_content(mock_data_fetcher):
     )
 
     for scenario in test_results:
-        assert scenario["result"] in (
+        assert scenario.result in (
             AnalysisTestStatus.passed,
             AnalysisTestStatus.skipped,
         )

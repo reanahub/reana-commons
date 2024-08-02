@@ -88,7 +88,7 @@ def test_run_tests(mock_data_fetcher):
     )
     # Assert that each of the test results has a status of "passed"
     for test_result in test_results:
-        assert test_result["result"] == AnalysisTestStatus.passed
+        assert test_result.result == AnalysisTestStatus.passed
 
 
 def test_run_tests_no_feature_file():
@@ -130,9 +130,9 @@ def test_test_result_fail(mock_data_fetcher):
         "test-workflow",
         mock_data_fetcher,
     )
-    assert test_results[0]["result"] == AnalysisTestStatus.passed
-    assert test_results[1]["result"] == AnalysisTestStatus.failed
-    assert test_results[2]["result"] == AnalysisTestStatus.passed
+    assert test_results[0].result == AnalysisTestStatus.passed
+    assert test_results[1].result == AnalysisTestStatus.failed
+    assert test_results[2].result == AnalysisTestStatus.passed
 
 
 @pytest.mark.parametrize(
@@ -168,5 +168,5 @@ def test_test_expected_workflow_fail_not_skipped(
         mock_data_fetcher,
     )
     for scenario in test_results:
-        assert scenario["result"] == expected_tests_result
-        assert scenario["error_log"] == expected_error_log
+        assert scenario.result == expected_tests_result
+        assert scenario.error_log == expected_error_log

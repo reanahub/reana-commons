@@ -12,6 +12,7 @@ from typing import Dict, List, Tuple
 from gherkin.parser import Parser
 from gherkin.pickles.compiler import Compiler
 from parse import parse
+from dataclasses import dataclass
 from reana_commons.gherkin_parser.errors import (
     StepDefinitionNotFound,
     StepSkipped,
@@ -27,6 +28,19 @@ class AnalysisTestStatus(enum.Enum):
     passed = 0
     failed = 1
     skipped = 2
+
+
+@dataclass
+class TestResult:
+    """Dataclass for storing test results."""
+
+    scenario: str
+    failed_testcase: str
+    result: AnalysisTestStatus
+    error_log: str
+    analysis_run_id: str
+    feature: str
+    checked_at: datetime
 
 
 def _get_step_text(step: Dict) -> str:
@@ -167,7 +181,7 @@ def run_tests(
     feature_name: str,
     feature_file,
     step_mapping: Dict,
-) -> List[Dict]:
+) -> List[TestResult]:
     """Run all the tests in the parsed feature file.
 
     :param feature_name: The name of the feature inside the feature file.
@@ -205,15 +219,15 @@ def run_tests(
                     logging.error(f"Error log: {e}")
                     break
         test_results.append(
-            {
-                "scenario": scenario["name"],
-                "failed_testcase": failed_testcase,
-                "result": result,
-                "error_log": error_log,
-                "analysis_run_id": analysis_run_id,
-                "feature": feature_name,
-                "checked_at": datetime.now(),
-            }
+            TestResult(
+                scenario=scenario["name"],
+                failed_testcase=failed_testcase,
+                result=result,
+                error_log=error_log,
+                analysis_run_id=analysis_run_id,
+                feature=feature_name,
+                checked_at=datetime.now(),
+            )
         )
         if result == AnalysisTestStatus.passed:
             logging.info(f"Scenario `{scenario['name']}` passed!")
