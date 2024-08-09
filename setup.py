@@ -74,6 +74,8 @@ install_requires = [
     "PyYAML>=5.1,<7.0",
     "Werkzeug>=0.14.1",
     "wcmatch>=8.3,<8.5",
+    "gherkin-official>=24.1.0",
+    "parse>=1.19.0",
 ]
 
 packages = find_packages()
