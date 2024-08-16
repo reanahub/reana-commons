@@ -2,15 +2,11 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.9.1a3"
+    "version": "0.95.0a1"
   },
   "paths": {
     "/account/settings/linkedaccounts/": {},
     "/account/settings/linkedaccounts/static/{filename}": {},
-    "/account/settings/login": {},
-    "/account/settings/security/": {},
-    "/account/settings/sessions/revoke/": {},
-    "/account/settings/static/{filename}": {},
     "/api/config": {
       "get": {
         "description": "This resource provides configuration needed by Reana-UI.",
@@ -148,12 +144,87 @@
       "get": {
         "description": "Retrieve projects from GitLab.",
         "operationId": "gitlab_projects",
+        "parameters": [
+          {
+            "description": "The API access_token of the current user.",
+            "in": "query",
+            "name": "access_token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "The search string to filter the project list.",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Results page number (pagination).",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Number of results per page (pagination).",
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "type": "integer"
+          }
+        ],
         "produces": [
           "application/json"
         ],
         "responses": {
           "200": {
-            "description": "This resource return all projects owned by the user on GitLab in JSON format."
+            "description": "This resource return all projects owned by the user on GitLab in JSON format.",
+            "schema": {
+              "properties": {
+                "has_next": {
+                  "type": "boolean"
+                },
+                "has_prev": {
+                  "type": "boolean"
+                },
+                "items": {
+                  "items": {
+                    "properties": {
+                      "hook_id": {
+                        "type": "integer",
+                        "x-nullable": true
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "page": {
+                  "type": "integer"
+                },
+                "size": {
+                  "type": "integer"
+                },
+                "total": {
+                  "type": "integer",
+                  "x-nullable": true
+                }
+              },
+              "type": "object"
+            }
           },
           "403": {
             "description": "Request failed. User token not valid.",
@@ -1240,6 +1311,52 @@
           }
         },
         "summary": "Requests a new access token for the authenticated user."
+      }
+    },
+    "/api/validation": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "description": "Validate reana yaml in the server.",
+        "operationId": "validate_workflow",
+        "parameters": [
+          {
+            "description": "The yaml file to create the workflow.",
+            "in": "body",
+            "name": "reana_yaml",
+            "required": false,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Get reana yaml validation results.",
+            "examples": {
+              "application/json": {
+                "message": "OK",
+                "status": 200
+              }
+            },
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "object"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Validate reana yaml in the server"
       }
     },
     "/api/workflows": {
@@ -4468,6 +4585,7 @@
     "/oauth/disconnect/{remote_app}/": {},
     "/oauth/login": {},
     "/oauth/login/{remote_app}/": {},
+    "/oauth/logout": {},
     "/oauth/signup/{remote_app}/": {},
     "/oauth/static/{filename}": {},
     "/signin": {},
