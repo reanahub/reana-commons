@@ -2,15 +2,11 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.9.1"
+    "version": "0.95.0a1"
   },
   "paths": {
     "/account/settings/linkedaccounts/": {},
     "/account/settings/linkedaccounts/static/{filename}": {},
-    "/account/settings/login": {},
-    "/account/settings/security/": {},
-    "/account/settings/sessions/revoke/": {},
-    "/account/settings/static/{filename}": {},
     "/api/config": {
       "get": {
         "description": "This resource provides configuration needed by Reana-UI.",
@@ -148,12 +144,87 @@
       "get": {
         "description": "Retrieve projects from GitLab.",
         "operationId": "gitlab_projects",
+        "parameters": [
+          {
+            "description": "The API access_token of the current user.",
+            "in": "query",
+            "name": "access_token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "The search string to filter the project list.",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Results page number (pagination).",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Number of results per page (pagination).",
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "type": "integer"
+          }
+        ],
         "produces": [
           "application/json"
         ],
         "responses": {
           "200": {
-            "description": "This resource return all projects owned by the user on GitLab in JSON format."
+            "description": "This resource return all projects owned by the user on GitLab in JSON format.",
+            "schema": {
+              "properties": {
+                "has_next": {
+                  "type": "boolean"
+                },
+                "has_prev": {
+                  "type": "boolean"
+                },
+                "items": {
+                  "items": {
+                    "properties": {
+                      "hook_id": {
+                        "type": "integer",
+                        "x-nullable": true
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "page": {
+                  "type": "integer"
+                },
+                "size": {
+                  "type": "integer"
+                },
+                "total": {
+                  "type": "integer",
+                  "x-nullable": true
+                }
+              },
+              "type": "object"
+            }
           },
           "403": {
             "description": "Request failed. User token not valid.",
@@ -891,10 +962,6 @@
               "additionalProperties": {
                 "description": "Secret definition.",
                 "properties": {
-                  "name": {
-                    "description": "Secret name",
-                    "type": "string"
-                  },
                   "type": {
                     "description": "How will be the secret assigned to the jobs, either exported as an environment variable or mounted as a file.",
                     "enum": [
@@ -1265,9 +1332,7 @@
               "application/json": {
                 "users_shared_with_you": [
                   {
-                    "email": "john.doe@example.org",
-                    "full_name": "John Doe",
-                    "username": "jdoe"
+                    "email": "john.doe@example.org"
                   }
                 ]
               }
@@ -1278,12 +1343,6 @@
                   "items": {
                     "properties": {
                       "email": {
-                        "type": "string"
-                      },
-                      "full_name": {
-                        "type": "string"
-                      },
-                      "username": {
                         "type": "string"
                       }
                     },
@@ -1370,9 +1429,7 @@
               "application/json": {
                 "users_you_shared_with": [
                   {
-                    "email": "john.doe@example.org",
-                    "full_name": "John Doe",
-                    "username": "jdoe"
+                    "email": "john.doe@example.org"
                   }
                 ]
               }
@@ -1383,12 +1440,6 @@
                   "items": {
                     "properties": {
                       "email": {
-                        "type": "string"
-                      },
-                      "full_name": {
-                        "type": "string"
-                      },
-                      "username": {
                         "type": "string"
                       }
                     },
@@ -1543,14 +1594,14 @@
             "type": "boolean"
           },
           {
-            "description": "Optional argument to list workflows shared by the specified user(s).",
+            "description": "Optional argument to list workflows shared by the specified user.",
             "in": "query",
             "name": "shared_by",
             "required": false,
             "type": "string"
           },
           {
-            "description": "Optional argument to list workflows shared with the specified user(s).",
+            "description": "Optional argument to list workflows shared with the specified user.",
             "in": "query",
             "name": "shared_with",
             "required": false,
@@ -1723,7 +1774,10 @@
                         "type": "string"
                       },
                       "shared_with": {
-                        "type": "string"
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
                       },
                       "size": {
                         "properties": {
@@ -3229,25 +3283,30 @@
             "type": "string"
           },
           {
-            "description": "Required. User to share the workflow with.",
-            "in": "query",
-            "name": "user_email_to_share_with",
+            "description": "JSON object with details of the share.",
+            "in": "body",
+            "name": "share_details",
             "required": true,
-            "type": "string"
-          },
-          {
-            "description": "Optional. Message to include when sharing the workflow.",
-            "in": "query",
-            "name": "message",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "description": "Optional. Date when access to the workflow will expire (format YYYY-MM-DD).",
-            "in": "query",
-            "name": "valid_until",
-            "required": false,
-            "type": "string"
+            "schema": {
+              "properties": {
+                "message": {
+                  "description": "Optional. Message to include when sharing the workflow.",
+                  "type": "string"
+                },
+                "user_email_to_share_with": {
+                  "description": "User to share the workflow with.",
+                  "type": "string"
+                },
+                "valid_until": {
+                  "description": "Optional. Date when access to the workflow will expire (format YYYY-MM-DD).",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_email_to_share_with"
+              ],
+              "type": "object"
+            }
           }
         ],
         "produces": [
@@ -3279,23 +3338,25 @@
             }
           },
           "400": {
-            "description": "Request failed. The incoming data specification seems malformed.",
+            "description": "Request failed. The incoming data seems malformed.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Request failed. User not signed in.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "Missing data for required field."
-                ],
-                "message": "Malformed request."
+                "message": "User not signed in."
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -3304,12 +3365,10 @@
             }
           },
           "403": {
-            "description": "Request failed. User is not allowed to share the workflow.",
+            "description": "Request failed. Credentials are invalid or revoked.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "User is not allowed to share the workflow."
-                ]
+                "message": "Token not valid."
               }
             },
             "schema": {
@@ -3325,20 +3384,11 @@
             "description": "Request failed. Workflow does not exist or user does not exist.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "Workflow cdcf48b1-c2f3-4693-8230-b066e088c6ac does not exist"
-                ],
                 "message": "Workflow cdcf48b1-c2f3-4693-8230-b066e088c6ac does not exist"
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -3350,20 +3400,11 @@
             "description": "Request failed. The workflow is already shared with the user.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "The workflow is already shared with the user."
-                ],
                 "message": "The workflow is already shared with the user."
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -3375,20 +3416,11 @@
             "description": "Request failed. Internal controller error.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "Internal controller error."
-                ],
                 "message": "Internal controller error."
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -4384,20 +4416,11 @@
             "description": "Request failed. The incoming data specification seems malformed.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "Missing data for required field."
-                ],
                 "message": "Malformed request."
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -4409,19 +4432,11 @@
             "description": "Request failed. User is not allowed to unshare the workflow.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "User is not allowed to unshare the workflow."
-                ]
+                "message": "User is not allowed to unshare the workflow."
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -4433,20 +4448,11 @@
             "description": "Request failed. Workflow does not exist or user does not exist.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "Workflow cdcf48b1-c2f3-4693-8230-b066e088c6ac does not exist"
-                ],
                 "message": "Workflow cdcf48b1-c2f3-4693-8230-b066e088c6ac does not exist"
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -4458,20 +4464,11 @@
             "description": "Request failed. The workflow is not shared with the user.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "The workflow is not shared with the user."
-                ],
                 "message": "The workflow is not shared with the user."
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -4483,20 +4480,11 @@
             "description": "Request failed. Internal controller error.",
             "examples": {
               "application/json": {
-                "errors": [
-                  "Internal controller error."
-                ],
                 "message": "Internal controller error."
               }
             },
             "schema": {
               "properties": {
-                "errors": {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
                 "message": {
                   "type": "string"
                 }
@@ -5212,6 +5200,7 @@
     "/oauth/disconnect/{remote_app}/": {},
     "/oauth/login": {},
     "/oauth/login/{remote_app}/": {},
+    "/oauth/logout": {},
     "/oauth/signup/{remote_app}/": {},
     "/oauth/static/{filename}": {},
     "/signin": {},
