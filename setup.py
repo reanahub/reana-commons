@@ -49,6 +49,9 @@ extras_require = {
         "snakemake[reports] @ git+https://github.com/mdonadoni/snakemake.git@cea31624976989ad0645eb2e1751260d32259506",  # branch `7.32.4-python3.12`
         "pulp>=2.7.0,<2.8.0",
     ],
+    "redis-cache": [
+        "python-redis-cache>=4.0.0,<4.1.0",
+    ],
 }
 
 # backwards compatibility with extras before PEP 685

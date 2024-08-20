@@ -499,3 +499,6 @@ KRB5_CONFIGMAP_NAME = os.getenv(
     "REANA_KRB5_CONFIGMAP_NAME", f"{REANA_COMPONENT_PREFIX}-krb5-conf"
 )
 """Kerberos configMap name."""
+
+REDIS_CACHE_PORT = 6379
+"""Redis cache port."""
