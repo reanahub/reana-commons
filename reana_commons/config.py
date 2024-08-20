@@ -99,12 +99,17 @@ REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE = os.getenv(
 """Kubernetes namespace in which REANA infrastructure is currently deployed."""
 
 REANA_INFRASTRUCTURE_COMPONENTS_HOSTNAMES = {
+    KUBERNETES_SERVICE_DNS_DOMAIN = os.getenv(
+    "KUBERNETES_SERVICE_DNS_DOMAIN", "cluster.local"
+    )
+"""Kubernetes service DNS domain"""
     component_name: (
-        "{component_prefix}-{component_name}.{namespace}.svc.cluster.local"
+        "{component_prefix}-{component_name}.{namespace}.svc.{service_dns_domain}"
     ).format(
         component_prefix=REANA_COMPONENT_PREFIX,
         component_name=component_name,
         namespace=REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE,
+        service_dns_domain=KUBERNETES_SERVICE_DNS_DOMAIN,
     )
     for component_name in REANA_INFRASTRUCTURE_COMPONENTS
 }
