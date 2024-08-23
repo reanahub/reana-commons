@@ -1354,6 +1354,26 @@
               },
               "type": "object"
             }
+          },
+          "400": {
+            "description": "Error validating reana yaml",
+            "examples": {
+              "application/json": {
+                "message": "Invalid REANA specification: None is not of type 'object'.",
+                "status": 400
+              }
+            },
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
           }
         },
         "summary": "Validate reana yaml in the server"
