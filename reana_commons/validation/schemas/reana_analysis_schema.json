@@ -108,6 +108,27 @@
               "$id": "/properties/workflow/properties/resources/properties/kerberos",
               "type": "boolean",
               "title": "Kerberos authentication for the whole workflow."
+            },
+            "dask": {
+              "$id": "/properties/workflow/properties/resources/properties/dask",
+              "type": "object",
+              "title": "Information about Dask cluster requested for the analysis.",
+              "properties": {
+                "image": {
+                  "type": "string",
+                  "description": "Container image to be used by Dask scheduler and workers."
+                },
+                "number_of_workers": {
+                  "type": "number",
+                  "description": "Requested number of Dask workers."
+                },
+                "single_worker_memory": {
+                  "type": "string",
+                  "description": "Requested memory for one Dask worker.",
+                  "pattern": "^[1-9][0-9]*(Ei|Pi|Ti|Gi|Mi|Ki|E|P|T|G|M|K)$"
+                }
+              },
+              "required": ["image"]
             }
           },
           "additionalProperties": false
