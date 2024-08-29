@@ -108,6 +108,24 @@
               "$id": "/properties/workflow/properties/resources/properties/kerberos",
               "type": "boolean",
               "title": "Kerberos authentication for the whole workflow."
+            },
+            "dask": {
+              "$id": "/properties/workflow/properties/resources/properties/dask",
+              "type": "object",
+              "title": "Dask cluster to be used by the workflow",
+              "properties": {
+                "image": {
+                  "type": "string"
+                },
+                "cores": {
+                  "type": "number"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]*[EPTGMK]$"
+                }
+              },
+              "required": ["image", "cores", "memory"]
             }
           },
           "additionalProperties": false
