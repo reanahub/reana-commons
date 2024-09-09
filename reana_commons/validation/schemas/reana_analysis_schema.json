@@ -115,13 +115,16 @@
               "title": "Dask cluster to be used by the workflow",
               "properties": {
                 "image": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Image to be used by dask workers and scheduler"
                 },
                 "cores": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Number of cores to be used by the workflow. If not needed, autoscaler can choose to use fewer cores."
                 },
                 "memory": {
                   "type": "string",
+                  "description": "Amount of memory to be used by the workflow. If not needed, autoscaler can choose to use less memory.",
                   "pattern": "^[1-9][0-9]*[EPTGMK]$"
                 }
               },
