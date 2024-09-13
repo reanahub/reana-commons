@@ -125,10 +125,19 @@
                 "memory": {
                   "type": "string",
                   "description": "Amount of memory to be used by the workflow. If not needed, autoscaler can choose to use less memory.",
-                  "pattern": "^[1-9][0-9]*[EPTGMK]$"
+                  "pattern": "^[1-9][0-9]*(Ei|Pi|Ti|Gi|Mi|Ki|E|P|T|G|M|K)$"
+                },
+                "single_worker_cores": {
+                  "type": "number",
+                  "description": "Cores for one dask worker."
+                },
+                "single_worker_memory": {
+                  "type": "string",
+                  "description": "Memory for one dask worker.",
+                  "pattern": "^[1-9][0-9]*(Ei|Pi|Ti|Gi|Mi|Ki|E|P|T|G|M|K)$"
                 }
               },
-              "required": ["image", "cores", "memory"]
+              "required": ["image"]
             }
           },
           "additionalProperties": false
