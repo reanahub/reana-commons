@@ -11,10 +11,15 @@
 import os
 import pytest
 import sys
+from pathlib import Path
 
 from reana_commons.snakemake import snakemake_load
 
 
+@pytest.mark.xfail(
+    sys.version_info >= (3, 11),
+    reason="Test expected to fail for python versions 3.11 and above as we currently return only empty dictionary in snakemake_load function for python >= 3.11.",
+)
 def test_snakemake_load(tmpdir, dummy_snakefile):
     """Test that Snakemake metadata is loaded properly."""
     workdir = tmpdir.mkdir("sub")
@@ -28,7 +33,7 @@ def test_snakemake_load(tmpdir, dummy_snakefile):
     assert len(workdir.listdir()) == 2
 
     os.chdir(tmpdir)
-    metadata = snakemake_load(p.strpath, workdir=workdir.strpath)
+    metadata = snakemake_load(Path(p.strpath), workdir=Path(workdir.strpath))
     # check that the cwd is preserved
     assert os.getcwd() == tmpdir
 

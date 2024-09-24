@@ -124,7 +124,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config
+          sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config uuid-dev
 
       - name: Install system dependencies
         run: |
@@ -157,7 +157,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config
+          sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config uuid-dev
 
       - name: Install Python dependencies
         run: |
