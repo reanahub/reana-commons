@@ -38,10 +38,14 @@ extras_require = {
     ],
     "cwl": ["cwltool==3.1.20210628163208"],
     "snakemake": [
-        "snakemake==8.20.5",
-        "snakemake-interface-common==1.17.3",
-        "snakemake-interface-executor-plugins==9.2.0",
-        "snakemake-interface-report-plugins==1.0.0",
+        "snakemake==8.23.0",
+        "snakemake-interface-common==1.17.4",
+        "snakemake-interface-executor-plugins==9.3.2",
+        "snakemake-interface-storage-plugins==3.3.0",
+        "snakemake-interface-report-plugins==1.1.0",
+    ],
+    "snakemake-xrootd": [
+        "snakemake-storage-plugin-xrootd==0.1.4",
     ],
 }
 
