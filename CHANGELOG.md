@@ -1,5 +1,58 @@
 # Changelog
 
+## [0.95.0](https://github.com/reanahub/reana-commons/compare/0.9.8...0.95.0) (2024-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **python:** drop support for Python 3.6 and 3.7
+
+### Build
+
+* **python:** add minimal `pyproject.toml` ([#466](https://github.com/reanahub/reana-commons/issues/466)) ([9468850](https://github.com/reanahub/reana-commons/commit/94688500bf2d46fb61d165e649b127df6b827ab7))
+* **python:** add support for Python 3.13 ([#472](https://github.com/reanahub/reana-commons/issues/472)) ([563f8c8](https://github.com/reanahub/reana-commons/commit/563f8c868c8c0f88bc78d781060ef6d75cdd8006))
+* **python:** drop support for Python 3.6 and 3.7 ([#453](https://github.com/reanahub/reana-commons/issues/453)) ([85cca11](https://github.com/reanahub/reana-commons/commit/85cca11e6d110a99b8d4b05ee936d90731238f67))
+* **python:** install snakemake compatible with Python 3.12 ([#465](https://github.com/reanahub/reana-commons/issues/465)) ([9c88f7c](https://github.com/reanahub/reana-commons/commit/9c88f7cd33ac87dff36c42ba07b0d6030c68af38))
+* **python:** remove deprecated `pytest-runner` ([#466](https://github.com/reanahub/reana-commons/issues/466)) ([e406a59](https://github.com/reanahub/reana-commons/commit/e406a59f1be817d8c570238c58eecabaae01fc16))
+* **python:** upgrade yadage dependencies ([#462](https://github.com/reanahub/reana-commons/issues/462)) ([2d2f631](https://github.com/reanahub/reana-commons/commit/2d2f6311e4821f11341d9d302ed8d74b035a15dd))
+* **python:** use optional deps instead of `tests_require` ([#466](https://github.com/reanahub/reana-commons/issues/466)) ([6952b62](https://github.com/reanahub/reana-commons/commit/6952b62d7086518edd2befa98cd421a42bb8242a))
+
+
+### Features
+
+* **gherkin:** add gherkin parser for workflow testing ([#464](https://github.com/reanahub/reana-commons/issues/464)) ([cf38a92](https://github.com/reanahub/reana-commons/commit/cf38a92f28df3a28816adb5fade86e3c78051b11)), closes [#463](https://github.com/reanahub/reana-commons/issues/463)
+* **openapi:** add endpoint to fetch workflow share status ([#429](https://github.com/reanahub/reana-commons/issues/429)) ([6370815](https://github.com/reanahub/reana-commons/commit/637081531da4ba7993c402362b006f15688287e5))
+* **openapi:** add endpoint to share workflows ([#429](https://github.com/reanahub/reana-commons/issues/429)) ([b7a3476](https://github.com/reanahub/reana-commons/commit/b7a3476ef51899c5e4f0524d3926960afca57bfa))
+* **openapi:** add endpoint to unshare workflows ([#429](https://github.com/reanahub/reana-commons/issues/429)) ([2ec60cc](https://github.com/reanahub/reana-commons/commit/2ec60cc4c92006855db86173d749a65eb8d39e32))
+* **openapi:** add endpoints to fetch sharing users ([#429](https://github.com/reanahub/reana-commons/issues/429)) ([761a898](https://github.com/reanahub/reana-commons/commit/761a8982e21b9836a726f76cca55dd98f881de27))
+* **openapi:** add share-related parameters to `get_workflows` ([#429](https://github.com/reanahub/reana-commons/issues/429)) ([d4c0358](https://github.com/reanahub/reana-commons/commit/d4c03586ce55e4b24b9325fe2b1c353bf3d71684))
+* **openapi:** update workflow sharing specs after changes ([#429](https://github.com/reanahub/reana-commons/issues/429)) ([3f08c0a](https://github.com/reanahub/reana-commons/commit/3f08c0ad4b403d51264f3973285c03209d04ea33))
+
+
+### Bug fixes
+
+* **kerberos:** stop ticket renewal when pod is terminated ([#454](https://github.com/reanahub/reana-commons/issues/454)) ([a7bcf7a](https://github.com/reanahub/reana-commons/commit/a7bcf7a655dad59478f6fb0a332b9ce348539e63))
+
+
+### Performance improvements
+
+* **k8s:** avoid extraneous refetching of user secrets ([#456](https://github.com/reanahub/reana-commons/issues/456)) ([77d263e](https://github.com/reanahub/reana-commons/commit/77d263e4c5a86a74f93cd017794b85cb27d5921a)), closes [#455](https://github.com/reanahub/reana-commons/issues/455)
+* **kerberos:** stop ticket renewal as soon as possible ([#454](https://github.com/reanahub/reana-commons/issues/454)) ([08cbfa1](https://github.com/reanahub/reana-commons/commit/08cbfa16f08a4e814350791b5de40a40d34841b1))
+
+
+### Continuous integration
+
+* **actions:** update GitHub actions due to Node 16 deprecation ([#452](https://github.com/reanahub/reana-commons/issues/452)) ([ac2a01b](https://github.com/reanahub/reana-commons/commit/ac2a01b4162f5889837b7328eefb5d7908929ad9))
+* **actions:** upgrade to Ubuntu 24.04 and Python 3.12 ([#465](https://github.com/reanahub/reana-commons/issues/465)) ([6fa5566](https://github.com/reanahub/reana-commons/commit/6fa5566f0d778bca33acffe89d1c1af0d69a10e0))
+* **commitlint:** improve checking of merge commits ([#465](https://github.com/reanahub/reana-commons/issues/465)) ([273b72d](https://github.com/reanahub/reana-commons/commit/273b72df4edeeaa759f3153ce453285597f4681b))
+* **pytest:** invoke `pytest` directly instead of `setup.py test` ([#466](https://github.com/reanahub/reana-commons/issues/466)) ([ed6c468](https://github.com/reanahub/reana-commons/commit/ed6c4689c461c3831efbd60b83be807e16240392))
+* **tox:** fix collecting code coverage information ([#470](https://github.com/reanahub/reana-commons/issues/470)) ([ebf3695](https://github.com/reanahub/reana-commons/commit/ebf3695f2c641070ecec517e4ae316dfc3e807be))
+
+
+### Chores
+
+* **master:** release 0.95.0a1 ([024776f](https://github.com/reanahub/reana-commons/commit/024776f707e8573a19daa4eaf5b239e7dc1257f0))
+
 ## [0.9.8](https://github.com/reanahub/reana-commons/compare/0.9.7...0.9.8) (2024-03-01)
 
 
