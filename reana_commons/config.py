@@ -499,3 +499,6 @@ KRB5_CONFIGMAP_NAME = os.getenv(
     "REANA_KRB5_CONFIGMAP_NAME", f"{REANA_COMPONENT_PREFIX}-krb5-conf"
 )
 """Kerberos configMap name."""
+
+SNAKEMAKE_MAX_PARALLEL_JOBS = int(os.getenv("SNAKEMAKE_MAX_PARALLEL_JOBS", "300"))
+"""Snakemake maximum number of jobs that can run in parallel."""
