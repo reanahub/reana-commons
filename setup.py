@@ -41,10 +41,6 @@ extras_require = {
         "snakemake==7.32.4 ; python_version<'3.11'",
         "pulp>=2.7.0,<2.8.0 ; python_version<'3.11'",
         "snakemake==8.24.1 ; python_version>='3.11'",
-        "snakemake-interface-common==1.17.4 ; python_version>='3.11'",
-        "snakemake-interface-executor-plugins==9.3.2 ; python_version>='3.11'",
-        "snakemake-interface-storage-plugins==3.3.0 ; python_version>='3.11'",
-        "snakemake-interface-report-plugins==1.1.0 ; python_version>='3.11'",
     ],
     "snakemake-xrootd": [
         "snakemake-storage-plugin-xrootd==0.1.4 ; python_version>='3.11'",
