@@ -414,6 +414,23 @@ def build_unique_component_name(component_type, id=None):
     )
 
 
+def get_dask_component_name(workflow_id, name_type):
+    """Generate the name of a Dask-related object based on the workflow ID and name type."""
+    name_map = {
+        "cluster": f"reana-dask-{workflow_id}",
+        "autoscaler": f"dask-autoscaler-{workflow_id}",
+        "dashboard_ingress": f"dask-dashboard-ingress-{workflow_id}",
+        "dashboard_service": f"reana-dask-{workflow_id}-scheduler",
+        "dashboard_ingress_middleware": f"dask-dashboard-ingress-{workflow_id}-replacepath",
+        "db_service": f"dask-service-{workflow_id}",
+    }
+    if name_type not in name_map:
+        raise ValueError(
+            f"Invalid name type: '{name_type}'. Valid types are: {', '.join(name_map.keys())}."
+        )
+    return name_map[name_type]
+
+
 def get_usage_percentage(usage: int, limit: int) -> str:
     """Usage percentage."""
     if limit == 0:
