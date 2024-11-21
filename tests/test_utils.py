@@ -24,6 +24,7 @@ from reana_commons.utils import (
     click_table_printer,
     format_cmd,
     get_workflow_status_change_verb,
+    get_trimmed_workflow_id,
 )
 
 
@@ -150,3 +151,22 @@ def test_get_workflow_status_change_verb_invalid():
     """Test get_workflow_status_change_verb with an invalid status."""
     with pytest.raises(ValueError, match="invalid"):
         get_workflow_status_change_verb("invalid")
+
+
+@pytest.mark.parametrize(
+    "workflow_id, trim_level, expected",
+    [
+        ("9eef9a08-5629-420d-8e97-29d498d88e20", 4, "9eef9a08"),
+        ("9eef9a08-5629-420d-8e97-29d498d88e20", 3, "9eef9a08-5629"),
+        ("9eef9a08-5629-420d-8e97-29d498d88e20", 2, "9eef9a08-5629-420d"),
+        ("9eef9a08-5629-420d-8e97-29d498d88e20", 1, "9eef9a08-5629-420d-8e97"),
+        (
+            "9eef9a08-5629-420d-8e97-29d498d88e20",
+            0,
+            "9eef9a08-5629-420d-8e97-29d498d88e20",
+        ),
+    ],
+)
+def test_get_trimmed_workflow_id(workflow_id, trim_level, expected):
+    """Test get_trimmed_workflow_id function with several different inputs."""
+    assert get_trimmed_workflow_id(workflow_id, trim_level) == expected

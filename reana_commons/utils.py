@@ -414,6 +414,32 @@ def build_unique_component_name(component_type, id=None):
     )
 
 
+def get_trimmed_workflow_id(workflow_id: str, trim_level: int) -> str:
+    """Trim the given workflow id and return it. For a workflow with id '9eef9a08-5629-420d-8e97-29d498d88e20' with trim level 4, it returns '9eef9a08'."""
+    return str(workflow_id).rsplit("-", trim_level)[0]
+
+
+def get_dask_component_name(
+    workflow_id: str, name_type: str, dashboard_service_namespace: str = "default"
+) -> str:
+    """Generate the name of a Dask-related component based on the workflow ID and name type. Note that we trim the end of the uuid so uniqueness is not 100% guaranteed."""
+    trimmed_workflow_id = get_trimmed_workflow_id(str(workflow_id), 4)
+    name_map = {
+        "cluster": f"reana-run-dask-{trimmed_workflow_id}",
+        "autoscaler": f"dask-autoscaler-{trimmed_workflow_id}",
+        "dashboard_ingress": f"dask-dashboard-ingress-{trimmed_workflow_id}",
+        "dashboard_service": f"reana-run-dask-{trimmed_workflow_id}-scheduler",
+        "dashboard_service_uri": f"reana-run-dask-{trimmed_workflow_id}-scheduler.{dashboard_service_namespace}.svc.cluster.local:8786",
+        "dashboard_ingress_middleware": f"dask-dashboard-ingress-{trimmed_workflow_id}-replacepath",
+        "database_model_service": f"dask-service-{trimmed_workflow_id}",
+    }
+    if name_type not in name_map:
+        raise ValueError(
+            f"Invalid name type: '{name_type}'. Valid types are: {', '.join(name_map.keys())}."
+        )
+    return name_map[name_type]
+
+
 def get_usage_percentage(usage: int, limit: int) -> str:
     """Usage percentage."""
     if limit == 0:
