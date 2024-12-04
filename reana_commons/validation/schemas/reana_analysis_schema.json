@@ -268,7 +268,8 @@
                         "enum": [
                           "kubernetes",
                           "htcondorcern",
-                          "slurmcern"
+                          "slurmcern",
+                          "compute4punch"
                         ],
                       "title": "Compute backend"
                     },
@@ -318,6 +319,21 @@
                       "type": "boolean",
                       "title": "VOMS proxy",
                       "description": "Whether to use a VOMS proxy for the step. This would require you to upload a valid VOMS proxy as a REANA secret."
+                    },
+                    "c4p_cpu_cores": {
+                      "type": "string",
+                      "title": "C4P CPU Cores",
+                      "description": "Number of CPU cores requested from Compute4PUNCH for running the task."
+                    },
+                    "c4p_memory_limit": {
+                      "type": "string",
+                      "title": "C4P Memory Limit",
+                      "description": "Amount of memory requested from Compute4PUNCH for running the task."
+                    },
+                    "c4p_additional_requirements": {
+                      "type": "string",
+                      "title": "C4P Additional Requirements",
+                      "description": "Additional HTCondor requirements like RequestGPUs for running the task."
                     }
                   },
                   "required": [

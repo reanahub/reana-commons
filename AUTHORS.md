@@ -20,6 +20,7 @@ The list of contributors in alphabetical order:
 - [Jelizaveta Lemeševa](https://orcid.org/0009-0003-6606-9270)
 - [Kenyi Hurtado-Anampa](https://orcid.org/0000-0002-9779-3566)
 - [Leticia Wanderley](https://orcid.org/0000-0003-4649-6630)
+- [Manuel Giffels](https://orcid.org/0000-0003-0193-3032)
 - [Marco Donadoni](https://orcid.org/0000-0003-2922-5505)
 - [Marco Vidal](https://orcid.org/0000-0002-9363-4971)
 - [Matthew Feickert](https://orcid.org/0000-0003-4124-7862)

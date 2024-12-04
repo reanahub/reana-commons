@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.9.9](https://github.com/reanahub/reana-commons/compare/0.9.8...0.9.9) (2024-11-28)
+
+
+### Build
+
+* **python:** add support for Python 3.13 ([#480](https://github.com/reanahub/reana-commons/issues/480)) ([5de7605](https://github.com/reanahub/reana-commons/commit/5de760512a3aa86282a9dc31ac031773ddf49ef6))
+
+
+### Features
+
+* **schema:** allow Compute4PUNCH backend options ([#445](https://github.com/reanahub/reana-commons/issues/445)) ([0570f4a](https://github.com/reanahub/reana-commons/commit/0570f4ade9135a2d340009d2091c97dfc81a2e60))
+
+
+### Bug fixes
+
+* **config:** remove hard-coded component host name domain ([#458](https://github.com/reanahub/reana-commons/issues/458)) ([f2faeaa](https://github.com/reanahub/reana-commons/commit/f2faeaa76f42c4484db70766fc1d7a3a122ee38f)), closes [#457](https://github.com/reanahub/reana-commons/issues/457)
+
+
+### Continuous integration
+
+* **actions:** pin setuptools 70 ([#479](https://github.com/reanahub/reana-commons/issues/479)) ([b80bc70](https://github.com/reanahub/reana-commons/commit/b80bc707fa9311e3e5d00ea71bb17f853845d6bf))
+
 ## [0.9.8](https://github.com/reanahub/reana-commons/compare/0.9.7...0.9.8) (2024-03-01)
 
 

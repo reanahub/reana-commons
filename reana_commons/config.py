@@ -99,9 +99,7 @@ REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE = os.getenv(
 """Kubernetes namespace in which REANA infrastructure is currently deployed."""
 
 REANA_INFRASTRUCTURE_COMPONENTS_HOSTNAMES = {
-    component_name: (
-        "{component_prefix}-{component_name}.{namespace}.svc.cluster.local"
-    ).format(
+    component_name: ("{component_prefix}-{component_name}.{namespace}").format(
         component_prefix=REANA_COMPONENT_PREFIX,
         component_name=component_name,
         namespace=REANA_INFRASTRUCTURE_KUBERNETES_NAMESPACE,
