@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.10](https://github.com/reanahub/reana-commons/compare/0.9.9...0.9.10) (2025-01-27)
+
+
+### Features
+
+* **snakemake:** upgrade to Snakemake 8.27.1 ([#476](https://github.com/reanahub/reana-commons/issues/476)) ([09fec74](https://github.com/reanahub/reana-commons/commit/09fec740c753b832ea5f4f3819f191d26997508f))
+* **utils:** add central function for Dask K8s component names ([#478](https://github.com/reanahub/reana-commons/issues/478)) ([8f0bde7](https://github.com/reanahub/reana-commons/commit/8f0bde7f52ff7fda4f51d7513e48f882f9aa0b0c))
+
 ## [0.9.9](https://github.com/reanahub/reana-commons/compare/0.9.8...0.9.9) (2024-11-28)
 
 
