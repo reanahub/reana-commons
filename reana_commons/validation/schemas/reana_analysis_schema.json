@@ -109,6 +109,16 @@
               "type": "boolean",
               "title": "Kerberos authentication for the whole workflow."
             },
+            "voms_proxy": {
+              "$id": "/properties/workflow/properties/resources/properties/voms_proxy",
+              "type": "boolean",
+              "title": "VOMS proxy authentication for the whole workflow."
+            },
+            "rucio": {
+              "id": "/properties/workflow/properties/resources/properties/rucio",
+              "type": "boolean",
+              "title": "Rucio integration"
+            },
             "dask": {
               "$id": "/properties/workflow/properties/resources/properties/dask",
               "type": "object",
