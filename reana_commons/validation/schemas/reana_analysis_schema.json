@@ -124,19 +124,24 @@
               "type": "object",
               "title": "Information about Dask cluster requested for the analysis.",
               "properties": {
-                "image": {
-                  "type": "string",
-                  "description": "Container image to be used by Dask scheduler and workers."
-                },
-                "number_of_workers": {
-                  "type": "number",
-                  "description": "Requested number of Dask workers."
-                },
-                "single_worker_memory": {
-                  "type": "string",
-                  "description": "Requested memory for one Dask worker.",
-                  "pattern": "^[1-9][0-9]*(Ei|Pi|Ti|Gi|Mi|Ki|E|P|T|G|M|K)$"
-                }
+              "image": {
+                "type": "string",
+                "description": "Container image to be used by Dask scheduler and workers.",
+                "pattern": "^(?:[a-zA-Z0-9.-]+(?:\\.[a-zA-Z0-9.-]+)+(?::[0-9]+)?/)?[a-zA-Z0-9._-]+(?:/[a-zA-Z0-9._-]+)*(?::[a-zA-Z0-9._-]+)?(?:@sha256:[a-f0-9]{64})?$"
+              },
+              "number_of_workers": {
+                "type": "integer",
+                "description": "Requested number of Dask workers."
+              },
+              "single_worker_memory": {
+                "type": "string",
+                "description": "Requested memory for one Dask worker.",
+                "pattern": "^[1-9][0-9]*(Ei|Pi|Ti|Gi|Mi|Ki|E|P|T|G|M|K)$"
+              },
+              "single_worker_threads": {
+                "type": "integer",
+                "description": "Requested number of threads for one Dask worker."
+              }
               },
               "required": ["image"]
             }
