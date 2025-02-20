@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.10](https://github.com/reanahub/reana-commons/compare/0.9.9...0.9.10) (2025-02-20)
+
+
+### Features
+
+* **openapi:** add fields for number of threads for Dask workers ([#484](https://github.com/reanahub/reana-commons/issues/484)) ([f924b5d](https://github.com/reanahub/reana-commons/commit/f924b5da3a41a0273698a7022cd5e68d30f5444b))
+* **openapi:** add global voms_proxy & rucio fields to reana.yaml ([#483](https://github.com/reanahub/reana-commons/issues/483)) ([b91b2b4](https://github.com/reanahub/reana-commons/commit/b91b2b455a503d8370f464e669bc3c6dd6eecb95))
+* **snakemake:** upgrade to Snakemake 8.27.1 ([#476](https://github.com/reanahub/reana-commons/issues/476)) ([09fec74](https://github.com/reanahub/reana-commons/commit/09fec740c753b832ea5f4f3819f191d26997508f))
+* **utils:** add central function for Dask K8s component names ([#478](https://github.com/reanahub/reana-commons/issues/478)) ([8f0bde7](https://github.com/reanahub/reana-commons/commit/8f0bde7f52ff7fda4f51d7513e48f882f9aa0b0c))
+
 ## [0.9.9](https://github.com/reanahub/reana-commons/compare/0.9.8...0.9.9) (2024-11-28)
 
 
