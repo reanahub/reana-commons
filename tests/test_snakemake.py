@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2021, 2022, 2023 CERN.
+# Copyright (C) 2021, 2022, 2023, 2024, 2025 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -16,10 +16,6 @@ from pathlib import Path
 from reana_commons.snakemake import snakemake_load
 
 
-@pytest.mark.xfail(
-    sys.version_info >= (3, 11),
-    reason="Test expected to fail for python versions 3.11 and above as we currently return only empty dictionary in snakemake_load function for python >= 3.11.",
-)
 def test_snakemake_load(tmpdir, dummy_snakefile):
     """Test that Snakemake metadata is loaded properly."""
     workdir = tmpdir.mkdir("sub")
