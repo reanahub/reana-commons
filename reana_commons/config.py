@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023, 2024 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -419,6 +419,9 @@ KUBERNETES_MEMORY_FORMAT = r"(?:(?P<value_bytes>\d+)|(?P<value_unit>(\d+[.])?\d+
     "".join(KUBERNETES_MEMORY_UNITS)
 )
 """Kubernetes valid memory format regular expression e.g. Ki, M, Gi, G, etc."""
+
+KUBERNETES_CPU_FORMAT = r"^(?P<value_millicpu>[1-9]\d*)m$|^(?P<value_cpu>(0*[1-9]\d*(\.\d+)?|0*\.\d*[1-9]\d*))$"
+"""Kubernetes valid CPU format regex. Supports formats such as "0.1" (or "100m"), "0.9" (or "900m"). Values must be greater than 0."""
 
 statuses = os.getenv("REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES", [])
 REANA_RUNTIME_KUBERNETES_KEEP_ALIVE_JOBS_WITH_STATUSES = (

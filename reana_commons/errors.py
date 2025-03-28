@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2025 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -83,6 +83,30 @@ class REANAKubernetesMemoryLimitExceeded(Exception):
 
     def __init__(self, message):
         """Initialize REANAKubernetesMemoryLimitExceeded exception."""
+        self.message = message
+
+
+class REANAKubernetesWrongCPUFormat(Exception):
+    """Kubernetes CPU value has wrong format."""
+
+    def __init__(self, message):
+        """Initialize REANAKubernetesWrongCPUFormat exception."""
+        self.message = message
+
+
+class REANAKubernetesCPULimitExceeded(Exception):
+    """Kubernetes CPU value exceed max limit."""
+
+    def __init__(self, message):
+        """Initialize REANAKubernetesCPULimitExceeded exception."""
+        self.message = message
+
+
+class REANAKubernetesRequestExceedsLimit(Exception):
+    """Kubernetes resource request exceeds its corresponding limit."""
+
+    def __init__(self, message):
+        """Initialize REANAKubernetesRequestExceedsLimit exception."""
         self.message = message
 
 
