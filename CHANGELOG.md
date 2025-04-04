@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.10](https://github.com/reanahub/reana-commons/compare/0.9.9...0.9.10) (2025-04-04)
+
+
+### Features
+
+* **openapi:** add K8s resource requests and limits in reana.yaml ([#486](https://github.com/reanahub/reana-commons/issues/486)) ([53457cb](https://github.com/reanahub/reana-commons/commit/53457cbc6a431561d299554842e2ad4affade13d))
+
 ## [0.9.9](https://github.com/reanahub/reana-commons/compare/0.9.8...0.9.9) (2024-11-28)
 
 
