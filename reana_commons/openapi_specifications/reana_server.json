@@ -384,7 +384,7 @@
                 },
                 "kubernetes_max_memory_limit": {
                   "title": "Maximum allowed memory limit for Kubernetes jobs",
-                  "value": "10Gi\""
+                  "value": "10Gi"
                 },
                 "kubernetes_max_memory_request": {
                   "title": "Maximum allowed memory request for Kubernetes jobs",
@@ -438,7 +438,8 @@
                       "type": "string"
                     },
                     "value": {
-                      "type": "string"
+                      "type": "string",
+                      "x-nullable": true
                     }
                   },
                   "type": "object"
@@ -449,7 +450,8 @@
                       "type": "string"
                     },
                     "value": {
-                      "type": "string"
+                      "type": "string",
+                      "x-nullable": true
                     }
                   },
                   "type": "object"
@@ -471,7 +473,8 @@
                       "type": "string"
                     },
                     "value": {
-                      "type": "string"
+                      "type": "string",
+                      "x-nullable": true
                     }
                   },
                   "type": "object"
@@ -482,7 +485,8 @@
                       "type": "string"
                     },
                     "value": {
-                      "type": "string"
+                      "type": "string",
+                      "x-nullable": true
                     }
                   },
                   "type": "object"
