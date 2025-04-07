@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.11](https://github.com/reanahub/reana-commons/compare/0.9.10...0.9.11) (2025-04-07)
+
+
+### Bug fixes
+
+* **openapi:** update server and job controller schemas ([#488](https://github.com/reanahub/reana-commons/issues/488)) ([b7e6b98](https://github.com/reanahub/reana-commons/commit/b7e6b98650566ee15277058c7da6636c94f343ef))
+
 ## [0.9.10](https://github.com/reanahub/reana-commons/compare/0.9.9...0.9.10) (2025-04-04)
 
 
