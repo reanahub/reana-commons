@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.12](https://github.com/reanahub/reana-commons/compare/0.9.11...0.9.12) (2025-04-25)
+
+
+### Continuous integration
+
+* **runners:** upgrade CI runners to Ubuntu 22.04 ([#490](https://github.com/reanahub/reana-commons/issues/490)) ([6a582a9](https://github.com/reanahub/reana-commons/commit/6a582a946d52eae76b69d87ce3995a172867b8ba))
+
 ## [0.9.11](https://github.com/reanahub/reana-commons/compare/0.9.10...0.9.11) (2025-04-07)
 
 
