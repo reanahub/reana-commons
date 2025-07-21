@@ -318,6 +318,11 @@
                       "title": "Kubernetes memory limit",
                       "description": "Kubernetes memory limit (e.g. 256Mi - read more about the expected memory values on the official Kubernetes documentation: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory)"
                     },
+                    "kubernetes_uid": {
+                      "type": "integer",
+                      "title": "Kubernetes UID",
+                      "description": "User ID under which the container workload will run (e.g. 1000). Maps to the pod's `runAsUser` security context."
+                    },
                     "name": {
                       "type": "string",
                       "title": "Step name"
@@ -326,6 +331,16 @@
                       "type": "boolean",
                       "title": "Rucio integration",
                       "description": "Whether to use Rucio integration."
+                    },
+                    "slurm_partition": {
+                      "type": "string",
+                      "title": "Slurm partition",
+                      "description": "Slurm partition to submit the job to (e.g. \"photon\")."
+                    },
+                    "slurm_time": {
+                      "type": "string",
+                      "title": "Slurm maximum runtime",
+                      "description": "Maximum time for the Slurm job to run, in minutes (e.g. \"5\")."
                     },
                     "unpacked_img": {
                       "type": "boolean",
