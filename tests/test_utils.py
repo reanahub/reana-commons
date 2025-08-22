@@ -10,12 +10,13 @@
 
 import os
 import shutil
+import sys
 import time
 from hashlib import md5
 
-import pkg_resources
 import pytest
 from pytest_reana.fixtures import sample_workflow_workspace
+
 
 from reana_commons.utils import (
     calculate_file_access_time,
@@ -70,9 +71,14 @@ def test_calculate_hash_of_dir(sample_workflow_workspace):  # noqa: F811
     non_existing_dir_hash = calculate_hash_of_dir("a/b/c")
     assert non_existing_dir_hash == -1
 
-    test_workspace_path = pkg_resources.resource_filename(
-        "pytest_reana", "test_workspace"
-    )
+    # Get the path to the test workspace by finding the pytest_reana package location
+    import pytest_reana
+    import pathlib
+
+    # Get the package path and construct test_workspace path
+    package_path = pathlib.Path(pytest_reana.__file__).parent
+    test_workspace_path = package_path / "test_workspace"
+
     sample_workflow_workspace_path = next(sample_workflow_workspace("sample"))
     shutil.rmtree(sample_workflow_workspace_path)
     shutil.copytree(test_workspace_path, sample_workflow_workspace_path)

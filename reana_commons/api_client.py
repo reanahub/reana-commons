@@ -10,11 +10,17 @@
 import json
 import logging
 import os
+import sys
 import traceback
 from typing import Optional
 
-import pkg_resources
 from bravado.client import RequestsClient, SwaggerClient
+
+# Use importlib.resources for Python 3.9+ or importlib_resources backport for 3.8
+if sys.version_info >= (3, 9):
+    from importlib.resources import files
+else:
+    from importlib_resources import files
 from bravado.exception import (
     HTTPBadRequest,
     HTTPError,
@@ -74,13 +80,17 @@ class BaseAPIClient(object):
 
     def _get_spec(self, spec_file):
         """Get json specification from package data."""
-        spec_file_path = os.path.join(
-            pkg_resources.resource_filename("reana_commons", "openapi_specifications"),
-            spec_file,
-        )
+        # Get the OpenAPI specification file using importlib.resources
+        package_files = files("reana_commons")
+        spec_resource = package_files / "openapi_specifications" / spec_file
 
-        with open(spec_file_path) as f:
-            json_spec = json.load(f)
+        # For Python 3.9+, we need to handle this as a Traversable
+        if sys.version_info >= (3, 9):
+            json_spec = json.loads(spec_resource.read_text())
+        else:
+            # For Python 3.8 with backport, convert to string path
+            with open(str(spec_resource)) as f:
+                json_spec = json.load(f)
         return json_spec
 
 

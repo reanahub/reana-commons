@@ -11,11 +11,17 @@
 import json
 import logging
 import os
+import sys
 
-import pkg_resources
 import yaml
 
 from reana_commons.errors import REANAConfigDoesNotExist
+
+# Use importlib.resources for Python 3.9+ or importlib_resources backport for 3.8
+if sys.version_info >= (3, 9):
+    from importlib.resources import files
+else:
+    from importlib_resources import files
 
 
 class REANAConfig:
@@ -40,9 +46,30 @@ class REANAConfig:
         return cls._read_file(cls.config_mapping[kind])
 
 
-reana_yaml_schema_file_path = pkg_resources.resource_filename(
-    __name__, "validation/schemas/reana_analysis_schema.json"
-)
+def _get_reana_yaml_schema_file_path():
+    """Get the path to the REANA YAML schema file.
+
+    This function handles the differences between Python versions and ensures
+    the schema file is accessible as a real filesystem path.
+    """
+    package_files = files("reana_commons")
+    schema_resource = (
+        package_files / "validation" / "schemas" / "reana_analysis_schema.json"
+    )
+
+    # For Python 3.8 with backport, we can directly convert to string
+    # For Python 3.9+, the resource might be in a zip, so we need to check
+    if hasattr(schema_resource, "is_file") and schema_resource.is_file():
+        # It's a real file on the filesystem
+        return str(schema_resource)
+    else:
+        # For older importlib_resources or when in a zip, try direct string conversion
+        # This should work for the backport
+        return str(schema_resource)
+
+
+# Get the path to the validation schema file
+reana_yaml_schema_file_path = _get_reana_yaml_schema_file_path()
 """REANA specification schema location."""
 
 REANA_COMPONENT_PREFIX = os.getenv("REANA_COMPONENT_PREFIX", "reana")

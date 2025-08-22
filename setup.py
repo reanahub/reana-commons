@@ -61,6 +61,7 @@ install_requires = [
     "checksumdir>=1.1.4,<1.2",
     "click>=7.0",
     "fs>=2.0",
+    "importlib_resources>=5.0; python_version<'3.9'",
     "jsonschema[format]>=3.0.1",
     "kombu>=4.6",
     "mock>=3.0,<4",
