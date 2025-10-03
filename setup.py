@@ -25,7 +25,7 @@ extras_require = {
         "sphinx-rtd-theme>=0.1.9",
     ],
     "tests": [
-        "pytest-reana>=0.95.0a4,<0.96.0",
+        "pytest-reana>=0.95.0a5,<0.96.0",
     ],
     "kubernetes": [
         "kubernetes>=22.0.0,<23.0.0",
@@ -112,6 +112,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
