@@ -282,6 +282,7 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
                     "kubernetes_memory_limit"
                 ),
                 "kubernetes_uid": rule.resources.get("kubernetes_uid"),
+                "kubernetes_queue": rule.resources.get("kubernetes_queue"),
             }
             for rule in snakemake_dag.rules
             if not rule.norun
