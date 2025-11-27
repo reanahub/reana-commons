@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2021 CERN.
+# Copyright (C) 2021, 2025 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -13,8 +13,10 @@ import pytest
 
 from reana_commons.job_utils import (
     deserialise_job_command,
+    kubernetes_cpu_to_millicores,
     kubernetes_memory_to_bytes,
     serialise_job_command,
+    validate_kubernetes_cpu,
     validate_kubernetes_memory,
 )
 
@@ -67,6 +69,48 @@ def test_job_serialisation_deserialisation(command_string, expected_output):
     assert expected_output == subprocess.check_output(
         ["bash", "-c", deserialised_command]
     ).decode("utf-8")
+
+
+@pytest.mark.parametrize(
+    "cpu,output",
+    [
+        ("100m", True),
+        ("250m", True),
+        ("1", True),
+        ("2.5", True),
+        ("0.1", True),
+        ("0.001", True),
+        ("1500m", True),
+        ("0m", False),
+        ("-100m", False),
+        ("1.5m", False),
+        ("2 cores", False),
+        ("one", False),
+        ("1000millicores", False),
+    ],
+)
+def test_validate_kubernetes_cpu_format(cpu, output):
+    """Test validation of K8s CPU format."""
+    assert validate_kubernetes_cpu(cpu) is output
+
+
+@pytest.mark.parametrize(
+    "k8s_cpu,millicores",
+    [
+        (100, 100000),
+        (0.1, 100),
+        (1, 1000),
+        (1.5, 1500),
+        ("100m", 100),
+        ("250m", 250),
+        ("0.5", 500),
+        ("2.25", 2250),
+        ("1500m", 1500),
+    ],
+)
+def test_kubernetes_cpu_to_millicores(k8s_cpu, millicores):
+    """Test conversion of K8s CPU format to millicores."""
+    assert kubernetes_cpu_to_millicores(k8s_cpu) == millicores
 
 
 @pytest.mark.parametrize(

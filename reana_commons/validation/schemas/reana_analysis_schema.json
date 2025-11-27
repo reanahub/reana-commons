@@ -311,6 +311,21 @@
                       "title": "Kubernetes job timeout",
                       "description": "Maximum time for the step to run (number of seconds)"
                     },
+                    "kubernetes_cpu_request": {
+                      "type": "string",
+                      "title": "Kubernetes CPU request",
+                      "description": "Kubernetes CPU request (e.g. 1 - read more about the expected CPU values on the official Kubernetes documentation: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu)"
+                    },
+                    "kubernetes_cpu_limit": {
+                      "type": "string",
+                      "title": "Kubernetes CPU limit",
+                      "description": "Kubernetes CPU limit (e.g. 2 - read more about the expected CPU values on the official Kubernetes documentation: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu)"
+                    },
+                    "kubernetes_memory_request": {
+                      "type": "string",
+                      "title": "Kubernetes memory request",
+                      "description": "Kubernetes memory request (e.g. 128Mi - read more about the expected memory values on the official Kubernetes documentation: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory)"
+                    },
                     "kubernetes_memory_limit": {
                       "type": "string",
                       "title": "Kubernetes memory limit",

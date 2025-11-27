@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2025 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -109,6 +109,9 @@ class JobControllerAPIClient(BaseAPIClient):
         compute_backend=None,
         kerberos=False,
         kubernetes_uid=None,
+        kubernetes_cpu_request=None,
+        kubernetes_cpu_limit=None,
+        kubernetes_memory_request=None,
         kubernetes_memory_limit=None,
         unpacked_img=False,
         voms_proxy=False,
@@ -175,6 +178,15 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if kubernetes_uid:
             job_spec["kubernetes_uid"] = kubernetes_uid
+
+        if kubernetes_cpu_request:
+            job_spec["kubernetes_cpu_request"] = kubernetes_cpu_request
+
+        if kubernetes_cpu_limit:
+            job_spec["kubernetes_cpu_limit"] = kubernetes_cpu_limit
+
+        if kubernetes_memory_request:
+            job_spec["kubernetes_memory_request"] = kubernetes_memory_request
 
         if kubernetes_memory_limit:
             job_spec["kubernetes_memory_limit"] = kubernetes_memory_limit
