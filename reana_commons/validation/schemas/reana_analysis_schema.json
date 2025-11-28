@@ -316,6 +316,11 @@
                       "title": "Kubernetes memory limit",
                       "description": "Kubernetes memory limit (e.g. 256Mi - read more about the expected memory values on the official Kubernetes documentation: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory)"
                     },
+                    "kubernetes_queue": {
+                      "type": "string",
+                      "title": "Kubernetes queue",
+                      "description": "The Kubernetes queue to submit the job to, e.g. the name of a remote Kubernetes cluster."
+                    },
                     "name": {
                       "type": "string",
                       "title": "Step name"

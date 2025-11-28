@@ -110,6 +110,7 @@ class JobControllerAPIClient(BaseAPIClient):
         kerberos=False,
         kubernetes_uid=None,
         kubernetes_memory_limit=None,
+        kubernetes_queue=None,
         unpacked_img=False,
         voms_proxy=False,
         rucio=False,
@@ -139,6 +140,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :param rucio: Decides if a rucio environment should be provided for job.
         :param kubernetes_uid: Overwrites the default user id in the job container.
         :param kubernetes_memory_limit: Overwrites the default memory limit in the job container.
+        :param kubernetes_queue: Kueue LocalQueue to submit the job to.
         :param unpacked_img: Decides if unpacked iamges should be used.
         :param htcondor_max_runtime: Maximum runtime of a HTCondor job.
         :param htcondor_accounting_group: Accounting group of a HTCondor job.
@@ -178,6 +180,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if kubernetes_memory_limit:
             job_spec["kubernetes_memory_limit"] = kubernetes_memory_limit
+
+        if kubernetes_queue:
+            job_spec["kubernetes_queue"] = kubernetes_queue
 
         if kubernetes_job_timeout is not None:
             job_spec["kubernetes_job_timeout"] = kubernetes_job_timeout
