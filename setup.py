@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -29,6 +29,7 @@ extras_require = {
     ],
     "kubernetes": [
         "kubernetes>=22.0.0,<23.0.0",
+        "google-auth<2.46.0; python_version<'3.9'",
     ],
     "yadage": [
         "adage~=0.11.0",
