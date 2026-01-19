@@ -8,7 +8,6 @@
 
 """REANA-Commons parameters validation."""
 
-
 import os
 import re
 from collections import defaultdict

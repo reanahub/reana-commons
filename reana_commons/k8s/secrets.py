@@ -7,6 +7,7 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 
 """REANA Kubernetes secrets."""
+
 import base64
 import binascii
 import json
