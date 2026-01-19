@@ -7,6 +7,7 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 
 """REANA-Commons validation testing."""
+
 import operator
 
 import pytest

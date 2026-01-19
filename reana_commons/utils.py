@@ -7,7 +7,6 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA-Commons utils."""
 
-
 import datetime
 import json
 import logging

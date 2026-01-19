@@ -25,7 +25,6 @@ from reana_commons.config import (
 from reana_commons.errors import REANASecretDoesNotExist
 from reana_commons.k8s.secrets import UserSecrets
 
-
 KerberosConfig = namedtuple(
     "KerberosConfig",
     ["volumes", "volume_mounts", "env", "init_container", "renew_container"],
