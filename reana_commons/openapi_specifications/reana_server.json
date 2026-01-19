@@ -2,7 +2,7 @@
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.95.0a3"
+    "version": "0.95.0a4"
   },
   "paths": {
     "/account/settings/linkedaccounts/": {},
@@ -768,6 +768,17 @@
                   "type": "object"
                 },
                 "default_workspace": {
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "gitlab_host": {
                   "properties": {
                     "title": {
                       "type": "string"
