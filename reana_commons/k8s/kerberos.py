@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022, 2024 CERN.
+# Copyright (C) 2022, 2024, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -24,7 +24,6 @@ from reana_commons.config import (
 )
 from reana_commons.errors import REANASecretDoesNotExist
 from reana_commons.k8s.secrets import UserSecrets
-
 
 KerberosConfig = namedtuple(
     "KerberosConfig",

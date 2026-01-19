@@ -1,5 +1,5 @@
 # This file is part of REANA.
-# Copyright (C) 2024 CERN.
+# Copyright (C) 2024, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -466,9 +466,7 @@ def file_content_contain(workflow, filename, content, data_fetcher):
     filename = _strip_quotes(filename)
     if not filename.startswith("/"):
         filename = f"/{filename}"  # Add leading slash if needed
-    (file_content, file_name, is_archive) = data_fetcher.download_file(
-        workflow, filename
-    )
+    file_content, file_name, is_archive = data_fetcher.download_file(workflow, filename)
     if is_archive:
         raise StepSkipped("This test is not supported for archive files.")
     assert content in file_content.decode(
@@ -500,9 +498,7 @@ def file_checksum(workflow, algorithm, filename, checksum, data_fetcher):
         raise Exception(
             f"The specified checksum algorithm is not supported! Supported algorithms: {supported_algorithms}"
         )
-    (file_content, file_name, is_archive) = data_fetcher.download_file(
-        workflow, filename
-    )
+    file_content, file_name, is_archive = data_fetcher.download_file(workflow, filename)
     # Checksum the file content
     if algorithm.lower() == "adler32":
         h = zlib.adler32(file_content)
