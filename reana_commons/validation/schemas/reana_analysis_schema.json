@@ -331,6 +331,11 @@
                       "title": "Kubernetes memory limit",
                       "description": "Kubernetes memory limit (e.g. 256Mi - read more about the expected memory values on the official Kubernetes documentation: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory)"
                     },
+                    "kubernetes_uid": {
+                      "type": "integer",
+                      "title": "Kubernetes UID",
+                      "description": "Kubernetes unique identifier (e.g. 713)"
+                    },
                     "name": {
                       "type": "string",
                       "title": "Step name"
