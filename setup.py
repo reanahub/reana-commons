@@ -33,6 +33,7 @@ extras_require = {
     ],
     "yadage": [
         "adage~=0.11.0",
+        "setuptools<81",  # pkg_resources needed by yadage-schemas
         "yadage~=0.20.1",
         "yadage-schemas~=0.10.6",
         "jsonschema<4.10.0",  # see https://github.com/yadage/yadage-schemas/issues/38
