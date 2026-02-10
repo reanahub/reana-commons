@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.9.12](https://github.com/reanahub/reana-commons/compare/0.9.11...0.9.12) (2026-02-10)
+
+
+### Build
+
+* **python:** add support for Python 3.14 ([#506](https://github.com/reanahub/reana-commons/issues/506)) ([bbaf884](https://github.com/reanahub/reana-commons/commit/bbaf8847a3b5a3e2ebf78c10f261e72a4d16fcf9))
+* **python:** pin google-auth for Python 3.8 compatibility ([#510](https://github.com/reanahub/reana-commons/issues/510)) ([c35eeca](https://github.com/reanahub/reana-commons/commit/c35eecacde97e86c3286e47074a41b6e5d38d0b0))
+* **python:** pin setuptools below 81 ([#513](https://github.com/reanahub/reana-commons/issues/513)) ([e435058](https://github.com/reanahub/reana-commons/commit/e435058fb4169c3457dbb51305504bf7fa5168e0))
+
+
+### Features
+
+* **openapi:** add gitlab_host to info endpoint ([#498](https://github.com/reanahub/reana-commons/issues/498)) ([d7c27ac](https://github.com/reanahub/reana-commons/commit/d7c27aced2987bf3e69ddd41c3a4ae2b126f591d))
+* **openapi:** add K8s resource requests and limits in reana.yaml ([#486](https://github.com/reanahub/reana-commons/issues/486)) ([c782a14](https://github.com/reanahub/reana-commons/commit/c782a14bd7625647515b903743a725b85f53551a))
+
+
+### Bug fixes
+
+* **openapi:** add gitlab_host schema definition ([#511](https://github.com/reanahub/reana-commons/issues/511)) ([b1eb50d](https://github.com/reanahub/reana-commons/commit/b1eb50d47cdaeee6b4ab2aef6e70f43a5555e8dd))
+* **openapi:** update server and job controller schemas ([#488](https://github.com/reanahub/reana-commons/issues/488)) ([c782a14](https://github.com/reanahub/reana-commons/commit/c782a14bd7625647515b903743a725b85f53551a))
+
+
+### Code refactoring
+
+* **config:** replace deprecated pkg_resources ([#503](https://github.com/reanahub/reana-commons/issues/503)) ([a4d08b5](https://github.com/reanahub/reana-commons/commit/a4d08b56695033c8078b054fe33bf8b2f9bd34c4)), closes [#502](https://github.com/reanahub/reana-commons/issues/502)
+
+
+### Code style
+
+* **python:** adapt code base to the new black version ([#511](https://github.com/reanahub/reana-commons/issues/511)) ([0050988](https://github.com/reanahub/reana-commons/commit/005098867b0b386c8869216542cdcc6b63b0b9e8))
+
+
+### Continuous integration
+
+* **commitlint:** fix local running of commit linter on macOS ([#496](https://github.com/reanahub/reana-commons/issues/496)) ([cbdd7ab](https://github.com/reanahub/reana-commons/commit/cbdd7ab92cf21d701ffc1e5bcc57bc62268300cd))
+* **runners:** upgrade CI runners to Ubuntu 22.04 ([#490](https://github.com/reanahub/reana-commons/issues/490)) ([c782a14](https://github.com/reanahub/reana-commons/commit/c782a14bd7625647515b903743a725b85f53551a))
+* **runners:** upgrade CI runners to Ubuntu 22.04 ([#490](https://github.com/reanahub/reana-commons/issues/490)) ([6a582a9](https://github.com/reanahub/reana-commons/commit/6a582a946d52eae76b69d87ce3995a172867b8ba))
+
 ## [0.9.11](https://github.com/reanahub/reana-commons/compare/0.9.10...0.9.11) (2025-04-07)
 
 
