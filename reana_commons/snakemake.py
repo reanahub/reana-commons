@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2021, 2022, 2024 CERN.
+# Copyright (C) 2021, 2022, 2024, 2025 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -23,6 +23,7 @@ if sys.version_info >= (3, 11):
         OutputSettings,
         StorageSettings,
         DeploymentSettings,
+        DAGSettings,
     )
 else:
     from snakemake import snakemake
@@ -37,85 +38,12 @@ from reana_commons.errors import REANAValidationError
 from reana_commons.config import SNAKEMAKE_MAX_PARALLEL_JOBS
 
 
-def snakemake_validate(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
-):
-    """Validate Snakemake workflow."""
-    if sys.version_info >= (3, 11):
-        snakemake_validate_v8(workflow_file, configfiles, workdir)
-    else:
-        snakemake_validate_v7(workflow_file, configfiles, workdir)
-
-
 def snakemake_load(workflow_file: str, **kwargs: Any):
     """Load Snakemake specification."""
     if sys.version_info >= (3, 11):
         return snakemake_load_v8(workflow_file, **kwargs)
     else:
         return snakemake_load_v7(workflow_file, **kwargs)
-
-
-def snakemake_validate_v7(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
-):
-    """Snakemake 7 workflow validation function, necessary for Python versions < 3.11.
-
-    :param workflow_file: A specification file compliant with
-        `snakemake` workflow specification.
-    :type workflow_file: string
-    :param configfiles: List of config files paths.
-    :type configfiles: List
-    :param workdir: Path to working directory.
-    :type workdir: string or None
-    """
-    valid = snakemake(
-        snakefile=workflow_file,
-        configfiles=configfiles,
-        workdir=workdir,
-        dryrun=True,
-        quiet=True,
-    )
-    if not valid:
-        raise REANAValidationError("Snakemake specification is invalid.")
-
-
-def snakemake_validate_v8(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
-):
-    """Snakemake 8 workflow validation function for Python versions >= 3.11.
-
-    Note that we may move to using snakemake --dry-run when the validation process will be fully moved to the server side.
-
-    :param workflow_file: A specification file compliant with
-        `snakemake` workflow specification.
-    :type workflow_file: string
-    :param configfiles: List of config files paths.
-    :type configfiles: List
-    :param workdir: Path to working directory.
-    :type workdir: string or None
-    """
-    with SnakemakeApi(
-        OutputSettings(
-            quiet=True,
-        )
-    ) as snakemake_api:
-        try:
-            workflow_api = snakemake_api.workflow(
-                resource_settings=ResourceSettings(nodes=SNAKEMAKE_MAX_PARALLEL_JOBS),
-                config_settings=ConfigSettings(configfiles=configfiles),
-                storage_settings=StorageSettings(),
-                storage_provider_settings=dict(),
-                workflow_settings=WorkflowSettings(),
-                deployment_settings=DeploymentSettings(),
-                snakefile=workflow_file,
-                workdir=workdir,
-            )
-
-            workflow_api.dag()
-
-        except Exception as e:
-            snakemake_api.print_exception(e)
-            raise REANAValidationError("Snakemake specification is invalid.")
 
 
 def snakemake_load_v7(workflow_file: str, **kwargs: Any):
@@ -127,6 +55,29 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
 
     :returns: Dictonary containing relevant workflow metadata.
     """
+
+    def snakemake_validate(
+        workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+    ):
+        """Snakemake 7 workflow validation function, necessary for Python versions < 3.11.
+
+        :param workflow_file: A specification file compliant with
+            `snakemake` workflow specification.
+        :type workflow_file: string
+        :param configfiles: List of config files paths.
+        :type configfiles: List
+        :param workdir: Path to working directory.
+        :type workdir: string or None
+        """
+        valid = snakemake(
+            snakefile=workflow_file,
+            configfiles=configfiles,
+            workdir=workdir,
+            dryrun=True,
+            quiet=True,
+        )
+        if not valid:
+            raise REANAValidationError("Snakemake specification is invalid.")
 
     def _create_snakemake_dag(
         snakefile: str, configfiles: Optional[List[str]] = None, **kwargs: Any
@@ -305,11 +256,68 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
     workflow_file = Path(workflow_file)  # convert str to Path
     configfiles = [Path(kwargs.get("input"))] if kwargs.get("input") else []
 
-    snakemake_validate(
-        workflow_file=workflow_file, configfiles=configfiles, workdir=workdir
-    )
+    with SnakemakeApi(
+        OutputSettings(
+            quiet=True,
+        )
+    ) as snakemake_api:
+        try:
+            workflow_api = snakemake_api.workflow(
+                resource_settings=ResourceSettings(nodes=SNAKEMAKE_MAX_PARALLEL_JOBS),
+                config_settings=ConfigSettings(configfiles=configfiles),
+                storage_settings=StorageSettings(),
+                storage_provider_settings=dict(),
+                workflow_settings=WorkflowSettings(),
+                deployment_settings=DeploymentSettings(),
+                snakefile=workflow_file,
+                workdir=workdir,
+            )
 
-    return {
-        "job_dependencies": {},
-        "steps": [],
-    }
+            workflow = workflow_api._workflow
+
+            dag_api = workflow_api.dag(
+                dag_settings=DAGSettings(),
+            )
+
+            ### Validation
+            dag_api.execute_workflow(
+                executor="dryrun",
+            )
+
+            workflow.dag_settings = DAGSettings()
+            workflow._prepare_dag(
+                forceall=True, ignore_incomplete=True, lock_warn_only=True
+            )
+            workflow._build_dag()
+
+            job_dependencies = {
+                str(job): list(map(str, deps.keys()))
+                for job, deps in workflow._dag.dependencies.items()
+            }
+
+            return {
+                "job_dependencies": job_dependencies,
+                "steps": [
+                    {
+                        "name": rule.name,
+                        "environment": (rule.container_img or "").replace(
+                            "docker://", ""
+                        ),
+                        "inputs": dict(rule.input),
+                        "params": dict(rule.params),
+                        "outputs": dict(rule.output),
+                        "commands": [rule.shellcmd],
+                        "compute_backend": rule.resources.get("compute_backend"),
+                        "kubernetes_memory_limit": rule.resources.get(
+                            "kubernetes_memory_limit"
+                        ),
+                        "kubernetes_uid": rule.resources.get("kubernetes_uid"),
+                    }
+                    for rule in workflow._dag.rules
+                    if not rule.norun
+                ],
+            }
+
+        except Exception as e:
+            snakemake_api.print_exception(e)
+            raise REANAValidationError("Snakemake specification is invalid.")
