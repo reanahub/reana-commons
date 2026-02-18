@@ -42,10 +42,10 @@ extras_require = {
     "snakemake": [
         "snakemake==7.32.4 ; python_version<'3.11'",
         "pulp>=2.7.0,<2.8.0 ; python_version<'3.11'",
-        "snakemake==8.27.1 ; python_version>='3.11'",
+        "snakemake==9.1.0 ; python_version>='3.11'",
     ],
     "snakemake-xrootd": [
-        "snakemake-storage-plugin-xrootd==0.1.4 ; python_version>='3.11'",
+        "snakemake-storage-plugin-xrootd==0.4.1 ; python_version>='3.11'",
     ],
 }
 
