@@ -45,6 +45,7 @@ def test_check_environment_tags_is_offline_and_deduplicates():
             "python:3.12",
             "ubuntu@sha256:abc",
             "quay.io/org/image",
+            "images/my_tool.sif",
         ]
     )
 
