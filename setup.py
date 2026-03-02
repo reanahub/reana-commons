@@ -25,10 +25,10 @@ extras_require = {
         "sphinx-rtd-theme>=0.1.9",
     ],
     "tests": [
-        "pytest-reana>=0.95.0a5,<0.96.0",
+        "pytest-reana>=0.95.0a7,<0.96.0",
     ],
     "kubernetes": [
-        "kubernetes>=22.0.0,<23.0.0",
+        "kubernetes>=22.0.0,<27.0.0",  # upper pin due to oauthlib 3.x incompatibility with reana-server invenio packages
         "google-auth<2.46.0; python_version<'3.9'",
     ],
     "yadage": [
@@ -42,10 +42,13 @@ extras_require = {
     "snakemake": [
         "snakemake==7.32.4 ; python_version<'3.11'",
         "pulp>=2.7.0,<2.8.0 ; python_version<'3.11'",
-        "snakemake==8.27.1 ; python_version>='3.11'",
+        "snakemake==9.16.3 ; python_version>='3.11'",
+    ],
+    "snakemake-kubernetes": [
+        "snakemake-executor-plugin-kubernetes>=0.1.5 ; python_version>='3.11'",
     ],
     "snakemake-xrootd": [
-        "snakemake-storage-plugin-xrootd==0.1.4 ; python_version>='3.11'",
+        "snakemake-storage-plugin-xrootd==1.0.0 ; python_version>='3.11'",
     ],
 }
 

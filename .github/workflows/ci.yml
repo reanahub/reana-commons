@@ -134,7 +134,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install -e .[all]
+          pip install -e .[docs,kubernetes]
 
       - name: Run Sphinx documentation with doctests
         run: ./run-tests.sh --check-sphinx
@@ -162,7 +162,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install twine wheel
-          pip install -e .[all]
+          pip install -e .[cwl,docs,kubernetes,snakemake,tests,yadage]
 
       - name: Run pytest
         run: ./run-tests.sh --check-pytest
