@@ -59,6 +59,10 @@ lint_flake8() {
     flake8 .
 }
 
+lint_jsonlint() {
+    find . -name "*.json" -exec jsonlint -q {} \+
+}
+
 lint_manifest() {
     check-manifest
 }
@@ -80,6 +84,7 @@ all() {
     format_black
     lint_commitlint
     lint_flake8
+    lint_jsonlint
     lint_manifest
     lint_pydocstyle
     lint_shellcheck
@@ -95,6 +100,7 @@ help() {
     echo "  --help               Display this help message"
     echo "  --lint-commitlint    Check linting of commit messages"
     echo "  --lint-flake8        Check linting of Python code"
+    echo "  --lint-jsonlint      Check linting of JSON files"
     echo "  --lint-manifest      Check linting of Python manifest"
     echo "  --lint-pydocstyle    Check linting of Python docstrings"
     echo "  --lint-shellcheck    Check linting of shell scripts"
@@ -114,6 +120,7 @@ case $arg in
 --format-black) format_black ;;
 --lint-commitlint) lint_commitlint "$@" ;;
 --lint-flake8) lint_flake8 ;;
+--lint-jsonlint) lint_jsonlint ;;
 --lint-manifest) lint_manifest ;;
 --lint-pydocstyle) lint_pydocstyle ;;
 --lint-shellcheck) lint_shellcheck ;;
