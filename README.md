@@ -11,8 +11,8 @@
 ## About
 
 REANA-Commons is a component of the [REANA](http://www.reana.io/) reusable and
-reproducible research data analysis platform. It provides common utilities and schemas
-shared by the REANA cluster components.
+reproducible research data analysis platform. It provides common utilities and
+schemas shared by the REANA cluster components.
 
 ## Features
 

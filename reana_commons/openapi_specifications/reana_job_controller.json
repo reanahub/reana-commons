@@ -171,9 +171,7 @@
             "type": "string"
           }
         ],
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "Request succeeded. Returns boolean depicting if job is in cache.",
@@ -198,9 +196,7 @@
       "get": {
         "description": "This resource is not expecting parameters and it will return a list representing all active jobs in JSON format.",
         "operationId": "get_jobs",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "Request succeeded. The response contains the list of all active jobs.",
@@ -209,10 +205,7 @@
                 "jobs": {
                   "1612a779-f3fa-4344-8819-3d12fa9b9d90": {
                     "cmd": "date",
-                    "cvmfs_mounts": [
-                      "atlas.cern.ch",
-                      "atlas-condb.cern.ch"
-                    ],
+                    "cvmfs_mounts": ["atlas.cern.ch", "atlas-condb.cern.ch"],
                     "docker_img": "docker.io/library/busybox",
                     "job_id": "1612a779-f3fa-4344-8819-3d12fa9b9d90",
                     "max_restart_count": 3,
@@ -221,10 +214,7 @@
                   },
                   "2e4bbc1d-db5e-4ee0-9701-6e2b1ba55c20": {
                     "cmd": "date",
-                    "cvmfs_mounts": [
-                      "atlas.cern.ch",
-                      "atlas-condb.cern.ch"
-                    ],
+                    "cvmfs_mounts": ["atlas.cern.ch", "atlas-condb.cern.ch"],
                     "docker_img": "docker.io/library/busybox",
                     "job_id": "2e4bbc1d-db5e-4ee0-9701-6e2b1ba55c20",
                     "max_restart_count": 3,
@@ -245,9 +235,7 @@
         "summary": "Returns list of all active jobs."
       },
       "post": {
-        "consumes": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
         "description": "This resource is expecting JSON data with all the necessary information of a new job.",
         "operationId": "create_job",
         "parameters": [
@@ -261,9 +249,7 @@
             }
           }
         ],
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "201": {
             "description": "Request succeeded. The job has been launched.",
@@ -304,9 +290,7 @@
             "type": "string"
           }
         ],
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "Request succeeded. The response contains details about the given job ID.",
@@ -314,10 +298,7 @@
               "application/json": {
                 "job": {
                   "cmd": "date",
-                  "cvmfs_mounts": [
-                    "atlas.cern.ch",
-                    "atlas-condb.cern.ch"
-                  ],
+                  "cvmfs_mounts": ["atlas.cern.ch", "atlas-condb.cern.ch"],
                   "docker_img": "docker.io/library/busybox",
                   "job_id": "cdcf48b1-c2f3-4693-8230-b066e088c6ac",
                   "max_restart_count": 3,
@@ -344,9 +325,7 @@
     },
     "/jobs/{job_id}/": {
       "delete": {
-        "consumes": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
         "description": "This resource expects the `job_id` of the job to be deleted.",
         "operationId": "delete_job",
         "parameters": [
@@ -365,9 +344,7 @@
             "type": "string"
           }
         ],
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "204": {
             "description": "Request accepted. A request to delete the job has been sent to the\n  compute backend."
@@ -405,9 +382,7 @@
             "type": "string"
           }
         ],
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "Request succeeded. The response contains the logs for the given job.",
@@ -431,14 +406,10 @@
     },
     "/shutdown": {
       "delete": {
-        "consumes": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
         "description": "All running jobs will be stopped and no more jobs will be scheduled. Kubernetes will call this endpoint before stopping the pod (PreStop hook).",
         "operationId": "shutdown",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "responses": {
           "200": {
             "description": "Request successful. All jobs were stopped.",
