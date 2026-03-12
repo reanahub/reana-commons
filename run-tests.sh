@@ -17,11 +17,15 @@ format_black() {
     black --check .
 }
 
+format_shfmt() {
+    shfmt -d .
+}
+
 lint_commitlint() {
     from=${2:-master}
     to=${3:-HEAD}
     pr=${4:-[0-9]+}
-    if command -v commitlint > /dev/null 2>&1; then
+    if command -v commitlint >/dev/null 2>&1; then
         commitlint --from="$from" --to="$to"
     else
         npx commitlint --from="$from" --to="$to"
@@ -86,6 +90,7 @@ python_tests() {
 all() {
     docs_sphinx
     format_black
+    format_shfmt
     lint_commitlint
     lint_flake8
     lint_jsonlint
@@ -102,6 +107,7 @@ help() {
     echo "  --all                Perform all checks [default]"
     echo "  --docs-sphinx        Check Sphinx docs build"
     echo "  --format-black       Check formatting of Python code"
+    echo "  --format-shfmt       Check formatting of shell scripts"
     echo "  --help               Display this help message"
     echo "  --lint-commitlint    Check linting of commit messages"
     echo "  --lint-flake8        Check linting of Python code"
@@ -124,6 +130,7 @@ case $arg in
 --help) help ;;
 --docs-sphinx) docs_sphinx ;;
 --format-black) format_black ;;
+--format-shfmt) format_shfmt ;;
 --lint-commitlint) lint_commitlint "$@" ;;
 --lint-flake8) lint_flake8 ;;
 --lint-jsonlint) lint_jsonlint ;;
