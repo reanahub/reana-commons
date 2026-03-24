@@ -28,7 +28,7 @@ extras_require = {
         "pytest-reana>=0.95.0a7,<0.96.0",
     ],
     "kubernetes": [
-        "kubernetes>=22.0.0,<27.0.0",  # upper pin due to oauthlib 3.x incompatibility with reana-server invenio packages
+        "kubernetes>=23.6.0,<27.0.0",  # upper pin due to oauthlib 3.x incompatibility with reana-server invenio packages
         "google-auth<2.46.0; python_version<'3.9'",
     ],
     "yadage": [
