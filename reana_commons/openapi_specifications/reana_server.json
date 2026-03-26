@@ -20,7 +20,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Configuration information to consume by Reana-UI.",
@@ -66,7 +68,10 @@
       "get": {
         "description": "Authorize REANA on GitLab.",
         "operationId": "gitlab_oauth",
-        "produces": ["application/json", "text/html"],
+        "produces": [
+          "application/json",
+          "text/html"
+        ],
         "responses": {
           "200": {
             "description": "Ping succeeded.",
@@ -169,7 +174,9 @@
             "type": "integer"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "This resource return all projects owned by the user on GitLab in JSON format.",
@@ -275,12 +282,17 @@
                   "type": "string"
                 }
               },
-              "required": ["project_id", "hook_id"],
+              "required": [
+                "project_id",
+                "hook_id"
+              ],
               "type": "object"
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "The webhook was properly deleted."
@@ -338,12 +350,16 @@
                   "type": "string"
                 }
               },
-              "required": ["project_id"],
+              "required": [
+                "project_id"
+              ],
               "type": "object"
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "201": {
             "description": "The webhook was created."
@@ -397,7 +413,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The response contains general info about the cluster.",
@@ -405,7 +423,11 @@
               "application/json": {
                 "compute_backends": {
                   "title": "List of supported compute backends",
-                  "value": ["kubernetes", "htcondorcern", "slurmcern"]
+                  "value": [
+                    "kubernetes",
+                    "htcondorcern",
+                    "slurmcern"
+                  ]
                 },
                 "cwl_engine_tool": {
                   "title": "CWL engine tool",
@@ -520,11 +542,20 @@
                 },
                 "supported_workflow_engines": {
                   "title": "List of supported workflow engines",
-                  "value": ["cwl", "serial", "snakemake", "yadage"]
+                  "value": [
+                    "cwl",
+                    "serial",
+                    "snakemake",
+                    "yadage"
+                  ]
                 },
                 "workspaces_available": {
                   "title": "List of available workspaces",
-                  "value": ["/usr/share", "/eos/home", "/var/reana"]
+                  "value": [
+                    "/usr/share",
+                    "/eos/home",
+                    "/var/reana"
+                  ]
                 },
                 "yadage_engine_adage_version": {
                   "title": "Yadage engine adage version",
@@ -964,7 +995,9 @@
     },
     "/api/launch": {
       "post": {
-        "consumes": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
         "description": "This resource expects a remote reference to a REANA specification file needed to launch a workflow via URL.",
         "operationId": "launch",
         "parameters": [
@@ -991,12 +1024,16 @@
                   "type": "string"
                 }
               },
-              "required": ["url"],
+              "required": [
+                "url"
+              ],
               "type": "object"
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Information of the workflow launched.",
@@ -1031,7 +1068,11 @@
                   "type": "string"
                 }
               },
-              "required": ["workflow_id", "workflow_name", "message"],
+              "required": [
+                "workflow_id",
+                "workflow_name",
+                "message"
+              ],
               "type": "object"
             }
           },
@@ -1075,7 +1116,9 @@
       "get": {
         "description": "Ping the server.",
         "operationId": "ping",
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Ping succeeded. Service is running and accessible.",
@@ -1114,7 +1157,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "List of user secrets.",
@@ -1139,7 +1184,10 @@
                   },
                   "type": {
                     "description": "How will be the secret assigned to the jobs, either exported as an environment variable or mounted as a file.",
-                    "enum": ["env", "file"],
+                    "enum": [
+                      "env",
+                      "file"
+                    ],
                     "type": "string"
                   }
                 }
@@ -1210,12 +1258,17 @@
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Secrets successfully deleted.",
             "examples": {
-              "application/json": [".keytab", "username"]
+              "application/json": [
+                ".keytab",
+                "username"
+              ]
             },
             "schema": {
               "description": "List of secret names that have been deleted.",
@@ -1245,7 +1298,10 @@
           "404": {
             "description": "Request failed. Secrets do not exist.",
             "examples": {
-              "application/json": ["certificate.pem", "PASSWORD"]
+              "application/json": [
+                "certificate.pem",
+                "PASSWORD"
+              ]
             },
             "schema": {
               "description": "List of secret names that could not be deleted.",
@@ -1304,7 +1360,10 @@
                 "properties": {
                   "type": {
                     "description": "How will be the secret assigned to the jobs, either exported as an environment variable or mounted as a file.",
-                    "enum": ["env", "file"],
+                    "enum": [
+                      "env",
+                      "file"
+                    ],
                     "type": "string"
                   },
                   "value": {
@@ -1318,7 +1377,9 @@
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "201": {
             "description": "Secrets successfully added.",
@@ -1392,7 +1453,9 @@
       "get": {
         "description": "Retrieve cluster health status.",
         "operationId": "status",
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Cluster health status information.",
@@ -1559,7 +1622,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "User information correspoding to the session cookie sent in the request.",
@@ -1653,7 +1718,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Users that shared workflow(s) with the authenticated user.",
@@ -1748,7 +1815,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Users that the authenticated user shared workflow(s) with.",
@@ -1935,7 +2004,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The response contains the list of all workflows.",
@@ -2201,7 +2272,9 @@
         "summary": "Returns list of all current workflows in REANA."
       },
       "post": {
-        "consumes": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
         "description": "This resource is expecting a REANA specification in JSON format with all the necessary information to instantiate a workflow.",
         "operationId": "create_workflow",
         "parameters": [
@@ -2236,7 +2309,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "201": {
             "description": "Request succeeded. The workflow has been created.",
@@ -2335,7 +2410,9 @@
     },
     "/api/workflows/move_files/{workflow_id_or_name}": {
       "put": {
-        "consumes": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
         "description": "This resource moves files within the workspace. Resource is expecting a workflow UUID.",
         "operationId": "move_files",
         "parameters": [
@@ -2368,7 +2445,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Message about successfully moved files is returned.",
@@ -2521,13 +2600,17 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Info about a workflow, including the status is returned.",
             "examples": {
               "application/json": {
-                "reana_specification": ["- nevents: 100000\n+ nevents: 200000"],
+                "reana_specification": [
+                  "- nevents: 100000\n+ nevents: 200000"
+                ],
                 "workspace_listing": {
                   "Only in workspace a: code": null
                 }
@@ -2615,7 +2698,9 @@
     },
     "/api/workflows/{workflow_id_or_name}/close/": {
       "post": {
-        "consumes": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
         "description": "This resource is expecting a workflow to close an interactive session within its workspace.",
         "operationId": "close_interactive_session",
         "parameters": [
@@ -2634,7 +2719,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The interactive session has been closed.",
@@ -2757,7 +2844,9 @@
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Info about the disk usage is returned.",
@@ -2936,7 +3025,9 @@
             "type": "integer"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Info about a workflow, including the status is returned.",
@@ -3040,7 +3131,9 @@
     },
     "/api/workflows/{workflow_id_or_name}/open/{interactive_session_type}": {
       "post": {
-        "consumes": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
         "description": "This resource is expecting a workflow to start an interactive session within its workspace.",
         "operationId": "open_interactive_session",
         "parameters": [
@@ -3081,7 +3174,9 @@
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The interactive session has been opened.",
@@ -3187,7 +3282,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Workflow input parameters, including the status are returned.",
@@ -3325,7 +3422,9 @@
             "type": "boolean"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The workspace has been pruned.",
@@ -3439,7 +3538,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The response contains the list of all the retention rules.",
@@ -3601,12 +3702,16 @@
                   "type": "string"
                 }
               },
-              "required": ["user_email_to_share_with"],
+              "required": [
+                "user_email_to_share_with"
+              ],
               "type": "object"
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The workflow has been shared with the user.",
@@ -3747,7 +3852,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The response contains the share status of the workflow.",
@@ -3878,7 +3985,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Workflow specification is returned.",
@@ -3887,7 +3996,10 @@
                 "parameters": {},
                 "specification": {
                   "inputs": {
-                    "files": ["code/helloworld.py", "data/names.txt"],
+                    "files": [
+                      "code/helloworld.py",
+                      "data/names.txt"
+                    ],
                     "parameters": {
                       "helloworld": "code/helloworld.py",
                       "inputfile": "data/names.txt",
@@ -3896,7 +4008,9 @@
                     }
                   },
                   "outputs": {
-                    "files": ["results/greetings.txt"]
+                    "files": [
+                      "results/greetings.txt"
+                    ]
                   },
                   "version": "0.3.0",
                   "workflow": {
@@ -4049,7 +4163,9 @@
     },
     "/api/workflows/{workflow_id_or_name}/start": {
       "post": {
-        "consumes": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
         "description": "This resource starts the workflow execution process. Resource is expecting a workflow UUID.",
         "operationId": "start_workflow",
         "parameters": [
@@ -4095,7 +4211,9 @@
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Info about a workflow, including the execution status is returned.",
@@ -4249,7 +4367,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Info about a workflow, including the status is returned.",
@@ -4457,7 +4577,9 @@
         "summary": "Get status of a workflow."
       },
       "put": {
-        "consumes": ["application/json"],
+        "consumes": [
+          "application/json"
+        ],
         "description": "This resource reports the status of a workflow. Resource is expecting a workflow UUID.",
         "operationId": "set_workflow_status",
         "parameters": [
@@ -4470,7 +4592,11 @@
           },
           {
             "description": "Required. New workflow status.",
-            "enum": ["start", "stop", "deleted"],
+            "enum": [
+              "start",
+              "stop",
+              "deleted"
+            ],
             "in": "query",
             "name": "status",
             "required": true,
@@ -4515,7 +4641,9 @@
             }
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Info about a workflow, including the status is returned.",
@@ -4676,7 +4804,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. The workflow has been unshared with the user.",
@@ -4834,7 +4964,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Requests succeeded. The list of files has been retrieved.",
@@ -4940,7 +5072,9 @@
         "summary": "Returns the workspace file list."
       },
       "post": {
-        "consumes": ["application/octet-stream"],
+        "consumes": [
+          "application/octet-stream"
+        ],
         "description": "This resource is expecting a file to place in the workspace.",
         "operationId": "upload_file",
         "parameters": [
@@ -4982,7 +5116,9 @@
             "type": "boolean"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. File successfully transferred.",
@@ -5090,7 +5226,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Request succeeded. Details about deleted files and failed deletions are returned.",
@@ -5289,7 +5427,9 @@
             "type": "string"
           }
         ],
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "User information correspoding to the session cookie sent in the request.",
