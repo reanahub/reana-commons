@@ -274,7 +274,10 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
                 "name": rule.name,
                 "environment": (rule._container_img or "").replace("docker://", ""),
                 "inputs": dict(rule._input),
-                "params": dict(rule._params),
+                "params": {
+                    k: "<dynamic>" if callable(v) else v
+                    for k, v in dict(rule._params).items()
+                },
                 "outputs": dict(rule._output),
                 "commands": [rule.shellcmd],
                 "compute_backend": rule.resources.get("compute_backend"),

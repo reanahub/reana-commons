@@ -46,3 +46,31 @@ def test_snakemake_load(tmpdir, dummy_snakefile):
         "baz": ["foo", "bar"],
         "all": ["foo", "bar", "baz"],
     }
+
+
+@pytest.mark.xfail(
+    sys.version_info >= (3, 11),
+    reason="Test expected to fail for python versions 3.11 and above as we currently return only empty dictionary in snakemake_load function for python >= 3.11.",
+)
+def test_snakemake_load_lambda_params_are_json_serializable(
+    tmpdir, dummy_snakefile_with_lambda_param
+):
+    """Test that lambda param values are replaced with '<dynamic>' and JSON-serializable."""
+    import json
+
+    workdir = tmpdir.mkdir("sub")
+    p = workdir.join("Snakefile")
+    p.write(dummy_snakefile_with_lambda_param)
+    dummy_input = workdir.join("input.txt")
+    dummy_input.write("Content of input.txt")
+
+    os.chdir(tmpdir)
+    metadata = snakemake_load(Path(p.strpath), workdir=Path(workdir.strpath))
+
+    # Must not raise
+    json.dumps(metadata)
+
+    make_out_step = next(s for s in metadata["steps"] if s["name"] == "make_out")
+    assert "dynamic_param" in make_out_step["params"]
+    assert make_out_step["params"]["dynamic_param"] == "<dynamic>"
+    assert make_out_step["params"]["static_param"] == "hello"

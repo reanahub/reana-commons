@@ -64,6 +64,30 @@ rule baz:
 
 
 @pytest.fixture()
+def dummy_snakefile_with_lambda_param():
+    """Get dummy Snakemake specification with a lambda param value."""
+    return """
+rule all:
+    input:
+        "results/out.txt",
+    default_target: True
+
+rule make_out:
+    input:
+        "input.txt"
+    output:
+        "results/out.txt"
+    params:
+        static_param="hello",
+        dynamic_param=lambda wildcards: "computed"
+    container:
+        "docker://docker.io/library/python:3.10.0-buster"
+    shell:
+        "mkdir -p results && touch {output}"
+"""
+
+
+@pytest.fixture()
 def mock_data_fetcher():
     """Mock data fetcher for gherkin_parser tests."""
     mock_data_fetcher = create_autospec(DataFetcherBase)
