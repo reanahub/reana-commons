@@ -3,6 +3,56 @@
 
 # Changelog
 
+## [0.9.12](https://github.com/reanahub/reana-commons/compare/0.9.11...0.9.12) (2026-04-28)
+
+
+### Build
+
+* **python:** add support for Python 3.14 ([#506](https://github.com/reanahub/reana-commons/issues/506)) ([bbaf884](https://github.com/reanahub/reana-commons/commit/bbaf8847a3b5a3e2ebf78c10f261e72a4d16fcf9))
+* **python:** bump kubernetes lower pin to 23.6.0 ([#517](https://github.com/reanahub/reana-commons/issues/517)) ([3ad24e2](https://github.com/reanahub/reana-commons/commit/3ad24e215448a3279c36c5b96ed906347e580acf))
+* **python:** pin google-auth for Python 3.8 compatibility ([#510](https://github.com/reanahub/reana-commons/issues/510)) ([c35eeca](https://github.com/reanahub/reana-commons/commit/c35eecacde97e86c3286e47074a41b6e5d38d0b0))
+* **python:** pin setuptools below 81 ([#513](https://github.com/reanahub/reana-commons/issues/513)) ([e435058](https://github.com/reanahub/reana-commons/commit/e435058fb4169c3457dbb51305504bf7fa5168e0))
+* **python:** remove kubernetes upper version pin ([#520](https://github.com/reanahub/reana-commons/issues/520)) ([ca531ff](https://github.com/reanahub/reana-commons/commit/ca531ff719587e2bda3155b178940a8497c89dfe))
+* **python:** upgrade to Snakemake 9.16.3 ([#514](https://github.com/reanahub/reana-commons/issues/514)) ([621d52e](https://github.com/reanahub/reana-commons/commit/621d52e8ce68172033f2f73b3c8fa0a8c9b42a1f))
+
+
+### Features
+
+* **openapi:** add gitlab_host to info endpoint ([#498](https://github.com/reanahub/reana-commons/issues/498)) ([d7c27ac](https://github.com/reanahub/reana-commons/commit/d7c27aced2987bf3e69ddd41c3a4ae2b126f591d))
+* **openapi:** add K8s resource requests and limits in reana.yaml ([#486](https://github.com/reanahub/reana-commons/issues/486)) ([c782a14](https://github.com/reanahub/reana-commons/commit/c782a14bd7625647515b903743a725b85f53551a))
+* **openapi:** add quota management endpoint ([#505](https://github.com/reanahub/reana-commons/issues/505)) ([1646408](https://github.com/reanahub/reana-commons/commit/1646408f7bcaeff9ae174c3609e3c1b3912f0858))
+* **openapi:** sync bundled specs with components ([#523](https://github.com/reanahub/reana-commons/issues/523)) ([a8703f0](https://github.com/reanahub/reana-commons/commit/a8703f07ebfcf659fe10d4c904d9b3d28ae1c00e))
+
+
+### Bug fixes
+
+* **openapi:** add gitlab_host schema definition ([#511](https://github.com/reanahub/reana-commons/issues/511)) ([b1eb50d](https://github.com/reanahub/reana-commons/commit/b1eb50d47cdaeee6b4ab2aef6e70f43a5555e8dd))
+* **openapi:** update server and job controller schemas ([#488](https://github.com/reanahub/reana-commons/issues/488)) ([c782a14](https://github.com/reanahub/reana-commons/commit/c782a14bd7625647515b903743a725b85f53551a))
+
+
+### Code refactoring
+
+* **config:** replace deprecated pkg_resources ([#503](https://github.com/reanahub/reana-commons/issues/503)) ([a4d08b5](https://github.com/reanahub/reana-commons/commit/a4d08b56695033c8078b054fe33bf8b2f9bd34c4)), closes [#502](https://github.com/reanahub/reana-commons/issues/502)
+
+
+### Code style
+
+* **openapi:** exclude OpenAPI specs from Prettier formatting ([#518](https://github.com/reanahub/reana-commons/issues/518)) ([6ea4a3f](https://github.com/reanahub/reana-commons/commit/6ea4a3fea9d9367406fe1af3edf6ac4c26e5df22))
+* **python:** adapt code base to the new black version ([#511](https://github.com/reanahub/reana-commons/issues/511)) ([0050988](https://github.com/reanahub/reana-commons/commit/005098867b0b386c8869216542cdcc6b63b0b9e8))
+
+
+### Continuous integration
+
+* **commitlint:** fix local running of commit linter on macOS ([#496](https://github.com/reanahub/reana-commons/issues/496)) ([cbdd7ab](https://github.com/reanahub/reana-commons/commit/cbdd7ab92cf21d701ffc1e5bcc57bc62268300cd))
+* **jsonlint:** add JSON linting checks ([#516](https://github.com/reanahub/reana-commons/issues/516)) ([c9eeb60](https://github.com/reanahub/reana-commons/commit/c9eeb608483297a021ced5f05f3ae0610a5f00ba))
+* **markdownlint:** add Markdown linting checks ([#516](https://github.com/reanahub/reana-commons/issues/516)) ([ce54097](https://github.com/reanahub/reana-commons/commit/ce5409738f4e5642ef558a7dbb76ba9ef5cd6471))
+* **prettier:** add Prettier code formatting checks ([#516](https://github.com/reanahub/reana-commons/issues/516)) ([06cd6ab](https://github.com/reanahub/reana-commons/commit/06cd6abc685df8993a960dd531f9aedcb9a3e58f))
+* **run-tests:** add usage help and refactor options ([#516](https://github.com/reanahub/reana-commons/issues/516)) ([1f24d95](https://github.com/reanahub/reana-commons/commit/1f24d95bcf768db422a2c7b62e66dae173624afb))
+* **runners:** upgrade CI runners to Ubuntu 22.04 ([#490](https://github.com/reanahub/reana-commons/issues/490)) ([c782a14](https://github.com/reanahub/reana-commons/commit/c782a14bd7625647515b903743a725b85f53551a))
+* **runners:** upgrade CI runners to Ubuntu 22.04 ([#490](https://github.com/reanahub/reana-commons/issues/490)) ([6a582a9](https://github.com/reanahub/reana-commons/commit/6a582a946d52eae76b69d87ce3995a172867b8ba))
+* **shfmt:** add shfmt code formatting checks ([#516](https://github.com/reanahub/reana-commons/issues/516)) ([22590a0](https://github.com/reanahub/reana-commons/commit/22590a09383b16f9ec32f6856cff7289777eaa8c))
+* **yamllint:** add YAML linting checks ([#516](https://github.com/reanahub/reana-commons/issues/516)) ([92a434e](https://github.com/reanahub/reana-commons/commit/92a434ece21855907ce9cca2bbcca2db715ebcdf))
+
 ## [0.9.11](https://github.com/reanahub/reana-commons/compare/0.9.10...0.9.11) (2025-04-07)
 
 ### Bug fixes
