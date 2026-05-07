@@ -475,7 +475,7 @@ REANA_COMPUTE_BACKENDS = {
 REANA_WORKFLOW_ENGINES = ["yadage", "cwl", "serial", "snakemake"]
 """Available workflow engines."""
 
-REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "docker.io/snakemake/snakemake:v9.16.3"
+REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "docker.io/snakemake/snakemake:v9.22.0"
 """Snakemake default job environment image."""
 
 REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP = float(
