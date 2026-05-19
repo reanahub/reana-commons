@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2025 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2025, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -99,6 +99,14 @@ class REANAKubernetesCPULimitExceeded(Exception):
 
     def __init__(self, message):
         """Initialize REANAKubernetesCPULimitExceeded exception."""
+        self.message = message
+
+
+class REANAKubernetesUIDBelowMinimum(Exception):
+    """Kubernetes UID is below the cluster-configured minimum."""
+
+    def __init__(self, message):
+        """Initialize REANAKubernetesUIDBelowMinimum exception."""
         self.message = message
 
 

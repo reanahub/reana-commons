@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2025 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2025, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -140,7 +140,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :param voms_proxy: Decides if grid proxy should be provided for job
             container.
         :param rucio: Decides if a rucio environment should be provided for job.
-        :param kubernetes_uid: Overwrites the default user id in the job container.
+        :param kubernetes_uid: Overwrites the default UID in the job container.
         :param kubernetes_memory_limit: Overwrites the default memory limit in the job container.
         :param unpacked_img: Decides if unpacked iamges should be used.
         :param htcondor_max_runtime: Maximum runtime of a HTCondor job.
@@ -176,7 +176,7 @@ class JobControllerAPIClient(BaseAPIClient):
         if rucio:
             job_spec["rucio"] = rucio
 
-        if kubernetes_uid:
+        if kubernetes_uid is not None:
             job_spec["kubernetes_uid"] = kubernetes_uid
 
         if kubernetes_cpu_request:
