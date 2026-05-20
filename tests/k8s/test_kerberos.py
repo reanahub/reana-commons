@@ -1,5 +1,5 @@
 # This file is part of REANA.
-# Copyright (C) 2024 CERN.
+# Copyright (C) 2024, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -25,4 +25,6 @@ def test_get_kerberos_k8s_config(kerberos_user_secrets):
         "johndoe@CERN.CH",
     ]
     assert conf.init_container["securityContext"]["runAsUser"] == 123
+    assert conf.init_container["securityContext"]["runAsNonRoot"] is True
     assert conf.renew_container["securityContext"]["runAsUser"] == 123
+    assert conf.renew_container["securityContext"]["runAsNonRoot"] is True

@@ -104,7 +104,7 @@ def get_kerberos_k8s_config(
         "imagePullPolicy": "IfNotPresent",
         "volumeMounts": [secrets_volume_mount] + volume_mounts,
         "env": env,
-        "securityContext": {"runAsUser": kubernetes_uid},
+        "securityContext": {"runAsUser": kubernetes_uid, "runAsNonRoot": True},
     }
 
     # Kerberos renew container renews ticket periodically for long-running jobs
@@ -127,7 +127,7 @@ def get_kerberos_k8s_config(
         "imagePullPolicy": "IfNotPresent",
         "volumeMounts": [secrets_volume_mount] + volume_mounts,
         "env": env,
-        "securityContext": {"runAsUser": kubernetes_uid},
+        "securityContext": {"runAsUser": kubernetes_uid, "runAsNonRoot": True},
         "lifecycle": {
             # make sure we stop the sidecar container when the pod is stopped,
             # for example when the run-batch pod is terminated by reana-workflow-controller
