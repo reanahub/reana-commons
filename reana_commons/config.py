@@ -255,6 +255,11 @@ REANA_MAX_CONCURRENT_BATCH_WORKFLOWS = int(
 )
 """Upper limit on concurrent REANA batch workflows running in the cluster."""
 
+REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS = int(
+    os.getenv("REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS", "200")
+)
+"""Upper limit on concurrent REANA batch workflows running on external compute backends (e.g. HTCondor, Slurm)."""
+
 REANA_LOG_LEVEL = logging.getLevelName(os.getenv("REANA_LOG_LEVEL", "INFO"))
 """Log verbosity level for REANA components."""
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022 CERN.
+# Copyright (C) 2022, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -11,6 +11,75 @@
 from typing import Dict, List, Optional
 
 from reana_commons.errors import REANAValidationError
+
+
+def workflow_uses_kubernetes(reana_yaml: Dict) -> bool:
+    """Check if any step in the workflow runs on Kubernetes.
+
+    Steps that do not declare a compute backend default to Kubernetes.
+    Hybrid workflows (some steps on Kubernetes, some on HTCondor/Slurm) also
+    return True.
+    """
+    workflow = reana_yaml.get("workflow", {})
+    workflow_type = workflow.get("type")
+    spec = workflow.get("specification", {})
+
+    if workflow_type == "serial":
+        return _serial_uses_kubernetes(spec)
+    if workflow_type == "snakemake":
+        return _snakemake_uses_kubernetes(spec)
+    if workflow_type == "yadage":
+        return _yadage_uses_kubernetes(spec.get("stages", []))
+    if workflow_type == "cwl":
+        graph = spec.get("$graph", spec)
+        return _cwl_uses_kubernetes(graph)
+    return True  # unknown type: conservative default
+
+
+def _serial_uses_kubernetes(spec: Dict) -> bool:
+    steps = spec.get("steps", [])
+    return any(
+        step.get("compute_backend", "kubernetes") == "kubernetes" for step in steps
+    )
+
+
+def _snakemake_uses_kubernetes(spec: Dict) -> bool:
+    return _serial_uses_kubernetes(spec)
+
+
+def _yadage_uses_kubernetes(stages: List[Dict]) -> bool:
+    for stage in stages:
+        scheduler = stage.get("scheduler", {})
+        if "workflow" in scheduler:
+            if _yadage_uses_kubernetes(scheduler["workflow"].get("stages", [])):
+                return True
+        else:
+            resources = (
+                scheduler.get("step", {}).get("environment", {}).get("resources", [])
+            )
+            backend = next(
+                (r["compute_backend"] for r in resources if "compute_backend" in r),
+                "kubernetes",
+            )
+            if backend == "kubernetes":
+                return True
+    return False
+
+
+def _cwl_uses_kubernetes(workflow) -> bool:
+    def _check(wf: Dict) -> bool:
+        for step in wf.get("steps", []):
+            hints = step.get("hints", [])
+            reana_hints = next((h for h in hints if h.get("class") == "reana"), {})
+            if reana_hints.get("compute_backend", "kubernetes") == "kubernetes":
+                return True
+        return False
+
+    if isinstance(workflow, dict):
+        return _check(workflow)
+    if isinstance(workflow, list):
+        return any(_check(wf) for wf in workflow)
+    return True
 
 
 def build_compute_backends_validator(
