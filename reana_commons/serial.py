@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2024, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 """REANA Workflow Engine Serial implementation utils."""
 
 import json
+import re
 from copy import deepcopy
 from string import Template
 
@@ -98,6 +99,26 @@ serial_workflow_schema = {
                         "type": "string",
                         "default": "",
                     },
+                    "htcondor_request_cpus": {
+                        "$id": "#/properties/steps/properties/htcondor_request_cpus",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "htcondor_request_memory": {
+                        "$id": "#/properties/steps/properties/htcondor_request_memory",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "htcondor_request_disk": {
+                        "$id": "#/properties/steps/properties/htcondor_request_disk",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "htcondor_requirements": {
+                        "$id": "#/properties/steps/properties/htcondor_requirements",
+                        "type": "string",
+                        "default": "",
+                    },
                     "slurm_partition": {
                         "$id": "#/properties/steps/properties/slurm_partition",
                         "type": "string",
@@ -151,6 +172,9 @@ def serial_load(workflow_file, specification, parameters=None, original=None, **
     if not check_htcondor_max_runtime(specification):
         raise Exception("Invalid input in htcondor_max_runtime.")
 
+    if not check_htcondor_request_parameters(specification):
+        raise Exception("Invalid input in htcondor_request_* parameters.")
+
     parameters = parameters or {}
 
     if not specification:
@@ -197,6 +221,89 @@ def _expand_parameters(specification, parameters, original=None):
                 "be expanded. Please take a look "
                 "to {params}".format(params=str(e))
             )
+
+
+HTCONDOR_REQUEST_INTEGER_FIELDS = ("htcondor_request_cpus",)
+"""Step fields that must be a plain positive integer string."""
+
+HTCONDOR_REQUEST_QUANTITY_FIELDS = (
+    "htcondor_request_memory",
+    "htcondor_request_disk",
+)
+"""Step fields that accept a positive integer with an optional HTCondor
+unit suffix (``K|KB|M|MB|G|GB|T|TB``)."""
+
+HTCONDOR_QUANTITY_FORMAT = r"^[1-9]\d*\s*(K|KB|M|MB|G|GB|T|TB)?$"
+"""Regex mirroring the HTCondor submit-file quantity syntax accepted by
+reana-job-controller's ``htcondor_quantity_to_unit`` helper. Matched
+case-insensitively. Kept here as a string so it can also be referenced
+from JSON schemas. The authoritative conversion lives in
+reana-job-controller; this regex only fences off obviously bad input on
+the client side without pulling the htcondor/classad libraries into
+plain client environments."""
+
+_HTCONDOR_QUANTITY_RE = re.compile(HTCONDOR_QUANTITY_FORMAT, re.IGNORECASE)
+
+
+def check_htcondor_request_parameters(specification):
+    """Check the htcondor_request_* and htcondor_requirements step fields.
+
+    Validation here is intentionally lightweight:
+
+    * ``htcondor_request_cpus`` must be a positive integer string.
+    * ``htcondor_request_memory`` and ``htcondor_request_disk`` must be a
+      positive integer with an optional ``K|KB|M|MB|G|GB|T|TB`` suffix
+      (case-insensitive). The actual conversion to ``RequestMemory`` MB
+      or ``RequestDisk`` KB happens in reana-job-controller.
+    * ``htcondor_requirements`` must be a non-empty string. Authoritative
+      ClassAd parsing also happens in reana-job-controller to avoid
+      pulling the htcondor/classad libraries into ordinary client
+      environments.
+
+    :param specification: reana specification of workflow.
+    """
+    check_pass = True
+    for i, step in enumerate(specification["steps"]):
+        step_label = step.get("name", i)
+        for field in HTCONDOR_REQUEST_INTEGER_FIELDS:
+            value = step.get(field)
+            if not value:
+                continue
+            if not (isinstance(value, str) and value.isdigit() and int(value) > 0):
+                check_pass = False
+                click.secho(
+                    "In step {0}:\n'{1}' is not a valid input for {2}. "
+                    "It must be a positive integer in the form of a string.".format(
+                        step_label, value, field
+                    ),
+                    fg="red",
+                )
+        for field in HTCONDOR_REQUEST_QUANTITY_FIELDS:
+            value = step.get(field)
+            if not value:
+                continue
+            if not (isinstance(value, str) and _HTCONDOR_QUANTITY_RE.match(value)):
+                check_pass = False
+                click.secho(
+                    "In step {0}:\n'{1}' is not a valid input for {2}. "
+                    "It must be a positive integer with an optional "
+                    "K/KB/M/MB/G/GB/T/TB suffix (case-insensitive). "
+                    "Kubernetes-style Gi/Mi suffixes are not accepted.".format(
+                        step_label, value, field
+                    ),
+                    fg="red",
+                )
+        requirements = step.get("htcondor_requirements")
+        if requirements is not None and not (
+            isinstance(requirements, str) and requirements.strip()
+        ):
+            check_pass = False
+            click.secho(
+                "In step {0}:\nhtcondor_requirements must be a non-empty "
+                "string ClassAd expression.".format(step_label),
+                fg="red",
+            )
+    return check_pass
 
 
 def check_htcondor_max_runtime(specification):

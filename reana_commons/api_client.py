@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2025, 2026 CERN.
+# Copyright (C) 2018, 2019, 2020, 2021, 2022, 2024, 2025, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -118,6 +118,10 @@ class JobControllerAPIClient(BaseAPIClient):
         rucio=False,
         htcondor_max_runtime="",
         htcondor_accounting_group="",
+        htcondor_request_cpus="",
+        htcondor_request_memory="",
+        htcondor_request_disk="",
+        htcondor_requirements="",
         slurm_partition="",
         slurm_time="",
         kubernetes_job_timeout: Optional[int] = None,
@@ -145,6 +149,19 @@ class JobControllerAPIClient(BaseAPIClient):
         :param unpacked_img: Decides if unpacked iamges should be used.
         :param htcondor_max_runtime: Maximum runtime of a HTCondor job.
         :param htcondor_accounting_group: Accounting group of a HTCondor job.
+        :param htcondor_request_cpus: Number of CPU cores requested for a
+            HTCondor job (positive integer as string, e.g. ``"4"``).
+        :param htcondor_request_memory: Memory requested for a HTCondor job.
+            Accepts a positive integer with an optional ``K|KB|M|MB|G|GB|T|TB``
+            suffix (case-insensitive, binary multipliers); the suffix-less
+            form is interpreted as megabytes. Examples: ``"4096"``, ``"4 GB"``.
+        :param htcondor_request_disk: Disk requested for a HTCondor job.
+            Same quantity syntax as ``htcondor_request_memory``; the
+            suffix-less form is interpreted as kilobytes. Examples:
+            ``"10000000"``, ``"10 GB"``.
+        :param htcondor_requirements: HTCondor ``Requirements`` ClassAd
+            expression used to select the execution machine, e.g.
+            ``'(Arch =?= "aarch64")'``.
         :param slurm_partition: Partition of a Slurm job.
         :param slurm_time: Maximum timelimit of a Slurm job.
         :param kubernetes_job_timeout: Timeout for the job in seconds.
@@ -202,6 +219,18 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if htcondor_accounting_group:
             job_spec["htcondor_accounting_group"] = htcondor_accounting_group
+
+        if htcondor_request_cpus:
+            job_spec["htcondor_request_cpus"] = htcondor_request_cpus
+
+        if htcondor_request_memory:
+            job_spec["htcondor_request_memory"] = htcondor_request_memory
+
+        if htcondor_request_disk:
+            job_spec["htcondor_request_disk"] = htcondor_request_disk
+
+        if htcondor_requirements:
+            job_spec["htcondor_requirements"] = htcondor_requirements
 
         if slurm_partition:
             job_spec["slurm_partition"] = slurm_partition

@@ -288,6 +288,26 @@
                       "type": "string",
                       "title": "HTCondor maximum runtime"
                     },
+                    "htcondor_request_cpus": {
+                      "type": "string",
+                      "title": "HTCondor request CPUs",
+                      "description": "Number of CPU cores to request from HTCondor for the step (positive integer as string, e.g. \"4\")."
+                    },
+                    "htcondor_request_memory": {
+                      "type": "string",
+                      "title": "HTCondor request memory",
+                      "description": "Amount of memory to request from HTCondor for the step. Accepts a positive integer with an optional K/KB/M/MB/G/GB/T/TB suffix (case-insensitive, binary multipliers); the suffix-less form is interpreted as megabytes. Examples: \"4000\", \"4 GB\". Kubernetes-style Gi/Mi suffixes are not accepted."
+                    },
+                    "htcondor_request_disk": {
+                      "type": "string",
+                      "title": "HTCondor request disk",
+                      "description": "Amount of disk to request from HTCondor for the step. Accepts a positive integer with an optional K/KB/M/MB/G/GB/T/TB suffix (case-insensitive, binary multipliers); the suffix-less form is interpreted as kilobytes. Examples: \"10000000\", \"10 GB\". Kubernetes-style Gi/Mi suffixes are not accepted."
+                    },
+                    "htcondor_requirements": {
+                      "type": "string",
+                      "title": "HTCondor requirements expression",
+                      "description": "HTCondor Requirements ClassAd expression used to select the execution machine, e.g. '(Arch =?= \"aarch64\")'."
+                    },
                     "kerberos": {
                       "type": "boolean",
                       "title": "Use Kerberos authentication",
