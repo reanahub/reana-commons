@@ -554,11 +554,11 @@
                   ]
                 },
                 "vetted_container_images_allowlist": {
-                  "title": "List of container images allowed in user workflows",
+                  "title": "List of vetted container images allowed in user workflows",
                   "value": []
                 },
                 "vetted_container_images_enabled": {
-                  "title": "Whether container image vetting is enabled",
+                  "title": "Vetted container images required for user workflows",
                   "value": false
                 },
                 "workspaces_available": {
