@@ -15,7 +15,7 @@ import sys
 
 import yaml
 
-from reana_commons.errors import REANAConfigDoesNotExist
+from reana_commons.errors import REANAConfigDoesNotExist, REANAConfigurationError
 
 # Use importlib.resources for Python 3.9+ or importlib_resources backport for 3.8
 if sys.version_info >= (3, 9):
@@ -250,10 +250,123 @@ OPENAPI_SPECS = {
 }
 """REANA Workflow Controller address."""
 
-REANA_MAX_CONCURRENT_BATCH_WORKFLOWS = int(
-    os.getenv("REANA_MAX_CONCURRENT_BATCH_WORKFLOWS", "30")
+
+def _parse_concurrency_cap(value, name):
+    """Coerce a configured concurrency cap into a non-negative integer.
+
+    Numeric strings are accepted so that caps coming from a Helm values file or
+    a hand-written environment variable (where ``3`` easily becomes ``"3"``)
+    do not reach the scheduler as strings and blow up on comparison there.
+
+    :param value: the raw configured value.
+    :param name: the configuration variable ``value`` comes from, used in the
+        error message so a misconfigured deployment fails fast and legibly.
+    :return: the cap as a non-negative integer, where ``0`` means that the
+        resource is closed and no workflow using it will be admitted.
+    """
+    try:
+        cap = int(str(value).strip())
+    except (TypeError, ValueError):
+        raise REANAConfigurationError(
+            f"{name} must be a non-negative integer, got {value!r}."
+        )
+    if cap < 0:
+        raise REANAConfigurationError(
+            f"{name} must be a non-negative integer, got {cap}."
+        )
+    return cap
+
+
+def _parse_per_backend_caps(raw):
+    """Parse the per-backend cap overrides into a mapping of backend to cap."""
+    name = "REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND"
+    try:
+        overrides = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise REANAConfigurationError(
+            f"{name} must be a JSON object mapping compute backends to caps, "
+            f"got {raw!r} ({e})."
+        )
+    if not isinstance(overrides, dict):
+        raise REANAConfigurationError(
+            f"{name} must be a JSON object mapping compute backends to caps, "
+            f"got {overrides!r}."
+        )
+    if "dask" in overrides:
+        raise REANAConfigurationError(
+            f"{name} does not accept a 'dask' entry: Dask is not a compute "
+            "backend and its cap is set with REANA_MAX_CONCURRENT_DASK_WORKFLOWS."
+        )
+    return {
+        backend: _parse_concurrency_cap(cap, f"{name}['{backend}']")
+        for backend, cap in overrides.items()
+    }
+
+
+REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS = _parse_concurrency_cap(
+    os.getenv(
+        "REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS",
+        # Fall back to the legacy ``REANA_MAX_CONCURRENT_BATCH_WORKFLOWS`` env var
+        # so existing deployments that set it keep capping Kubernetes workflows.
+        os.getenv("REANA_MAX_CONCURRENT_BATCH_WORKFLOWS", "30"),
+    ),
+    "REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS",
 )
-"""Upper limit on concurrent REANA batch workflows running in the cluster."""
+"""Upper limit on concurrent workflows that use Kubernetes as a compute backend
+in any workflow step. Hybrid workflows count against this cap as well as the
+caps of the external backends they also use.
+"""
+
+REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS = _parse_concurrency_cap(
+    os.getenv("REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS", "200"),
+    "REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS",
+)
+"""Default upper limit on concurrent workflows using an external compute backend
+(HTCondor, Slurm, Compute4PUNCH, ...) for backends with no explicit override
+in ``REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND``.
+"""
+
+REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND = _parse_per_backend_caps(
+    os.getenv("REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND", "{}")
+)
+"""Optional per-backend cap overrides mapping each compute backend
+identifier to its concurrent-workflow cap.
+
+The keys should be exactly as written in a workflow's ``compute_backend`` field
+(e.g. ``kubernetes``, ``htcondorcern``, ``slurmcern``, ``compute4punch``).
+Backends without an entry here fall back to
+``REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS`` for ``kubernetes`` and to
+``REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS`` for every other backend.
+``dask`` is not a valid key: it is not a compute backend, and its cap is
+resolved from ``REANA_MAX_CONCURRENT_DASK_WORKFLOWS`` before this mapping is
+consulted. Example:
+``REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND='{"htcondorcern": 200, "slurmcern": 100}'``
+"""
+
+REANA_MAX_CONCURRENT_DASK_WORKFLOWS = _parse_concurrency_cap(
+    os.getenv("REANA_MAX_CONCURRENT_DASK_WORKFLOWS", "5"),
+    "REANA_MAX_CONCURRENT_DASK_WORKFLOWS",
+)
+"""Upper limit on concurrent workflows that request a Dask cluster."""
+
+
+def get_concurrent_workflows_cap(resource):
+    """Return the concurrent-workflow cap for a capped resource.
+
+    :param resource: a compute backend identifier as stored in
+        ``Workflow.compute_backends`` (e.g. ``kubernetes``, ``htcondorcern``),
+        or the special value ``"dask"`` for the Dask-cluster cap.
+    :return: the maximum number of concurrent workflows allowed for ``resource``,
+        where ``0`` means that the resource is closed.
+    """
+    if resource == "dask":
+        return REANA_MAX_CONCURRENT_DASK_WORKFLOWS
+    if resource in REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND:
+        return REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND[resource]
+    if resource == "kubernetes":
+        return REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS
+    return REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS
+
 
 REANA_LOG_LEVEL = logging.getLevelName(os.getenv("REANA_LOG_LEVEL", "INFO"))
 """Log verbosity level for REANA components."""
