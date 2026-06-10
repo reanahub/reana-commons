@@ -9,7 +9,7 @@
 
 import json
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from kombu import Connection, Exchange, Queue
 
@@ -170,6 +170,8 @@ class WorkflowSubmissionPublisher(BasePublisher):
         parameters,
         priority=0,
         min_job_memory=0,
+        compute_backends: Optional[List[str]] = None,
+        uses_dask: bool = False,
         retry_count: Optional[int] = None,
     ):
         """Publish workflow submission parameters."""
@@ -179,6 +181,8 @@ class WorkflowSubmissionPublisher(BasePublisher):
             "parameters": parameters,
             "priority": priority,
             "min_job_memory": min_job_memory,
+            "compute_backends": compute_backends or ["kubernetes"],
+            "uses_dask": uses_dask,
         }
 
         if retry_count:
