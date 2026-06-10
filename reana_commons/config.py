@@ -250,10 +250,62 @@ OPENAPI_SPECS = {
 }
 """REANA Workflow Controller address."""
 
-REANA_MAX_CONCURRENT_BATCH_WORKFLOWS = int(
-    os.getenv("REANA_MAX_CONCURRENT_BATCH_WORKFLOWS", "30")
+REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS = int(
+    os.getenv(
+        "REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS",
+        # Fall back to the legacy ``REANA_MAX_CONCURRENT_BATCH_WORKFLOWS`` env var
+        # so existing deployments that set it keep capping Kubernetes workflows.
+        os.getenv("REANA_MAX_CONCURRENT_BATCH_WORKFLOWS", "30"),
+    )
 )
-"""Upper limit on concurrent REANA batch workflows running in the cluster."""
+"""Upper limit on concurrent workflows that use Kubernetes as a compute backend
+in any workflow step. Hybrid workflows count against this cap as well as the
+caps of the external backends they also use.
+"""
+
+REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS = int(
+    os.getenv("REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS", "200")
+)
+"""Default upper limit on concurrent workflows using an external compute backend
+(HTCondor, Slurm, Compute4PUNCH, ...) for backends with no explicit override
+in ``REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND``.
+"""
+
+REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND = json.loads(
+    os.getenv("REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND", "{}")
+)
+"""Optional per-backend cap overrides mapping each compute backend
+identifier to its concurrent-workflow cap.
+
+The keys should be exactly as written in a workflow's ``compute_backend`` field
+(e.g. ``kubernetes``, ``htcondorcern``, ``slurmcern``, ``compute4punch``).
+Backends without an entry here fall back to ``REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS``.
+Example:
+``REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND='{"htcondorcern": 200, "slurmcern": 100}'``
+"""
+
+REANA_MAX_CONCURRENT_DASK_WORKFLOWS = int(
+    os.getenv("REANA_MAX_CONCURRENT_DASK_WORKFLOWS", "5")
+)
+"""Upper limit on concurrent workflows that request a Dask cluster."""
+
+
+def get_concurrent_workflows_cap(resource):
+    """Return the concurrent-workflow cap for a capped resource.
+
+    :param resource: a compute backend identifier as stored in
+        ``Workflow.compute_backends`` (e.g. ``kubernetes``, ``htcondorcern``),
+        or the special value ``"dask"`` for the Dask-cluster cap.
+    :return: the maximum number of concurrent workflows allowed for ``resource``.
+    """
+    if resource == "dask":
+        return REANA_MAX_CONCURRENT_DASK_WORKFLOWS
+    if resource in REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND:
+        return REANA_MAX_CONCURRENT_BATCH_WORKFLOWS_PER_BACKEND[resource]
+    if resource == "kubernetes":
+        return REANA_MAX_CONCURRENT_K8S_BATCH_WORKFLOWS
+    return REANA_MAX_CONCURRENT_EXTERNAL_BATCH_WORKFLOWS
+
 
 REANA_LOG_LEVEL = logging.getLevelName(os.getenv("REANA_LOG_LEVEL", "INFO"))
 """Log verbosity level for REANA components."""
