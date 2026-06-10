@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2021, 2022, 2024 CERN.
+# Copyright (C) 2021, 2022, 2023, 2024, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -16,6 +16,7 @@ from pathlib import Path
 
 if sys.version_info >= (3, 11):
     from snakemake.api import SnakemakeApi
+    from snakemake.settings.enums import Quietness
     from snakemake.settings.types import (
         ResourceSettings,
         WorkflowSettings,
@@ -68,13 +69,16 @@ def snakemake_validate_v7(
     :param workdir: Path to working directory.
     :type workdir: string or None
     """
-    valid = snakemake(
-        snakefile=workflow_file,
-        configfiles=configfiles,
-        workdir=workdir,
-        dryrun=True,
-        quiet=True,
-    )
+    try:
+        valid = snakemake(
+            snakefile=workflow_file,
+            configfiles=configfiles,
+            workdir=workdir,
+            dryrun=True,
+            quiet=True,
+        )
+    except Exception as e:
+        raise REANAValidationError("Snakemake specification is invalid.") from e
     if not valid:
         raise REANAValidationError("Snakemake specification is invalid.")
 
@@ -96,7 +100,7 @@ def snakemake_validate_v8(
     """
     with SnakemakeApi(
         OutputSettings(
-            quiet=True,
+            quiet={Quietness.ALL},
         )
     ) as snakemake_api:
         try:
@@ -276,7 +280,7 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
                 "inputs": dict(rule._input),
                 "params": dict(rule._params),
                 "outputs": dict(rule._output),
-                "commands": [rule.shellcmd],
+                "commands": [rule.shellcmd] if rule.shellcmd else [],
                 "compute_backend": rule.resources.get("compute_backend"),
                 "kubernetes_memory_limit": rule.resources.get(
                     "kubernetes_memory_limit"
@@ -305,11 +309,44 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
     workflow_file = Path(workflow_file)  # convert str to Path
     configfiles = [Path(kwargs.get("input"))] if kwargs.get("input") else []
 
-    snakemake_validate(
-        workflow_file=workflow_file, configfiles=configfiles, workdir=workdir
-    )
+    def resource_value(rule, name):
+        """Return a concrete Snakemake resource value or None when unset."""
+        return rule.resources.get(name).value
+
+    with SnakemakeApi(OutputSettings(quiet={Quietness.ALL})) as snakemake_api:
+        try:
+            workflow_api = snakemake_api.workflow(
+                resource_settings=ResourceSettings(nodes=SNAKEMAKE_MAX_PARALLEL_JOBS),
+                config_settings=ConfigSettings(configfiles=configfiles),
+                storage_settings=StorageSettings(),
+                storage_provider_settings=dict(),
+                workflow_settings=WorkflowSettings(),
+                deployment_settings=DeploymentSettings(),
+                snakefile=workflow_file,
+                workdir=workdir,
+            )
+            workflow_api.dag()
+            rules = workflow_api._workflow.rules
+        except Exception as e:
+            raise REANAValidationError("Snakemake specification is invalid.") from e
 
     return {
         "job_dependencies": {},
-        "steps": [],
+        "steps": [
+            {
+                "name": rule.name,
+                "environment": (rule.container_img or "").replace("docker://", ""),
+                "inputs": dict(rule._input),
+                "params": dict(rule._params),
+                "outputs": dict(rule._output),
+                "commands": [rule.shellcmd] if rule.shellcmd else [],
+                "compute_backend": resource_value(rule, "compute_backend"),
+                "kubernetes_memory_limit": resource_value(
+                    rule, "kubernetes_memory_limit"
+                ),
+                "kubernetes_uid": resource_value(rule, "kubernetes_uid"),
+            }
+            for rule in rules
+            if not rule.norun
+        ],
     }

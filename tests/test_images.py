@@ -8,9 +8,8 @@
 
 """Tests for reana_commons.validation.images."""
 
-import pytest
-
-from reana_commons.validation.images import extract_cwl_images
+from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+from reana_commons.validation.images import extract_cwl_images, extract_images
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -18,6 +17,42 @@ from reana_commons.validation.images import extract_cwl_images
 
 IMAGE = "docker.io/library/python:3.12"
 IMAGE2 = "docker.io/library/ubuntu:24.04"
+
+
+def test_snakemake_empty_environment_uses_default_image():
+    """Snakemake rules without containers resolve to the configured default."""
+    specification = {
+        "workflow": {
+            "type": "snakemake",
+            "specification": {"steps": [{"environment": ""}]},
+        }
+    }
+
+    assert extract_images(specification) == [REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE]
+
+
+def test_serial_empty_environment_is_preserved():
+    """Default substitution must not affect other workflow engines."""
+    specification = {
+        "workflow": {
+            "type": "serial",
+            "specification": {"steps": [{"environment": ""}]},
+        }
+    }
+
+    assert extract_images(specification) == [""]
+
+
+def test_null_workflow_specification_has_no_extractable_images():
+    """Unexpanded workflow metadata must not crash server-side validation."""
+    specification = {
+        "workflow": {
+            "type": "yadage",
+            "specification": None,
+        }
+    }
+
+    assert extract_images(specification) == []
 
 
 def _wf(requirements=None, hints=None):

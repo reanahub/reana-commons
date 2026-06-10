@@ -10,6 +10,8 @@
 
 from typing import Dict, Iterator, List
 
+from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+
 
 def extract_images(reana_yaml: Dict) -> List[str]:
     """Extract container images from a REANA workflow specification.
@@ -23,9 +25,14 @@ def extract_images(reana_yaml: Dict) -> List[str]:
     :returns: List of image strings, one per step/requirement.
     """
     workflow_type = reana_yaml["workflow"]["type"]
-    specification = reana_yaml["workflow"].get("specification", {})
+    specification = reana_yaml["workflow"].get("specification") or {}
 
-    if workflow_type in ("serial", "snakemake"):
+    if workflow_type == "snakemake":
+        return [
+            step.get("environment") or REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+            for step in specification.get("steps", [])
+        ]
+    elif workflow_type == "serial":
         return [step.get("environment", "") for step in specification.get("steps", [])]
     elif workflow_type == "yadage":
         return [
