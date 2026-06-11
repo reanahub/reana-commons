@@ -146,7 +146,7 @@ class JobControllerAPIClient(BaseAPIClient):
         :param rucio: Decides if a rucio environment should be provided for job.
         :param kubernetes_uid: Overwrites the default UID in the job container.
         :param kubernetes_memory_limit: Overwrites the default memory limit in the job container.
-        :param unpacked_img: Decides if unpacked iamges should be used.
+        :param unpacked_img: Decides if unpacked images should be used.
         :param htcondor_max_runtime: Maximum runtime of a HTCondor job.
         :param htcondor_accounting_group: Accounting group of a HTCondor job.
         :param htcondor_request_cpus: Number of CPU cores requested for a
