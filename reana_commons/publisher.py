@@ -170,6 +170,7 @@ class WorkflowSubmissionPublisher(BasePublisher):
         parameters,
         priority=0,
         min_job_memory=0,
+        uses_kubernetes: bool = True,
         retry_count: Optional[int] = None,
     ):
         """Publish workflow submission parameters."""
@@ -179,6 +180,7 @@ class WorkflowSubmissionPublisher(BasePublisher):
             "parameters": parameters,
             "priority": priority,
             "min_job_memory": min_job_memory,
+            "uses_kubernetes": uses_kubernetes,
         }
 
         if retry_count:
