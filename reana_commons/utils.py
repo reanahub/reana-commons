@@ -132,7 +132,19 @@ def calculate_file_access_time(workflow_workspace):
 
 
 def copy_openapi_specs(output_path, component):
-    """Copy generated and validated openapi specs to reana-commons module."""
+    """Copy generated and validated openapi specs to reana-commons module.
+
+    This is the *only* mechanism that keeps reana-commons' bundled OpenAPI
+    specs (used e.g. by reana-client's bravado validation) in sync with what
+    the source component actually generates -- and it is a manual,
+    ``--publish``-gated, local-dev-only step that nothing in CI invokes or
+    otherwise verifies. A missed or failed copy is currently silent or
+    near-silent, which is exactly the mechanism that once let a bundled spec
+    drift out of sync undetected (a bool/string field mismatch that only
+    surfaced as a runtime bravado validation error). Until this has real CI
+    enforcement, at least make every failure-to-sync loud so a developer
+    running this locally cannot miss it.
+    """
     if component == "reana-server":
         file = "reana_server.json"
     elif component == "reana-workflow-controller":
@@ -143,19 +155,40 @@ def copy_openapi_specs(output_path, component):
         reana_srcdir = os.environ.get("REANA_SRCDIR")
     else:
         reana_srcdir = os.path.join("..")
-    try:
-        reana_commons_specs_path = os.path.join(
-            reana_srcdir, "reana-commons", "reana_commons", "openapi_specifications"
+    reana_commons_specs_path = os.path.join(
+        reana_srcdir, "reana-commons", "reana_commons", "openapi_specifications"
+    )
+    if not os.path.exists(reana_commons_specs_path):
+        click.echo(
+            click.style(
+                "WARNING: could not find a reana-commons checkout at "
+                f"{reana_commons_specs_path!r} (set REANA_SRCDIR if it is "
+                "elsewhere). The bundled OpenAPI spec in reana-commons was "
+                "NOT updated and may now be out of sync with this component.",
+                fg="red",
+            )
         )
-        if os.path.exists(reana_commons_specs_path):
-            if os.path.isfile(output_path):
-                shutil.copy(output_path, os.path.join(reana_commons_specs_path, file))
-                # copy openapi specs file as well to docs
-                shutil.copy(output_path, os.path.join("docs", "openapi.json"))
+        return
+    if not os.path.isfile(output_path):
+        click.echo(
+            click.style(
+                f"WARNING: {output_path!r} does not exist; nothing to copy "
+                "to reana-commons. Its bundled OpenAPI spec was NOT updated.",
+                fg="red",
+            )
+        )
+        return
+    try:
+        shutil.copy(output_path, os.path.join(reana_commons_specs_path, file))
+        # copy openapi specs file as well to docs
+        shutil.copy(output_path, os.path.join("docs", "openapi.json"))
     except Exception as e:
         click.echo(
-            "Something went wrong, could not copy openapi "
-            "specifications to reana-commons \n{0}".format(e)
+            click.style(
+                "WARNING: could not copy openapi specifications to "
+                f"reana-commons; its bundled spec was NOT updated: {e}",
+                fg="red",
+            )
         )
 
 

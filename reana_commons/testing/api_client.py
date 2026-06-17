@@ -27,7 +27,15 @@ def make_mock_api_client(component):
         mock_http_client, mock_result = Mock(), Mock()
         mock_result.result.return_value = (mock_response, mock_http_response)
         mock_http_client.request.return_value = mock_result
-        mock_api_client = BaseAPIClient(component, http_client=mock_http_client)
+        # Tests using this helper deliberately replace the HTTP transport and
+        # must not depend on process-wide service discovery.  Supplying an
+        # explicit, non-routable URL keeps that contract while production
+        # clients can still fail fast when REANA_SERVER_URL is missing.
+        mock_api_client = BaseAPIClient(
+            component,
+            http_client=mock_http_client,
+            server_url="http://mock-reana.invalid",
+        )
         return mock_api_client._client
 
     return mock_api_client
