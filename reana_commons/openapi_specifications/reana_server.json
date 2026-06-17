@@ -55,21 +55,66 @@
     "version": "0.95.0a6"
   },
   "paths": {
-    "/account/settings/linkedaccounts/": {},
-    "/account/settings/linkedaccounts/static/{filename}": {},
+    "/api/.well-known/openid-configuration": {
+      "get": {
+        "description": "Relays the OIDC discovery document of the deployment's trusted issuer, extended with the public client id that reana-client must use for the device authorization grant. This lets clients discover the identity provider knowing only the REANA URL.",
+        "operationId": "get_openid_configuration",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Request succeeded. The response contains the issuer's OpenID configuration and the REANA CLI client id.",
+            "schema": {
+              "properties": {
+                "authorization_endpoint": {
+                  "type": "string"
+                },
+                "device_authorization_endpoint": {
+                  "type": "string"
+                },
+                "issuer": {
+                  "type": "string"
+                },
+                "jwks_uri": {
+                  "type": "string"
+                },
+                "reana_cli_client_id": {
+                  "type": "string"
+                },
+                "reana_client_id": {
+                  "type": "string"
+                },
+                "token_endpoint": {
+                  "type": "string"
+                },
+                "userinfo_endpoint": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "502": {
+            "description": "Request failed. The issuer's OpenID configuration could not be fetched.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "security": [],
+        "summary": "Get the trusted issuer's OpenID configuration."
+      }
+    },
     "/api/config": {
       "get": {
         "description": "This resource provides configuration needed by Reana-UI.",
         "operationId": "get_config",
-        "parameters": [
-          {
-            "description": "API access_token of user.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "produces": [
           "application/json"
         ],
@@ -80,14 +125,16 @@
               "application/json": {
                 "admin_email": "admin@example.org",
                 "announcement": "This is a QA instance",
+                "auth": {
+                  "bff_enabled": true,
+                  "login_url": "/api/login",
+                  "logout_url": "/api/logout"
+                },
                 "chat_url": "https://mattermost.web.cern.ch/it-dep/channels/reana",
                 "client_pyvenv": "/afs/cern.ch/user/r/reana/public/reana/bin/activate",
                 "docs_url": "http://docs.reana.io/",
                 "forum_url": "https://forum.reana.io/",
-                "hide_signup": false,
-                "local_users": true,
-                "polling_secs": 15,
-                "sso": true
+                "polling_secs": 15
               }
             },
             "schema": {
@@ -111,6 +158,7 @@
             }
           }
         },
+        "security": [],
         "summary": "Gets information about Reana-UI configuration user."
       }
     },
@@ -195,13 +243,6 @@
         "description": "Retrieve projects from GitLab.",
         "operationId": "gitlab_projects",
         "parameters": [
-          {
-            "description": "The API access_token of the current user.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "The search string to filter the project list.",
             "in": "query",
@@ -454,15 +495,6 @@
       "get": {
         "description": "This resource reports information about cluster capabilities.",
         "operationId": "info",
-        "parameters": [
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "produces": [
           "application/json"
         ],
@@ -1236,6 +1268,109 @@
         "summary": "Launch workflow from a remote REANA specification file."
       }
     },
+    "/api/login": {
+      "get": {
+        "description": "Redirects the browser to the trusted issuer's authorization endpoint (authorization code flow with PKCE). On completion the issuer redirects back to the OAuth callback, which establishes the cookie-based session. Returns 404 when the BFF login is disabled.",
+        "operationId": "bff_login",
+        "parameters": [
+          {
+            "description": "Relative URL to return to after login.",
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to the issuer's authorization endpoint."
+          },
+          "404": {
+            "description": "BFF login is not enabled on this deployment."
+          },
+          "502": {
+            "description": "The issuer's endpoints could not be resolved."
+          }
+        },
+        "security": [],
+        "summary": "Start the browser login flow."
+      }
+    },
+    "/api/logout": {
+      "post": {
+        "description": "Deletes the server-side session (refresh token), clears the authentication cookies and returns the issuer's RP-initiated logout URL for the web application to navigate to.",
+        "operationId": "bff_logout",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Session ended. The response contains the issuer logout URL.",
+            "schema": {
+              "properties": {
+                "logout_url": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "No session cookie present."
+          },
+          "403": {
+            "description": "CSRF validation failed."
+          },
+          "503": {
+            "description": "Browser session storage is temporarily unavailable."
+          }
+        },
+        "security": [],
+        "summary": "End the browser session."
+      }
+    },
+    "/api/oauth/callback": {
+      "get": {
+        "description": "Handles the issuer's redirect: validates the OAuth state, exchanges the authorization code for tokens, provisions/links the REANA user, stores the refresh token server-side and sets the authentication cookies.",
+        "operationId": "bff_oauth_callback",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect back to the web application."
+          },
+          "403": {
+            "description": "OAuth state validation failed."
+          },
+          "502": {
+            "description": "Token exchange with the issuer failed."
+          },
+          "503": {
+            "description": "Browser session storage is temporarily unavailable."
+          }
+        },
+        "security": [],
+        "summary": "Complete the browser login flow."
+      }
+    },
     "/api/ping": {
       "get": {
         "description": "Ping the server.\n\nThis endpoint is deliberately unauthenticated: it also carries the protocol bootstrap signal that a client needs *before* it authenticates or builds a request body. ``api_capabilities`` advertises the client-facing protocols the server implements; a released server omits the field, which identifies it as legacy.",
@@ -1279,6 +1414,7 @@
             }
           }
         },
+        "security": [],
         "summary": "Ping the server (healthcheck)"
       }
     },
@@ -1295,23 +1431,16 @@
             "type": "string"
           },
           {
-            "description": "Get the quota limit by user ID (mutually exclusive with `email` and `user_access_token`)",
+            "description": "Get the quota limit by user ID (mutually exclusive with `email`)",
             "in": "query",
             "name": "user_id",
             "required": false,
             "type": "string"
           },
           {
-            "description": "Get the quota limit by user email (mutually exclusive with `user_id` and `user_access_token`)",
+            "description": "Get the quota limit by user email (mutually exclusive with `user_id`)",
             "in": "query",
             "name": "email",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "description": "Get the quota limit by user access token (mutually exclusive with `user_id` and `email`)",
-            "in": "query",
-            "name": "user_access_token",
             "required": false,
             "type": "string"
           },
@@ -1432,6 +1561,7 @@
             }
           }
         },
+        "security": [],
         "summary": "Get resource quota limits."
       },
       "patch": {
@@ -1510,6 +1640,7 @@
             "description": "Internal server error."
           }
         },
+        "security": [],
         "summary": "Patch periodic quota fields."
       },
       "post": {
@@ -1667,6 +1798,7 @@
             }
           }
         },
+        "security": [],
         "summary": "Set resource quota limits."
       }
     },
@@ -1674,15 +1806,6 @@
       "get": {
         "description": "Get user secrets.",
         "operationId": "get_secrets",
-        "parameters": [
-          {
-            "description": "Secrets owner access token.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "produces": [
           "application/json"
         ],
@@ -1762,13 +1885,6 @@
         "description": "This resource deletes the requested secrets.",
         "operationId": "delete_secrets",
         "parameters": [
-          {
-            "description": "API key of the admin.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Optional. List of secrets to be deleted.",
             "in": "body",
@@ -1861,13 +1977,6 @@
         "description": "This resource adds secrets for the authenticated user.",
         "operationId": "add_secrets",
         "parameters": [
-          {
-            "description": "Secrets owner access token.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Whether existing secret keys should be overwritten.",
             "in": "query",
@@ -2135,279 +2244,10 @@
         "summary": "Retrieve cluster health status"
       }
     },
-    "/api/token": {
-      "delete": {
-        "consumes": [
-          "application/json"
-        ],
-        "description": "This management resource revokes the currently active REANA access token of a selected user. The endpoint is disabled unless `REANA_TOKEN_MANAGEMENT_SECRET` is configured.",
-        "operationId": "delete_token",
-        "parameters": [
-          {
-            "description": "REANA user token management secret",
-            "in": "header",
-            "name": "X-Token-Management-Secret",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "description": "Data required to identify the target user (exactly one of `user_id` or `email` must be provided).",
-            "in": "body",
-            "name": "data",
-            "required": true,
-            "schema": {
-              "properties": {
-                "email": {
-                  "description": "Email of the target user (mutually exclusive with `user_id`)",
-                  "type": "string"
-                },
-                "user_id": {
-                  "description": "ID of the target user (mutually exclusive with `email`)",
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Access token successfully revoked.",
-            "examples": {
-              "application/json": {
-                "email": "john.doe@example.org",
-                "id_": "aa37d63d-3186-45d5-aa40-5d221cb170bf",
-                "message": "Access token revoked.",
-                "reana_token": {
-                  "status": "revoked"
-                },
-                "status": 200
-              }
-            },
-            "schema": {
-              "properties": {
-                "email": {
-                  "type": "string"
-                },
-                "id_": {
-                  "type": "string"
-                },
-                "message": {
-                  "type": "string"
-                },
-                "reana_token": {
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  },
-                  "type": "object"
-                },
-                "status": {
-                  "type": "integer"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "400": {
-            "description": "Invalid request.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "integer"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "401": {
-            "description": "Unauthorized.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "integer"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "403": {
-            "description": "Token management endpoint is not configured.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "integer"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "404": {
-            "description": "No active token to revoke for the given user.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "integer"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "500": {
-            "description": "Internal server error.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "integer"
-                }
-              },
-              "type": "object"
-            }
-          }
-        },
-        "summary": "Revokes the active access token of the selected user."
-      },
-      "put": {
-        "description": "This resource allows the user to create an empty REANA access token and mark it as requested.",
-        "operationId": "request_token",
-        "parameters": [
-          {
-            "description": "API access_token of user.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "User information correspoding to the session cookie sent in the request.",
-            "examples": {
-              "application/json": {
-                "reana_token": {
-                  "requested_at": "Mon, 25 May 2020 10:45:15 GMT",
-                  "status": "requested"
-                }
-              }
-            },
-            "schema": {
-              "properties": {
-                "reana_token": {
-                  "properties": {
-                    "requested_at": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    }
-                  },
-                  "type": "object"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "401": {
-            "description": "Error message indicating that the uses is not authenticated.",
-            "examples": {
-              "application/json": {
-                "message": "User not logged in"
-              }
-            },
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "403": {
-            "description": "Request failed. User token not valid.",
-            "examples": {
-              "application/json": {
-                "message": "Token is not valid."
-              }
-            },
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "429": {
-            "description": "Request rate limit exceeded.",
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "message"
-              ],
-              "type": "object"
-            }
-          },
-          "500": {
-            "description": "Request failed. Internal server error.",
-            "examples": {
-              "application/json": {
-                "message": "Internal server error."
-              }
-            },
-            "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          }
-        },
-        "summary": "Requests a new access token for the authenticated user."
-      }
-    },
     "/api/users/shared-with-you": {
       "get": {
         "description": "This resource provides information about users that shared workflow(s) with the authenticated user.",
         "operationId": "get_users_shared_with_you",
-        "parameters": [
-          {
-            "description": "API access_token of user.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "produces": [
           "application/json"
         ],
@@ -2496,15 +2336,6 @@
       "get": {
         "description": "This resource provides information about users that the authenticated user shared workflow(s) with.",
         "operationId": "get_users_you_shared_with",
-        "parameters": [
-          {
-            "description": "API access_token of user.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "produces": [
           "application/json"
         ],
@@ -2595,13 +2426,6 @@
         "operationId": "get_workflows",
         "parameters": [
           {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Required. Type of workflows.",
             "in": "query",
             "name": "type",
@@ -2663,6 +2487,13 @@
             "description": "Include size information of the workspace.",
             "in": "query",
             "name": "include_workspace_size",
+            "type": "boolean"
+          },
+          {
+            "description": "Include per-session notebook secrets for workflows owned by the authenticated user. Intended for interactive-session launch clients.",
+            "in": "query",
+            "name": "include_session_secrets",
+            "required": false,
             "type": "boolean"
           },
           {
@@ -2850,6 +2681,10 @@
                         },
                         "type": "object"
                       },
+                      "session_secret": {
+                        "description": "Present only when include_session_secrets is true and the authenticated user owns the workflow.",
+                        "type": "string"
+                      },
                       "session_status": {
                         "type": "string"
                       },
@@ -2981,13 +2816,6 @@
             "name": "bundle",
             "required": true,
             "type": "file"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           }
         ],
         "produces": [
@@ -3174,13 +3002,6 @@
             "name": "target",
             "required": true,
             "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           }
         ],
         "produces": [
@@ -3315,12 +3136,6 @@
             "name": "bundle",
             "required": true,
             "type": "file"
-          },
-          {
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           },
           {
             "description": "If true, run offline reproducibility checks on runtime environment image references and return the loaded image and effective runtime UID/GID combinations so the client can optionally pull and inspect them locally.",
@@ -3490,13 +3305,6 @@
             "name": "context_lines",
             "required": false,
             "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           }
         ],
         "produces": [
@@ -3609,13 +3417,6 @@
             "name": "workflow_id_or_name",
             "required": true,
             "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           }
         ],
         "produces": [
@@ -3711,13 +3512,6 @@
         "description": "This resource reports the disk usage of a workflow. Resource is expecting a workflow UUID and some parameters .",
         "operationId": "get_workflow_disk_usage",
         "parameters": [
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Required. Analysis UUID or name.",
             "in": "path",
@@ -3876,18 +3670,94 @@
         "summary": "Get disk usage of a workflow."
       }
     },
+    "/api/workflows/{workflow_id_or_name}/interactive-session-secret": {
+      "get": {
+        "description": "Return the random per-session secret used as the notebook access token of the workflow's open interactive session. Only the authenticated workflow owner can retrieve it.",
+        "operationId": "get_interactive_session_secret",
+        "parameters": [
+          {
+            "description": "Required. Workflow UUID or name.",
+            "in": "path",
+            "name": "workflow_id_or_name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "The interactive session secret was retrieved.",
+            "schema": {
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "session_secret": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "session_secret",
+                "path"
+              ],
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "The user is not signed in.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "403": {
+            "description": "The user does not own the workflow.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "The workflow has no open interactive session.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Get the access secret of the open interactive session."
+      }
+    },
     "/api/workflows/{workflow_id_or_name}/logs": {
       "get": {
         "description": "This resource reports the status of a workflow. Resource is expecting a workflow UUID.",
         "operationId": "get_workflow_logs",
         "parameters": [
-          {
-            "description": "API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Required. Analysis UUID or name.",
             "in": "path",
@@ -4044,13 +3914,6 @@
             "type": "string"
           },
           {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Type of interactive session to use.",
             "in": "path",
             "name": "interactive_session_type",
@@ -4172,13 +4035,6 @@
             "name": "workflow_id_or_name",
             "required": true,
             "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           }
         ],
         "produces": [
@@ -4292,13 +4148,6 @@
         "description": "This resource deletes the workspace's files that are neither in the input nor in the output of the workflow definition. This resource is expecting a workflow UUID and some parameters.",
         "operationId": "prune_workspace",
         "parameters": [
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Required. Analysis UUID or name.",
             "in": "path",
@@ -4444,12 +4293,6 @@
             "type": "string"
           },
           {
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Raw replacement REANA specification.",
             "in": "formData",
             "name": "replacement",
@@ -4537,13 +4380,6 @@
         "description": "This resource returns all the retention rules of a given workflow.",
         "operationId": "get_workflow_retention_rules",
         "parameters": [
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Required. Analysis UUID or name.",
             "in": "path",
@@ -4682,13 +4518,6 @@
         "description": "This resource shares a workflow with another user. This resource is expecting a workflow UUID and some parameters.",
         "operationId": "share_workflow",
         "parameters": [
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Required. Workflow UUID or name.",
             "in": "path",
@@ -4852,13 +4681,6 @@
         "operationId": "get_workflow_share_status",
         "parameters": [
           {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Required. Workflow UUID or name.",
             "in": "path",
             "name": "workflow_id_or_name",
@@ -4984,13 +4806,6 @@
         "description": "This resource returns the REANA workflow specification used to start the workflow run. Resource is expecting a workflow UUID.",
         "operationId": "get_workflow_specification",
         "parameters": [
-          {
-            "description": "API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
           {
             "description": "Required. Analysis UUID or name.",
             "in": "path",
@@ -5191,13 +5006,6 @@
             "type": "string"
           },
           {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Optional. Additional input parameters and operational options.",
             "in": "body",
             "name": "parameters",
@@ -5371,13 +5179,6 @@
             "in": "path",
             "name": "workflow_id_or_name",
             "required": true,
-            "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
             "type": "string"
           }
         ],
@@ -5617,13 +5418,6 @@
             "type": "string"
           },
           {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Optional. Additional parameters to customise the workflow status change.",
             "in": "body",
             "name": "parameters",
@@ -5800,13 +5594,6 @@
         "operationId": "unshare_workflow",
         "parameters": [
           {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Required. Workflow UUID or name.",
             "in": "path",
             "name": "workflow_id_or_name",
@@ -5943,13 +5730,6 @@
             "in": "path",
             "name": "workflow_id_or_name",
             "required": true,
-            "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
             "type": "string"
           },
           {
@@ -6119,13 +5899,6 @@
             "type": "string"
           },
           {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          },
-          {
             "description": "Optional flag to return a previewable response of the file (corresponding mime-type).",
             "in": "query",
             "name": "preview",
@@ -6252,13 +6025,6 @@
             "name": "file_name",
             "required": true,
             "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           }
         ],
         "produces": [
@@ -6375,13 +6141,6 @@
             "name": "file_name",
             "required": true,
             "type": "string"
-          },
-          {
-            "description": "The API access_token of workflow owner.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
           }
         ],
         "produces": [
@@ -6465,15 +6224,6 @@
       "get": {
         "description": "This resource provides basic information about an authenticated user based on the session cookie presence.",
         "operationId": "get_you",
-        "parameters": [
-          {
-            "description": "API access_token of user.",
-            "in": "query",
-            "name": "access_token",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "produces": [
           "application/json"
         ],
@@ -6511,11 +6261,6 @@
                   }
                 },
                 "reana_server_version": "0.8.1",
-                "reana_token": {
-                  "requested_at": "Mon, 25 May 2020 10:39:57 GMT",
-                  "status": "active",
-                  "value": "Drmhze6EPcv0fN_81Bj-nA"
-                },
                 "username": "jdoe"
               }
             },
@@ -6602,20 +6347,6 @@
                 },
                 "reana_server_version": {
                   "type": "string"
-                },
-                "reana_token": {
-                  "properties": {
-                    "requested_at": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "value": {
-                      "type": "string"
-                    }
-                  },
-                  "type": "object"
                 }
               },
               "type": "object"
@@ -6638,14 +6369,18 @@
             }
           },
           "403": {
-            "description": "Request failed. User token not valid.",
+            "description": "The authenticated identity lacks the required REANA access role.",
             "examples": {
               "application/json": {
-                "message": "Token is not valid."
+                "code": "access_not_granted",
+                "message": "User does not have the required 'reana:user' role."
               }
             },
             "schema": {
               "properties": {
+                "code": {
+                  "type": "string"
+                },
                 "message": {
                   "type": "string"
                 }
@@ -6672,19 +6407,20 @@
         },
         "summary": "Gets information about authenticated user."
       }
-    },
-    "/confirm": {},
-    "/confirm/{token}": {},
-    "/logout/": {},
-    "/oauth/authorized/{remote_app}/": {},
-    "/oauth/disconnect/{remote_app}/": {},
-    "/oauth/login": {},
-    "/oauth/login/{remote_app}/": {},
-    "/oauth/logout": {},
-    "/oauth/signup/{remote_app}/": {},
-    "/oauth/static/{filename}": {},
-    "/signin": {},
-    "/signup/": {}
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "securityDefinitions": {
+    "BearerAuth": {
+      "description": "OIDC access token using the `Bearer <token>` scheme.",
+      "in": "header",
+      "name": "Authorization",
+      "type": "apiKey"
+    }
   },
   "swagger": "2.0"
 }
