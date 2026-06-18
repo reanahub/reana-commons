@@ -799,7 +799,7 @@
                 },
                 "dask_enabled": {
                   "title": "Dask workflows allowed in the cluster",
-                  "value": "False"
+                  "value": false
                 },
                 "default_kubernetes_jobs_timeout": {
                   "title": "Default timeout for Kubernetes jobs",
@@ -822,7 +822,7 @@
                 },
                 "interactive_sessions_custom_image_allowed": {
                   "title": "Whether users are allowed to spawn custom interactive session images",
-                  "value": "False"
+                  "value": false
                 },
                 "kubernetes_cpu_limit": {
                   "title": "Default CPU limit for Kubernetes jobs",
@@ -1043,7 +1043,7 @@
                       "type": "string"
                     },
                     "value": {
-                      "type": "string"
+                      "type": "boolean"
                     }
                   },
                   "type": "object"
@@ -1149,7 +1149,7 @@
                       "type": "string"
                     },
                     "value": {
-                      "type": "string"
+                      "type": "boolean"
                     }
                   },
                   "type": "object"
