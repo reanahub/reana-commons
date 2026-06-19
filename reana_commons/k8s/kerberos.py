@@ -21,6 +21,7 @@ from reana_commons.config import (
     KRB5_TICKET_RENEW_INTERVAL,
     KRB5_TOKEN_CACHE_FILENAME,
     KRB5_TOKEN_CACHE_LOCATION,
+    WORKFLOW_RUNTIME_USER_GID,
 )
 from reana_commons.errors import REANASecretDoesNotExist
 from reana_commons.k8s.secrets import UserSecrets
@@ -31,8 +32,23 @@ KerberosConfig = namedtuple(
 )
 
 
+def _restricted_security_context(kubernetes_uid: int, kubernetes_gid: int) -> dict:
+    """Return a PSA-restricted security context for Kerberos containers."""
+    return {
+        "runAsGroup": int(kubernetes_gid),
+        "runAsUser": int(kubernetes_uid),
+        "runAsNonRoot": True,
+        "allowPrivilegeEscalation": False,
+        "capabilities": {"drop": ["ALL"]},
+        "seccompProfile": {"type": "RuntimeDefault"},
+    }
+
+
 def get_kerberos_k8s_config(
-    user_secrets: UserSecrets, kubernetes_uid: int
+    user_secrets: UserSecrets,
+    kubernetes_uid: int,
+    kubernetes_gid: int = WORKFLOW_RUNTIME_USER_GID,
+    use_security_context: bool = True,
 ) -> KerberosConfig:
     """Get the k8s specification for the Kerberos init and renew containers.
 
@@ -40,6 +56,8 @@ def get_kerberos_k8s_config(
 
     :param user_secrets: User's secrets store
     :param kubernetes_uid: UID of the user who needs Kerberos
+    :param kubernetes_gid: GID of the user who needs Kerberos
+    :param use_security_context: Whether to attach explicit security contexts.
     :returns: - specification of the sidecar container
         - volumes needed by the sidecar container
         - volume mounts needed by the external container that uses Kerberos
@@ -104,8 +122,11 @@ def get_kerberos_k8s_config(
         "imagePullPolicy": "IfNotPresent",
         "volumeMounts": [secrets_volume_mount] + volume_mounts,
         "env": env,
-        "securityContext": {"runAsUser": kubernetes_uid, "runAsNonRoot": True},
     }
+    if use_security_context:
+        krb5_init_container["securityContext"] = _restricted_security_context(
+            kubernetes_uid, kubernetes_gid
+        )
 
     # Kerberos renew container renews ticket periodically for long-running jobs
     krb5_renew_container = {
@@ -127,7 +148,6 @@ def get_kerberos_k8s_config(
         "imagePullPolicy": "IfNotPresent",
         "volumeMounts": [secrets_volume_mount] + volume_mounts,
         "env": env,
-        "securityContext": {"runAsUser": kubernetes_uid, "runAsNonRoot": True},
         "lifecycle": {
             # make sure we stop the sidecar container when the pod is stopped,
             # for example when the run-batch pod is terminated by reana-workflow-controller
@@ -135,6 +155,10 @@ def get_kerberos_k8s_config(
             "preStop": {"exec": {"command": ["touch", KRB5_STATUS_FILE_LOCATION]}}
         },
     }
+    if use_security_context:
+        krb5_renew_container["securityContext"] = _restricted_security_context(
+            kubernetes_uid, kubernetes_gid
+        )
 
     return KerberosConfig(
         volumes, volume_mounts, env, krb5_init_container, krb5_renew_container
