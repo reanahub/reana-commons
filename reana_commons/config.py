@@ -475,6 +475,15 @@ REANA_COMPUTE_BACKENDS = {
 REANA_WORKFLOW_ENGINES = ["yadage", "cwl", "serial", "snakemake"]
 """Available workflow engines."""
 
+WORKFLOW_SPECIFICATION_BUNDLES_CAPABILITY = "workflow-specification-bundles-v1"
+"""Capability advertising the server-side specification-bundle protocol.
+
+Advertised by the server through the unauthenticated ``/api/ping`` and checked
+by clients before they build or upload a specification bundle: released servers
+only accept the retired client-serialized JSON protocol, and a client cannot
+learn that from a version string. Shared here so the server and the Python
+client can never disagree on the spelling."""
+
 REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "docker.io/snakemake/snakemake:v9.22.0"
 """Snakemake default job environment image."""
 

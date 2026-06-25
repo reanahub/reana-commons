@@ -9,7 +9,12 @@
 """Tests for reana_commons.validation.images."""
 
 from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
-from reana_commons.validation.images import extract_cwl_images, extract_images
+from reana_commons.validation.images import (
+    extract_cwl_images,
+    extract_image_environments,
+    extract_images,
+    iter_image_environments,
+)
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -17,6 +22,8 @@ from reana_commons.validation.images import extract_cwl_images, extract_images
 
 IMAGE = "docker.io/library/python:3.12"
 IMAGE2 = "docker.io/library/ubuntu:24.04"
+RUNTIME_UID = 1000
+RUNTIME_GID = 0
 
 
 def test_snakemake_empty_environment_uses_default_image():
@@ -53,6 +60,160 @@ def test_null_workflow_specification_has_no_extractable_images():
     }
 
     assert extract_images(specification) == []
+
+
+def test_image_environments_preserve_per_step_kubernetes_uid():
+    """The same image used under different UIDs produces distinct records."""
+    specification = {
+        "workflow": {
+            "type": "serial",
+            "specification": {
+                "steps": [
+                    {"environment": IMAGE},
+                    {"environment": IMAGE, "kubernetes_uid": 2000},
+                    {"environment": IMAGE, "kubernetes_uid": 2000},
+                    {"environment": IMAGE2},
+                ]
+            },
+        }
+    }
+
+    assert extract_image_environments(specification, RUNTIME_UID, RUNTIME_GID) == [
+        {
+            "image": IMAGE,
+            "runtime_uid": RUNTIME_UID,
+            "runtime_gid": RUNTIME_GID,
+        },
+        {
+            "image": IMAGE,
+            "runtime_uid": 2000,
+            "runtime_gid": RUNTIME_GID,
+        },
+        {
+            "image": IMAGE2,
+            "runtime_uid": RUNTIME_UID,
+            "runtime_gid": RUNTIME_GID,
+        },
+    ]
+
+
+def test_yadage_image_environment_uses_resource_kubernetes_uid():
+    """Yadage stores its per-step UID override in environment resources."""
+    specification = {
+        "workflow": {
+            "type": "yadage",
+            "specification": {
+                "stages": [
+                    {
+                        "scheduler": {
+                            "step": {
+                                "environment": {
+                                    "environment_type": "docker-encapsulated",
+                                    "image": "docker.io/library/python",
+                                    "imagetag": "3.12",
+                                    "resources": [{"kubernetes_uid": 2000}],
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+        }
+    }
+
+    assert extract_image_environments(specification, RUNTIME_UID, RUNTIME_GID) == [
+        {
+            "image": IMAGE,
+            "runtime_uid": 2000,
+            "runtime_gid": RUNTIME_GID,
+        }
+    ]
+
+
+def test_snakemake_image_environment_uses_step_kubernetes_uid():
+    """Snakemake's loaded step metadata carries its effective UID override."""
+    specification = {
+        "workflow": {
+            "type": "snakemake",
+            "specification": {
+                "steps": [{"environment": IMAGE, "kubernetes_uid": 2000}]
+            },
+        }
+    }
+
+    assert extract_image_environments(specification, RUNTIME_UID, RUNTIME_GID) == [
+        {
+            "image": IMAGE,
+            "runtime_uid": 2000,
+            "runtime_gid": RUNTIME_GID,
+        }
+    ]
+
+
+def test_cwl_image_environment_uses_default_runtime_identity():
+    """CWL images use the cluster runtime identity because no override exists."""
+    specification = {
+        "workflow": {
+            "type": "cwl",
+            "specification": {
+                "requirements": [{"class": "DockerRequirement", "dockerPull": IMAGE}]
+            },
+        }
+    }
+
+    assert extract_image_environments(specification, RUNTIME_UID, RUNTIME_GID) == [
+        {
+            "image": IMAGE,
+            "runtime_uid": RUNTIME_UID,
+            "runtime_gid": RUNTIME_GID,
+        }
+    ]
+
+
+def test_image_environment_iterator_is_lazy_and_first_use_ordered():
+    """A bounded consumer does not traverse or retain the complete workflow."""
+
+    class Steps:
+        def __iter__(self):
+            yield {"environment": IMAGE2}
+            yield {"environment": IMAGE}
+            raise AssertionError("bounded consumer traversed beyond its budget")
+
+    specification = {
+        "workflow": {
+            "type": "serial",
+            "specification": {"steps": Steps()},
+        }
+    }
+
+    environments = iter_image_environments(specification, RUNTIME_UID, RUNTIME_GID)
+    assert next(environments)["image"] == IMAGE2
+    assert next(environments)["image"] == IMAGE
+
+
+def test_image_environment_iterator_deduplicates_as_it_streams():
+    """Duplicate identities do not consume a bounded caller's response slots."""
+    specification = {
+        "workflow": {
+            "type": "serial",
+            "specification": {
+                "steps": [
+                    {"environment": IMAGE},
+                    {"environment": IMAGE},
+                    {"environment": IMAGE, "kubernetes_uid": 2000},
+                ]
+            },
+        }
+    }
+
+    assert list(iter_image_environments(specification, RUNTIME_UID, RUNTIME_GID)) == [
+        {
+            "image": IMAGE,
+            "runtime_uid": RUNTIME_UID,
+            "runtime_gid": RUNTIME_GID,
+        },
+        {"image": IMAGE, "runtime_uid": 2000, "runtime_gid": RUNTIME_GID},
+    ]
 
 
 def _wf(requirements=None, hints=None):

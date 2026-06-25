@@ -8,11 +8,25 @@
 
 """REANA-Commons API client tests."""
 
+import io
+import json
+import sys
 from unittest import mock
 
-import pytest
+if sys.version_info >= (3, 9):
+    from importlib.resources import files
+else:
+    from importlib_resources import files
 
-from reana_commons.api_client import JobControllerAPIClient
+import pytest
+from bravado.client import SwaggerClient
+from bravado.testing.response_mocks import IncomingResponseMock
+from bravado_core.response import unmarshal_response
+
+from reana_commons.api_client import (
+    JobControllerAPIClient,
+    StreamingMultipartBody,
+)
 
 
 def _make_client():
@@ -50,3 +64,51 @@ def test_submit_forwards_kubernetes_uid(kubernetes_uid, expected_in_spec):
         assert job_spec["kubernetes_uid"] == kubernetes_uid
     else:
         assert "kubernetes_uid" not in job_spec
+
+
+def test_streaming_multipart_body_never_reads_a_file_without_a_bound():
+    """Bravado file uploads must not use requests' eager ``read()`` encoder."""
+
+    class BoundedReader(io.BytesIO):
+        def read(self, size=-1):
+            assert size > 0
+            return super().read(size)
+
+    source = BoundedReader(b"bundle contents")
+    body = StreamingMultipartBody([("bundle", ("validation-bundle.zip", source))])
+    encoded = b"".join(body)
+
+    assert len(encoded) == len(body)
+    assert b'name="bundle"' in encoded
+    assert b'filename="validation-bundle.zip"' in encoded
+    assert b"bundle contents" in encoded
+
+
+def test_validation_load_error_accepts_null_reana_specification():
+    """Bravado accepts the structured report returned for unloadable YAML."""
+    spec_resource = (
+        files("reana_commons") / "openapi_specifications" / "reana_server.json"
+    )
+    client = SwaggerClient.from_spec(
+        json.loads(spec_resource.read_text()),
+        config={"validate_responses": True},
+    )
+    report = {
+        "valid": False,
+        "reana_specification": None,
+        "errors": [{"code": "load", "message": "Could not load YAML."}],
+        "warnings": [],
+    }
+    response = IncomingResponseMock(
+        status_code=200,
+        headers={"content-type": "application/json"},
+        json=lambda: report,
+    )
+
+    result = unmarshal_response(
+        response,
+        client.api.validate_workflow_specification.operation,
+    )
+
+    assert result["reana_specification"] is None
+    assert result["errors"][0]["code"] == "load"

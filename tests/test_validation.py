@@ -13,7 +13,12 @@ import operator
 import pytest
 from jsonschema.exceptions import ValidationError
 
-from reana_commons.validation.utils import validate_reana_yaml
+from reana_commons.validation.utils import (
+    MAX_LOAD_ERROR_MESSAGE_CHARS,
+    MAX_SCHEMA_WARNINGS,
+    bound_error_message,
+    validate_reana_yaml,
+)
 
 
 @pytest.mark.parametrize(
@@ -75,6 +80,19 @@ def test_warnings_reana_yaml(
             assert value == warnings[key]
 
 
+def test_schema_warnings_are_bounded(yadage_workflow_spec_loaded):
+    """Unexpected properties cannot create an unbounded warning report."""
+    for index in range(MAX_SCHEMA_WARNINGS + 1):
+        yadage_workflow_spec_loaded[f"unexpected_{index}"] = True
+
+    warnings = validate_reana_yaml(yadage_workflow_spec_loaded)
+
+    assert len(warnings["additional_properties"]) == MAX_SCHEMA_WARNINGS
+    assert warnings["schema_warnings_truncated"] == [
+        {"message": "Additional schema warnings were omitted.", "path": ""}
+    ]
+
+
 def test_critical_errors_reana_yaml(yadage_workflow_spec_loaded):
     """Test the validation of the ``reana.yaml`` file.
 
@@ -86,3 +104,28 @@ def test_critical_errors_reana_yaml(yadage_workflow_spec_loaded):
     del reana_yaml["workflow"]
     with pytest.raises(ValidationError):
         validate_reana_yaml(reana_yaml)
+
+
+def test_bound_error_message_keeps_first_line():
+    """The first (informative) line of a multi-line error is kept."""
+    error = FileNotFoundError("[Errno 2] No such file or directory: 'rules/common.smk'")
+    message = bound_error_message("{}\nTraceback ...\n  more frames".format(error))
+    assert message == "[Errno 2] No such file or directory: 'rules/common.smk'"
+
+
+def test_bound_error_message_accepts_exception():
+    """An exception instance is stringified to its message."""
+    assert bound_error_message(RuntimeError("boom")) == "boom"
+
+
+def test_bound_error_message_truncates_long_input():
+    """An over-long line is truncated with an ellipsis at the cap."""
+    message = bound_error_message("A" * (MAX_LOAD_ERROR_MESSAGE_CHARS + 100))
+    assert len(message) == MAX_LOAD_ERROR_MESSAGE_CHARS + len("...")
+    assert message.endswith("...")
+
+
+@pytest.mark.parametrize("value", ["", "   ", "\n\n"])
+def test_bound_error_message_empty_falls_back(value):
+    """An error with no text yields a generic fallback sentence."""
+    assert bound_error_message(value) == "The specification could not be loaded."

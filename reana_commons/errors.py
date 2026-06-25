@@ -38,6 +38,27 @@ class REANAValidationError(Exception):
         self.message = message
 
 
+class REANASpecificationScopeError(REANAValidationError):
+    """Specification shape prevents trustworthy validation-scope discovery."""
+
+
+class REANASpecificationPathError(REANAValidationError):
+    """A declared specification path cannot be safely selected.
+
+    ``field``, ``path``, and ``reason`` are stable machine-readable attributes;
+    the human-readable message remains compatible with
+    :class:`REANAValidationError` consumers.
+    """
+
+    def __init__(self, message, field, path, reason):
+        """Initialise a structured specification-path validation error."""
+        super().__init__(message)
+        self.args = (message,)
+        self.field = field
+        self.path = path
+        self.reason = reason
+
+
 class REANAConfigDoesNotExist(Exception):
     """Validation error."""
 
