@@ -246,6 +246,7 @@ class JobControllerAPIClient(BaseAPIClient):
         unpacked_img=False,
         voms_proxy=False,
         rucio=False,
+        secret_names=None,
         htcondor_max_runtime="",
         htcondor_accounting_group="",
         htcondor_request_cpus="",
@@ -274,6 +275,8 @@ class JobControllerAPIClient(BaseAPIClient):
         :param voms_proxy: Decides if grid proxy should be provided for job
             container.
         :param rucio: Decides if a rucio environment should be provided for job.
+        :param secret_names: Explicit allowlist of user secret names to expose
+            to the job. If unset, all user secrets remain available.
         :param kubernetes_uid: Overwrites the default UID in the job container.
         :param kubernetes_memory_limit: Overwrites the default memory limit in the job container.
         :param unpacked_img: Decides if unpacked iamges should be used.
@@ -322,6 +325,9 @@ class JobControllerAPIClient(BaseAPIClient):
 
         if rucio:
             job_spec["rucio"] = rucio
+
+        if secret_names is not None:
+            job_spec["secret_names"] = secret_names
 
         if kubernetes_uid is not None:
             job_spec["kubernetes_uid"] = kubernetes_uid

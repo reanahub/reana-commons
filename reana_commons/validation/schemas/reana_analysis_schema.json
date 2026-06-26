@@ -154,6 +154,16 @@
               "type": "boolean",
               "title": "Rucio integration"
             },
+            "secret_names": {
+              "$id": "/properties/workflow/properties/resources/properties/secret_names",
+              "type": "array",
+              "title": "Exposed secret names",
+              "description": "Explicit default allowlist of user secret names to expose to workflow jobs, Dask workers, and interactive sessions. If omitted, all user secrets remain available.",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
             "dask": {
               "$id": "/properties/workflow/properties/resources/properties/dask",
               "type": "object",
@@ -163,6 +173,14 @@
                   "type": "string",
                   "description": "Container image to be used by Dask scheduler and workers.",
                   "pattern": "^(?:[a-zA-Z0-9.-]+(?:\\.[a-zA-Z0-9.-]+)+(?::[0-9]+)?/)?[a-zA-Z0-9._-]+(?:/[a-zA-Z0-9._-]+)*(?::[a-zA-Z0-9._-]+)?(?:@sha256:[a-f0-9]{64})?$"
+                },
+                "secret_names": {
+                  "type": "array",
+                  "description": "Explicit allowlist of user secret names to expose to Dask workers. If omitted, the workflow-level allowlist is used.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "uniqueItems": true
                 },
                 "number_of_workers": {
                   "type": "integer",
@@ -384,6 +402,15 @@
                       "type": "integer",
                       "title": "Kubernetes UID",
                       "description": "User ID under which the container workload will run (e.g. 1000). Maps to the pod's `runAsUser` security context."
+                    },
+                    "secret_names": {
+                      "type": "array",
+                      "title": "Exposed secret names",
+                      "description": "Explicit allowlist of user secret names to expose to the step. If omitted, the step inherits workflow.resources.secret_names when present; otherwise, all user secrets remain available.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "uniqueItems": true
                     },
                     "name": {
                       "type": "string",

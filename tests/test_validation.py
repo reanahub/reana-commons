@@ -8,9 +8,12 @@
 
 """REANA-Commons validation testing."""
 
+import json
 import operator
+from pathlib import Path
 
 import pytest
+from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
 from reana_commons.validation.utils import (
@@ -19,6 +22,37 @@ from reana_commons.validation.utils import (
     bound_error_message,
     validate_reana_yaml,
 )
+
+
+def test_dask_secret_names_schema():
+    """Dask-local secret names should be accepted and type checked."""
+    schema_path = (
+        Path(__file__).parents[1]
+        / "reana_commons/validation/schemas/reana_analysis_schema.json"
+    )
+    with schema_path.open() as schema_file:
+        schema = json.load(schema_file)
+
+    specification = {
+        "workflow": {
+            "type": "serial",
+            "resources": {"dask": {"image": "busybox", "secret_names": ["alpha"]}},
+            "specification": {
+                "steps": [
+                    {
+                        "name": "step",
+                        "commands": ["true"],
+                        "environment": "busybox",
+                    }
+                ]
+            },
+        }
+    }
+
+    validate(specification, schema)
+    specification["workflow"]["resources"]["dask"]["secret_names"] = [1]
+    with pytest.raises(ValidationError):
+        validate(specification, schema)
 
 
 @pytest.mark.parametrize(

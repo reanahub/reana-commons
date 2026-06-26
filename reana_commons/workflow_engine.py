@@ -20,6 +20,18 @@ from reana_commons.api_client import JobControllerAPIClient
 from reana_commons.publisher import WorkflowStatusPublisher
 from reana_commons.utils import check_connection_to_job_controller
 
+REANA_WORKFLOW_RESOURCES_ENV = "REANA_WORKFLOW_RESOURCES"
+
+
+def set_workflow_resources(workflow_resources):
+    """Expose workflow-level resources to engine components in this process."""
+    os.environ[REANA_WORKFLOW_RESOURCES_ENV] = json.dumps(workflow_resources or {})
+
+
+def get_workflow_resources():
+    """Return workflow-level resources exposed to engine components."""
+    return json.loads(os.getenv(REANA_WORKFLOW_RESOURCES_ENV, "{}"))
+
 
 def load_json(ctx, param, value):
     """Load json callback function."""
@@ -127,6 +139,11 @@ def create_workflow_engine_command(
     @click.option(
         "--workflow-json",
         help="JSON representation of workflow object to be run.",
+        callback=load_json,
+    )
+    @click.option(
+        "--workflow-resources",
+        help="JSON representation of workflow-level resources.",
         callback=load_json,
     )
     @click.option(

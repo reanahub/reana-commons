@@ -71,6 +71,13 @@ def snakemake_load(workflow_file: str, **kwargs: Any):
         return snakemake_load_v7(workflow_file, **kwargs)
 
 
+def parse_secret_names_resource(value: Any) -> Optional[List[str]]:
+    """Parse Snakemake's scalar ``secret_names`` resource into a list."""
+    if value is None:
+        return None
+    return [secret.strip() for secret in str(value).split(",") if secret.strip()]
+
+
 def snakemake_validate_v7(
     workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
 ):
@@ -302,10 +309,16 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
                 "outputs": dict(rule._output),
                 "commands": [rule.shellcmd] if rule.shellcmd else [],
                 "compute_backend": rule.resources.get("compute_backend"),
+                "kerberos": rule.resources.get("kerberos"),
                 "kubernetes_memory_limit": rule.resources.get(
                     "kubernetes_memory_limit"
                 ),
                 "kubernetes_uid": rule.resources.get("kubernetes_uid"),
+                "voms_proxy": rule.resources.get("voms_proxy"),
+                "rucio": rule.resources.get("rucio"),
+                "secret_names": parse_secret_names_resource(
+                    rule.resources.get("secret_names")
+                ),
             }
             for rule in snakemake_dag.rules
             if not rule.norun
@@ -364,10 +377,16 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
                 "outputs": dict(rule._output),
                 "commands": [rule.shellcmd] if rule.shellcmd else [],
                 "compute_backend": resource_value(rule, "compute_backend"),
+                "kerberos": resource_value(rule, "kerberos"),
                 "kubernetes_memory_limit": resource_value(
                     rule, "kubernetes_memory_limit"
                 ),
                 "kubernetes_uid": resource_value(rule, "kubernetes_uid"),
+                "voms_proxy": resource_value(rule, "voms_proxy"),
+                "rucio": resource_value(rule, "rucio"),
+                "secret_names": parse_secret_names_resource(
+                    resource_value(rule, "secret_names")
+                ),
             }
             for rule in rules
             if not rule.norun

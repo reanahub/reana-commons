@@ -15,12 +15,19 @@ from pathlib import Path
 
 import pytest
 from reana_commons.errors import REANAValidationError
-from reana_commons.snakemake import snakemake_load
+from reana_commons.snakemake import parse_secret_names_resource, snakemake_load
 from reana_commons.validation.compute_backends import (
     build_compute_backends_validator,
 )
 from reana_commons.validation.parameters import build_parameters_validator
 from reana_commons.validation.utils import validate_json_tree
+
+
+def test_parse_secret_names_resource():
+    """The public parser should preserve Snakemake's scalar resource syntax."""
+    assert parse_secret_names_resource(None) is None
+    assert parse_secret_names_resource("") == []
+    assert parse_secret_names_resource("alpha, beta") == ["alpha", "beta"]
 
 
 def test_snakemake_load(tmpdir, dummy_snakefile):
@@ -171,6 +178,56 @@ rule create_output:
     assert len(metadata["steps"]) == 1
     assert metadata["steps"][0]["name"] == "create_output"
     assert metadata["steps"][0]["commands"] == []
+
+
+def test_snakemake_load_rule_with_secret_names(tmpdir):
+    """Test that secret name allowlists are preserved in Snakemake metadata."""
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write("""
+rule all:
+    input: "output.txt"
+    default_target: True
+
+rule create_output:
+    output: "output.txt"
+    container:
+        "docker://docker.io/library/python:3.10.0-buster"
+    resources:
+        secret_names="alpha,beta"
+    shell: "touch {output}"
+""")
+
+    metadata = snakemake_load(Path(snakefile.strpath))
+
+    assert len(metadata["steps"]) == 1
+    assert metadata["steps"][0]["secret_names"] == ["alpha", "beta"]
+
+
+def test_snakemake_load_rule_with_feature_flags(tmpdir):
+    """Feature resource flags should be preserved in Snakemake metadata."""
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write("""
+rule all:
+    input: "output.txt"
+    default_target: True
+
+rule create_output:
+    output: "output.txt"
+    container:
+        "docker://docker.io/library/python:3.10.0-buster"
+    resources:
+        kerberos=True,
+        voms_proxy=True,
+        rucio=True
+    shell: "touch {output}"
+""")
+
+    metadata = snakemake_load(Path(snakefile.strpath))
+
+    assert len(metadata["steps"]) == 1
+    assert metadata["steps"][0]["kerberos"] is True
+    assert metadata["steps"][0]["voms_proxy"] is True
+    assert metadata["steps"][0]["rucio"] is True
 
 
 def test_snakemake_load_invalid_workflow(tmpdir):
