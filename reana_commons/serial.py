@@ -108,8 +108,23 @@ serial_workflow_schema = {
                         "type": "string",
                         "default": "",
                     },
+                    "c4p_request_gpus": {
+                        "$id": "#/properties/steps/properties/c4p_request_gpus",
+                        "type": "string",
+                        "default": "",
+                    },
                     "c4p_memory_limit": {
                         "$id": "#/properties/steps/properties/c4p_memory_limit",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "c4p_notification": {
+                        "$id": "#/properties/steps/properties/c4p_notification",
+                        "type": "string",
+                        "default": "",
+                    },
+                    "c4p_email_address": {
+                        "$id": "#/properties/steps/properties/c4p_email_address",
                         "type": "string",
                         "default": "",
                     },
