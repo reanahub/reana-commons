@@ -9,12 +9,16 @@
 """Authentication contract checks for the REANA Server OpenAPI spec."""
 
 import json
-from importlib.resources import files
+import sys
+
+# Use importlib.resources for Python 3.9+ or importlib_resources backport for 3.8
+if sys.version_info >= (3, 9):
+    from importlib.resources import files
+else:
+    from importlib_resources import files
 
 
-HTTP_METHODS = frozenset(
-    {"delete", "get", "head", "options", "patch", "post", "put"}
-)
+HTTP_METHODS = frozenset({"delete", "get", "head", "options", "patch", "post", "put"})
 BEARER_SECURITY = [{"BearerAuth": []}]
 
 # These operations deliberately do not use an Authorization Bearer token.
@@ -38,9 +42,7 @@ NON_BEARER_OPERATIONS = frozenset(
 
 def _load_reana_server_spec():
     """Load the packaged REANA Server Swagger specification."""
-    spec_path = (
-        files("reana_commons") / "openapi_specifications" / "reana_server.json"
-    )
+    spec_path = files("reana_commons") / "openapi_specifications" / "reana_server.json"
     return json.loads(spec_path.read_text())
 
 

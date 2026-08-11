@@ -317,6 +317,17 @@
               "type": "object"
             }
           },
+          "401": {
+            "description": "Request failed. The stored GitLab access token is not valid.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "403": {
             "description": "Request failed. User token not valid.",
             "examples": {
@@ -388,6 +399,17 @@
           "204": {
             "description": "The webhook was properly deleted."
           },
+          "401": {
+            "description": "Request failed. The stored GitLab access token is not valid.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "403": {
             "description": "Request failed. User token not valid.",
             "examples": {
@@ -455,6 +477,17 @@
           "201": {
             "description": "The webhook was created."
           },
+          "401": {
+            "description": "Request failed. The stored GitLab access token is not valid.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "403": {
             "description": "Request failed. User token not valid.",
             "examples": {
@@ -462,6 +495,17 @@
                 "message": "Token is not valid."
               }
             },
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "409": {
+            "description": "The delegated GitLab webhook authorization has expired and must be renewed before enabling another project.",
             "schema": {
               "properties": {
                 "message": {
@@ -489,6 +533,80 @@
           }
         },
         "summary": "Set a webhook on a user project from GitLab"
+      }
+    },
+    "/api/gitlab/webhook-token": {
+      "get": {
+        "description": "Return expiry metadata for the current user's delegated GitLab webhook authorization. The secret itself is never returned.",
+        "operationId": "get_gitlab_webhook_token",
+        "responses": {
+          "200": {
+            "description": "GitLab webhook authorization status.",
+            "schema": {
+              "properties": {
+                "configured": {
+                  "type": "boolean"
+                },
+                "expired": {
+                  "type": "boolean"
+                },
+                "expires_at": {
+                  "format": "date-time",
+                  "type": "string",
+                  "x-nullable": true
+                },
+                "max_lifetime_seconds": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "The request is not authenticated."
+          },
+          "403": {
+            "description": "The authenticated user lacks the required REANA role."
+          }
+        },
+        "summary": "Get GitLab webhook authorization status"
+      },
+      "put": {
+        "description": "Confirm the current user's REANA entitlement and extend the delegated GitLab webhook authorization without rotating its secret.",
+        "operationId": "renew_gitlab_webhook_token",
+        "responses": {
+          "200": {
+            "description": "Renewed GitLab webhook authorization status.",
+            "schema": {
+              "properties": {
+                "configured": {
+                  "type": "boolean"
+                },
+                "expired": {
+                  "type": "boolean"
+                },
+                "expires_at": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "max_lifetime_seconds": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "The request is not authenticated."
+          },
+          "403": {
+            "description": "The authenticated user lacks the required REANA role."
+          },
+          "404": {
+            "description": "No GitLab webhook secret is configured."
+          }
+        },
+        "summary": "Renew GitLab webhook authorization"
       }
     },
     "/api/info": {
@@ -1222,6 +1340,17 @@
               "type": "object"
             }
           },
+          "403": {
+            "description": "Request failed. The user's compute quota has been exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "409": {
             "description": "Another workflow-family mutation is in progress.",
             "schema": {
@@ -1321,6 +1450,9 @@
           "403": {
             "description": "CSRF validation failed."
           },
+          "404": {
+            "description": "Browser login is not enabled."
+          },
           "503": {
             "description": "Browser session storage is temporarily unavailable."
           }
@@ -1359,6 +1491,9 @@
           },
           "403": {
             "description": "OAuth state validation failed."
+          },
+          "404": {
+            "description": "Browser login is not enabled."
           },
           "502": {
             "description": "Token exchange with the issuer failed."
@@ -2023,6 +2158,17 @@
                 "message": "Secret(s) successfully added."
               }
             },
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Request failed. A secret value is not correctly base64-encoded.",
             "schema": {
               "properties": {
                 "message": {
@@ -2822,6 +2968,17 @@
           "application/json"
         ],
         "responses": {
+          "200": {
+            "description": "The GitLab webhook was processed without creating a workflow, for example when the user's quota is exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "201": {
             "description": "Request succeeded. The workflow has been created.",
             "examples": {
@@ -2870,6 +3027,17 @@
                 "message": "Workflow name cannot be a valid UUIDv4."
               }
             },
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Request failed. The stored GitLab access token is not valid.",
             "schema": {
               "properties": {
                 "message": {
