@@ -639,6 +639,56 @@
         "summary": "Renew GitLab webhook authorization"
       }
     },
+    "/api/health": {
+      "get": {
+        "description": "Unlike /api/ping (process liveness only), this reflects whether the BFF session store (Redis) and the configured OIDC issuer currently have usable cached material, so that a Kubernetes readiness probe (or external monitoring) pointed here can detect an outage that /api/ping cannot see. Each check is skipped (omitted from the response and not counted against readiness) when the corresponding feature is not configured for this deployment. Never performs a live network call to the issuer; only inspects already-cached state, so this is cheap enough to poll frequently and cannot itself add load to a struggling issuer.",
+        "operationId": "health",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "All configured checks are healthy.",
+            "examples": {
+              "application/json": {
+                "checks": {
+                  "issuer": true,
+                  "redis": true
+                },
+                "status": "ok"
+              }
+            },
+            "schema": {
+              "properties": {
+                "checks": {
+                  "type": "object"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "503": {
+            "description": "At least one configured check is unhealthy.",
+            "schema": {
+              "properties": {
+                "checks": {
+                  "type": "object"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "security": [],
+        "summary": "Report readiness of REANA Server's auth-adjacent dependencies."
+      }
+    },
     "/api/info": {
       "get": {
         "description": "This resource reports information about cluster capabilities.",

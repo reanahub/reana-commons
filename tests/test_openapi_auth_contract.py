@@ -31,6 +31,7 @@ NON_BEARER_OPERATIONS = frozenset(
         ("GET", "/api/config"),
         ("GET", "/api/login"),
         ("POST", "/api/logout"),
+        ("GET", "/api/health"),
         ("GET", "/api/oauth/callback"),
         ("GET", "/api/ping"),
         ("GET", "/api/quota"),
