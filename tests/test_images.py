@@ -9,12 +9,19 @@
 """Tests for reana_commons.validation.images."""
 
 from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+from reana_commons.snakemake import SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE
 from reana_commons.validation.images import (
     extract_cwl_images,
     extract_image_environments,
     extract_images,
+    is_dynamic_image,
     iter_image_environments,
+    validate_images,
 )
+
+import pytest
+
+from reana_commons.errors import REANAValidationError
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -36,6 +43,72 @@ def test_snakemake_empty_environment_uses_default_image():
     }
 
     assert extract_images(specification) == [REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE]
+
+
+@pytest.mark.parametrize(
+    "image",
+    [
+        "python:{version}",
+        SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE,
+        lambda wildcards: "python:3.12",
+        None,
+    ],
+)
+def test_dynamic_images_are_recognised(image):
+    """Templates and non-strings cannot be resolved before a job runs."""
+    assert is_dynamic_image(image) is True
+
+
+@pytest.mark.parametrize("image", [IMAGE, "python:3.12", ""])
+def test_resolvable_images_are_not_dynamic(image):
+    """A concrete reference, empty or not, is usable as-is."""
+    assert is_dynamic_image(image) is False
+
+
+def test_snakemake_dynamic_container_is_not_reported_as_environment():
+    """A per-job container is neither pullable nor meaningfully tag-checked."""
+    specification = {
+        "workflow": {
+            "type": "snakemake",
+            "specification": {
+                "steps": [
+                    {"environment": "python:{version}"},
+                    {"environment": SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE},
+                    {"environment": IMAGE},
+                ]
+            },
+        }
+    }
+
+    assert extract_image_environments(specification, RUNTIME_UID, RUNTIME_GID) == [
+        {"image": IMAGE, "runtime_uid": RUNTIME_UID, "runtime_gid": RUNTIME_GID}
+    ]
+
+
+def test_snakemake_dynamic_container_does_not_become_the_default_image():
+    """A skipped container must not be mistaken for "no container declared"."""
+    specification = {
+        "workflow": {
+            "type": "snakemake",
+            "specification": {"steps": [{"environment": "python:{version}"}]},
+        }
+    }
+
+    assert list(iter_image_environments(specification, RUNTIME_UID, RUNTIME_GID)) == []
+
+
+def test_snakemake_dynamic_container_is_still_vetted():
+    """Image vetting must stay fail-closed on a container it cannot resolve."""
+    specification = {
+        "workflow": {
+            "type": "snakemake",
+            "specification": {"steps": [{"environment": "python:{version}"}]},
+        }
+    }
+
+    assert extract_images(specification) == ["python:{version}"]
+    with pytest.raises(REANAValidationError):
+        validate_images(specification, enabled=True, allowlist=[IMAGE])
 
 
 def test_serial_empty_environment_is_preserved():

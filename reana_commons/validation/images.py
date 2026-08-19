@@ -14,13 +14,32 @@ from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
 from reana_commons.errors import REANAValidationError
 
 
+def is_dynamic_image(image) -> bool:
+    """Return whether an image reference is only resolved once a job runs.
+
+    A Snakemake ``container:`` directive may be a callable or a
+    wildcard-templated string, which Snakemake expands per job from that job's
+    wildcards. The value recorded on the step is then a template, not an image
+    reference: it cannot be pulled, inspected, or compared against the vetted
+    images allowlist. Callables are recorded as
+    ``SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE`` by the Snakemake loader, so both
+    forms are recognised by their braces.
+
+    :param image: Image reference taken from a loaded specification.
+    :returns: ``True`` when the reference cannot be resolved ahead of the run.
+    """
+    return not isinstance(image, str) or "{" in image
+
+
 def extract_images(reana_yaml: Dict) -> List[str]:
     """Extract container images from a REANA workflow specification.
 
     Returns the full image string (``image`` or ``image:tag``) for every step.
     Empty strings are included as-is; callers decide whether to treat them as
     an admin-controlled default (e.g. Snakemake rules without a container
-    directive produce ``""`` from the workflow loader).
+    directive produce ``""`` from the workflow loader). Dynamic Snakemake
+    containers (see :func:`is_dynamic_image`) are returned unchanged too, so
+    that :func:`validate_images` keeps rejecting what it cannot vet.
 
     :param reana_yaml: Parsed REANA specification dictionary.
     :returns: List of image strings, one per step/requirement.
@@ -57,6 +76,10 @@ def iter_image_environments(
     order, allowing bounded consumers to stop without materialising the whole
     workflow. At most one deduplication key is retained per yielded record.
 
+    Snakemake containers resolved per job (see :func:`is_dynamic_image`) are
+    omitted: the consumers of these records pull and inspect images or warn
+    about their tags, none of which a template supports.
+
     :param reana_yaml: Parsed REANA specification dictionary.
     :param runtime_uid: Default workflow runtime UID.
     :param runtime_gid: Workflow runtime GID.
@@ -75,6 +98,11 @@ def iter_image_environments(
             for step in specification.get("steps", []):
                 image = step.get("environment", "")
                 if workflow_type == "snakemake":
+                    if is_dynamic_image(image):
+                        # Not a usable reference: pulling it would fail and a
+                        # tag warning about it would be meaningless. Image
+                        # vetting still sees it through extract_images().
+                        continue
                     image = image or REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
                 yield image, step.get("kubernetes_uid")
         elif workflow_type == "yadage":
