@@ -599,8 +599,25 @@
         "summary": "Get GitLab webhook authorization status"
       },
       "put": {
-        "description": "Confirm the current user's REANA entitlement and extend the delegated GitLab webhook authorization without rotating its secret.",
+        "description": "Confirm the current user's REANA entitlement and extend the delegated GitLab webhook authorization without rotating its secret. If ``project_id`` is given, best-effort asks GitLab to redeliver that project's webhook, which can resume a hook GitLab has auto-disabled after consecutive failures; renewal itself always succeeds regardless of whether that best-effort attempt does.",
         "operationId": "renew_gitlab_webhook_token",
+        "parameters": [
+          {
+            "description": "Optional GitLab project to attempt a test delivery for after renewal.",
+            "in": "body",
+            "name": "data",
+            "required": false,
+            "schema": {
+              "properties": {
+                "project_id": {
+                  "description": "The GitLab project id.",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Renewed GitLab webhook authorization status.",
