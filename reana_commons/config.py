@@ -244,7 +244,7 @@ OPENAPI_SPECS = {
         "reana_server.json",
     ),
     "reana-job-controller": (
-        "http://{address}:{port}".format(address="0.0.0.0", port="5000"),
+        "http://{address}:{port}".format(address="127.0.0.1", port="5000"),
         "reana_job_controller.json",
     ),
 }

@@ -95,6 +95,17 @@
               "type": "object"
             }
           },
+          "500": {
+            "description": "The identity provider integration is not correctly configured.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "502": {
             "description": "Request failed. The issuer's OpenID configuration could not be fetched.",
             "schema": {
@@ -245,6 +256,17 @@
           },
           "403": {
             "description": "The authenticated user lacks the required REANA role."
+          },
+          "500": {
+            "description": "The identity provider integration is not correctly configured.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
           },
           "503": {
             "description": "The identity provider or the authentication session store is temporarily unavailable."
@@ -592,6 +614,17 @@
           "403": {
             "description": "The authenticated user lacks the required REANA role."
           },
+          "500": {
+            "description": "The identity provider integration is not correctly configured.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "503": {
             "description": "The identity provider or the authentication session store is temporarily unavailable."
           }
@@ -599,7 +632,7 @@
         "summary": "Get GitLab webhook authorization status"
       },
       "put": {
-        "description": "Confirm the current user's REANA entitlement and extend the delegated GitLab webhook authorization without rotating its secret.",
+        "description": "Confirm the current user's REANA entitlement and extend the delegated GitLab webhook authorization without rotating its secret. Renewal does not re-enable a webhook that GitLab has disabled; the user must send a test delivery or re-enable it from that project's GitLab settings. If the authorization had already expired, the response includes a ``message`` pointing this out, since REANA cannot detect or repair a GitLab-side auto-disable on its own.",
         "operationId": "renew_gitlab_webhook_token",
         "responses": {
           "200": {
@@ -618,6 +651,10 @@
                 },
                 "max_lifetime_seconds": {
                   "type": "integer"
+                },
+                "message": {
+                  "description": "Present only when the authorization had already expired, warning that GitLab may have auto-disabled affected webhooks and pointing to the manual recovery step.",
+                  "type": "string"
                 }
               },
               "type": "object"
@@ -632,6 +669,17 @@
           "404": {
             "description": "No GitLab webhook secret is configured."
           },
+          "500": {
+            "description": "The identity provider integration is not correctly configured.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
           "503": {
             "description": "The identity provider or the authentication session store is temporarily unavailable."
           }
@@ -641,14 +689,14 @@
     },
     "/api/health": {
       "get": {
-        "description": "Unlike /api/ping (process liveness only), this reflects whether the BFF session store (Redis) and the configured OIDC issuer currently have usable cached material, so that a Kubernetes readiness probe (or external monitoring) pointed here can detect an outage that /api/ping cannot see. Each check is skipped (omitted from the response and not counted against readiness) when the corresponding feature is not configured for this deployment. Never performs a live network call to the issuer; only inspects already-cached state, so this is cheap enough to poll frequently and cannot itself add load to a struggling issuer.",
+        "description": "Unlike /api/ping (process liveness only), this reports whether the BFF session store (Redis) and the configured OIDC issuer currently have usable cached material, so that external monitoring pointed here can detect an outage that /api/ping cannot see. Each check is skipped (omitted from the response and not counted against health) when the corresponding feature is not configured for this deployment. Never performs a live network call to the issuer; only inspects already-cached state, so this is cheap enough to poll frequently and cannot itself add load to a struggling issuer.\n\nOnly the ``redis`` check (the BFF session store) can make this endpoint's own status code report unhealthy. This endpoint is for dependency monitoring, not Kubernetes readiness; deployments should probe /api/ping so a Redis outage does not withdraw the otherwise usable whole API. ``issuer`` is reported in the body for observability/alerting only and never affects the status code: with several worker processes sharing one pod, coupling readiness to issuer reachability could make an IdP outage take the whole pod out of rotation and keep it there even after the IdP recovers, because losing readiness also stops the very traffic that would refresh the issuer's discovery/JWKS caches. REANA Server keeps serving /api/ping, /api/info, /api/config, and the friendly 503 auth-error response regardless of issuer cache health.",
         "operationId": "health",
         "produces": [
           "application/json"
         ],
         "responses": {
           "200": {
-            "description": "All configured checks are healthy.",
+            "description": "The BFF session store (when configured) is healthy. The issuer check may still be false; that is informational only.",
             "examples": {
               "application/json": {
                 "checks": {
@@ -671,7 +719,7 @@
             }
           },
           "503": {
-            "description": "At least one configured check is unhealthy.",
+            "description": "The BFF session store (when configured) is unreachable.",
             "schema": {
               "properties": {
                 "checks": {
@@ -686,7 +734,7 @@
           }
         },
         "security": [],
-        "summary": "Report readiness of REANA Server's auth-adjacent dependencies."
+        "summary": "Report health of REANA Server's auth-adjacent dependencies."
       }
     },
     "/api/info": {
@@ -1480,7 +1528,7 @@
             }
           },
           "503": {
-            "description": "Workspace mutation or controller service is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
+            "description": "Workspace mutation or controller service is unavailable.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -1508,6 +1556,9 @@
           },
           "404": {
             "description": "BFF login is not enabled on this deployment."
+          },
+          "500": {
+            "description": "The identity provider integration is not correctly configured."
           },
           "502": {
             "description": "The issuer's endpoints could not be resolved."
@@ -1586,6 +1637,9 @@
           },
           "404": {
             "description": "Browser login is not enabled."
+          },
+          "500": {
+            "description": "The identity provider integration is not correctly configured."
           },
           "502": {
             "description": "Token exchange with the issuer failed."
@@ -3264,7 +3318,7 @@
             "description": "Request failed. Not implemented."
           },
           "503": {
-            "description": "Workspace mutation or controller service is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
+            "description": "Workspace mutation or controller service is unavailable.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -3415,7 +3469,7 @@
             }
           },
           "503": {
-            "description": "Workspace mutation serialization is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
+            "description": "Workspace mutation serialization is unavailable.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -3519,7 +3573,7 @@
             }
           },
           "401": {
-            "description": "Request malformed or missing access token.",
+            "description": "The request is not authenticated.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -3568,6 +3622,9 @@
               },
               "type": "object"
             }
+          },
+          "503": {
+            "description": "The identity provider or the authentication session store is temporarily unavailable."
           }
         },
         "summary": "Validate a raw workflow specification bundle."
@@ -4613,10 +4670,7 @@
             }
           },
           "503": {
-            "description": "Workspace mutation serialization is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "The identity provider or the authentication session store is temporarily unavailable."
           }
         },
         "summary": "Prune the workspace's files."
@@ -4668,7 +4722,7 @@
             }
           },
           "401": {
-            "description": "Request malformed or missing access token.",
+            "description": "The request is not authenticated.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -5522,7 +5576,7 @@
             }
           },
           "503": {
-            "description": "Workspace mutation serialization is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
+            "description": "Workspace mutation serialization is unavailable.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -5950,7 +6004,7 @@
             }
           },
           "503": {
-            "description": "Workspace mutation serialization is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
+            "description": "Workspace mutation serialization is unavailable.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -6384,7 +6438,7 @@
             }
           },
           "503": {
-            "description": "Workspace mutation or controller service is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
+            "description": "Workspace mutation or controller service is unavailable.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -6505,7 +6559,7 @@
             }
           },
           "503": {
-            "description": "Workspace mutation serialization is unavailable, or the identity provider or authentication session store is temporarily unavailable.",
+            "description": "Workspace mutation serialization is unavailable.",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
