@@ -412,13 +412,18 @@ REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME = os.getenv(
 """REANA infrastructure service account."""
 
 REANA_RUNTIME_KUBERNETES_SERVICEACCOUNT_NAME = os.getenv(
-    "REANA_RUNTIME_KUBERNETES_SERVICEACCOUNT_NAME",
-    REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME,
+    "REANA_RUNTIME_KUBERNETES_SERVICEACCOUNT_NAME"
 )
 """REANA runtime service account.
 
-If no runtime namespace is deployed it will default to the infrastructure service
-account.
+Deliberately has no fallback to ``REANA_INFRASTRUCTURE_KUBERNETES_SERVICEACCOUNT_NAME``
+(PR976-17): the batch pod that runs user-submitted workflow/job code must
+never silently inherit the infrastructure service account's cluster-wide
+privileges just because this variable was left unset. The bundled Helm chart
+always sets it; a deployment method that doesn't configure it gets ``None``
+here, which the Kubernetes client treats as "use the namespace's own default
+service account" -- a strictly less-privileged failure mode than reusing the
+infrastructure identity.
 """
 
 HTCONDOR_JOB_FLAVOURS = {
