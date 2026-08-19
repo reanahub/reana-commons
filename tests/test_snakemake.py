@@ -15,7 +15,10 @@ from pathlib import Path
 
 import pytest
 from reana_commons.errors import REANAValidationError
-from reana_commons.snakemake import snakemake_load
+from reana_commons.snakemake import (
+    SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE,
+    snakemake_load,
+)
 from reana_commons.validation.compute_backends import (
     build_compute_backends_validator,
 )
@@ -119,6 +122,66 @@ rule create_output:
     assert metadata["steps"][0]["compute_backend"] == "kubernetes"
     assert metadata["steps"][0]["kubernetes_memory_limit"] is None
     assert metadata["steps"][0]["kubernetes_uid"] == 1000
+
+
+def test_snakemake_load_rule_with_wildcard_container(tmpdir):
+    """A wildcard-templated container is recorded unexpanded, not resolved."""
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write("""
+rule all:
+    input: "out_3.11.txt"
+    default_target: True
+
+rule create_output:
+    output: "out_{version}.txt"
+    container: "docker://python:{version}"
+    shell: "touch {output}"
+""")
+
+    metadata = snakemake_load(Path(snakefile.strpath))
+
+    assert len(metadata["steps"]) == 1
+    assert metadata["steps"][0]["environment"] == "python:{version}"
+
+
+def test_snakemake_load_rule_with_callable_container(tmpdir):
+    """A callable container is recorded as the dynamic placeholder.
+
+    Snakemake only calls the function once a job's wildcards are known, so no
+    image name exists at load time. The function itself is not JSON-encodable
+    and used to crash the loader with an ``AttributeError``.
+
+    Only Snakemake 8+ accepts a callable here, so Python versions still pinned
+    to Snakemake 7 assert the rejection they get instead.
+    """
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write("""
+def pick_container(wildcards):
+    return "docker://python:3.11"
+
+rule all:
+    input: "output.txt"
+    default_target: True
+
+rule create_output:
+    output: "output.txt"
+    container: pick_container
+    shell: "touch {output}"
+""")
+
+    if sys.version_info < (3, 11):
+        # Snakemake 7 refuses a callable ``container:`` while building the DAG,
+        # so the rule never reaches the loader in the first place.
+        with pytest.raises(REANAValidationError):
+            snakemake_load(Path(snakefile.strpath))
+        return
+
+    metadata = snakemake_load(Path(snakefile.strpath))
+
+    assert len(metadata["steps"]) == 1
+    assert metadata["steps"][0]["environment"] == SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE
+    # The whole specification must stay serialisable for storage and transport.
+    validate_json_tree(metadata)
 
 
 def test_snakemake_load_repeated_tuple_params(tmpdir):
