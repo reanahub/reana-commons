@@ -527,14 +527,14 @@ def consume_queue():
     return _consume_queue
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def in_memory_queue_connection():
     """In memory message queue.
 
-    Scope: session
+    Scope: function
 
     This fixture offers an in memory class:`kombu.Connection` scoped to the
-    testing session.
+    current test.
 
     .. code-block:: python
 
@@ -544,7 +544,14 @@ def in_memory_queue_connection():
 
 
     """
-    return Connection("memory:///")
+    connection = Connection("memory:///")
+    transport = connection.transport
+    try:
+        yield connection
+    finally:
+        connection.release()
+        transport.Channel.queues.clear()
+        transport.state.clear()
 
 
 @pytest.fixture

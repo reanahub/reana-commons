@@ -10,6 +10,7 @@
 
 import json
 import threading
+from queue import Empty
 
 import pytest
 from kombu import Connection, Exchange, Queue
@@ -33,6 +34,21 @@ def test_consume_msg(
     default_in_memory_producer.publish({"hello": "REANA"}, declare=[default_queue])
     consume_queue(consumer, limit=1)
     consumer.on_message.assert_called_once_with({"hello": "REANA"}, ANY)
+
+
+def test_in_memory_queue_connection_leaves_message_for_teardown(
+    in_memory_queue_connection,
+):
+    """Leave a message behind to exercise the fixture teardown."""
+    queue = in_memory_queue_connection.SimpleQueue("test-fixture-isolation")
+    queue.put({"hello": "previous test"})
+
+
+def test_in_memory_queue_connection_starts_empty(in_memory_queue_connection):
+    """Test messages from a previous test do not leak into this one."""
+    queue = in_memory_queue_connection.SimpleQueue("test-fixture-isolation")
+    with pytest.raises(Empty):
+        queue.get(block=False)
 
 
 def test_server_unreachable(ConsumerBase, default_queue):
