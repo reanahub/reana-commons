@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022, 2023 CERN.
+# Copyright (C) 2022, 2023, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -81,10 +81,16 @@ def load_workflow_spec_from_reana_yaml(reana_yaml, workspace_path=None):
         if workflow_type == "cwl":
             kwargs["basedir"] = workspace_path
         if workflow_type == "snakemake":
-            input_file, _legacy = workflow_parameter_file(reana_yaml)
+            input_file, legacy = workflow_parameter_file(reana_yaml)
             if workspace_path and input_file:
                 input_file = os.path.join(workspace_path, input_file)
             kwargs["input"] = input_file
+            # Direct ``config["key"]`` overrides, forwarded alongside the config
+            # file so that the specification is loaded with the same
+            # configuration the runtime engine receives.  Under the legacy
+            # spelling ``input`` is REANA's pointer to the file itself rather
+            # than a config value, so it is not forwarded.
+            kwargs["config"] = _direct_parameters(reana_yaml, legacy)
             kwargs["workdir"] = workspace_path
         if workflow_type == "yadage":
             kwargs["toplevel"] = workspace_path or "."
@@ -97,6 +103,24 @@ def load_workflow_spec_from_reana_yaml(reana_yaml, workspace_path=None):
     )
 
 
+def _direct_parameters(reana_yaml, legacy):
+    """Return the declared parameters that are direct configuration overrides.
+
+    Every entry of ``inputs.parameters`` is an override, except the legacy
+    ``input`` key, which points at the external parameter file rather than
+    carrying a value of its own.
+
+    :param reana_yaml: A dictionary which represents the REANA specification.
+    :param legacy: Whether the parameter file was declared as
+        ``inputs.parameters.input`` rather than ``workflow.parameters.file``.
+    :returns: A dictionary of direct parameter overrides.
+    """
+    parameters = reana_yaml.get("inputs", {}).get("parameters", {})
+    if legacy:
+        return {key: value for key, value in parameters.items() if key != "input"}
+    return dict(parameters)
+
+
 def load_input_parameters(reana_yaml, workspace_path=None):
     """Load the input parameters from the REANA specifications.
 
@@ -105,25 +129,30 @@ def load_input_parameters(reana_yaml, workspace_path=None):
     ``workflow.parameters.file`` field of the REANA specification. The legacy
     ``inputs.parameters.input`` spelling remains supported.
 
+    File-based and direct parameters coexist: an entry of ``inputs.parameters``
+    is a direct override and takes precedence over the same key in the file.
+    The legacy ``input`` key itself points at the file and is not kept as a
+    parameter.
+
     :param reana_yaml: A dictionary which represents the REANA specification.
     :param workspace_path: A path to the workspace where the workflow is located.
     :returns: A dictionary which represents the input parameters.
     """
     workflow_type = reana_yaml["workflow"]["type"]
     if workflow_type in ("cwl", "snakemake"):
-        input_file, _legacy = workflow_parameter_file(reana_yaml)
+        input_file, legacy = workflow_parameter_file(reana_yaml)
         if input_file:
             if workspace_path:
                 input_file = os.path.join(workspace_path, input_file)
             with open(input_file) as f:
-                parameters = yaml.safe_load(f)
-            if parameters is None:
-                return {}
-            if not isinstance(parameters, dict):
+                file_parameters = yaml.safe_load(f)
+            if file_parameters is None:
+                file_parameters = {}
+            if not isinstance(file_parameters, dict):
                 raise REANAValidationError(
                     "The workflow parameter file must contain a YAML mapping."
                 )
-            return parameters
+            return {**file_parameters, **_direct_parameters(reana_yaml, legacy)}
     return None
 
 
