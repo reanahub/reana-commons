@@ -73,6 +73,14 @@ serial_workflow_schema = {
                         "type": "integer",
                         "default": "None",
                     },
+                    "secret_names": {
+                        "$id": "#/properties/steps/properties/secret_names",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        },
+                        "uniqueItems": True,
+                    },
                     "kubernetes_memory_limit": {
                         "$id": "#/properties/steps/properties/kubernetes_memory_limit",
                         "type": "string",

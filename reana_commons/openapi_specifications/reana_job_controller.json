@@ -116,6 +116,12 @@
         "rucio": {
           "type": "boolean"
         },
+        "secret_names": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "shared_file_system": {
           "default": true,
           "type": "boolean"
@@ -151,7 +157,7 @@
   "info": {
     "description": "REANA Job Controller API",
     "title": "reana-job-controller",
-    "version": "0.95.0a4"
+    "version": "0.95.0a5"
   },
   "paths": {
     "/apispec": {},

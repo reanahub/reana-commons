@@ -112,3 +112,22 @@ def test_validation_load_error_accepts_null_reana_specification():
 
     assert result["reana_specification"] is None
     assert result["errors"][0]["code"] == "load"
+
+
+@pytest.mark.parametrize(
+    "secret_names,expected_in_spec",
+    [
+        (None, False),  # No allowlist requested: omitted from the request.
+        ([], True),  # Explicitly expose no secrets.
+        (["alpha", "beta"], True),  # Forward the allowlist verbatim.
+    ],
+)
+def test_submit_forwards_secret_names(secret_names, expected_in_spec):
+    """``secret_names`` must be forwarded even when the allowlist is empty."""
+    client = _make_client()
+    client.submit(image="busybox", cmd="ls", secret_names=secret_names)
+    job_spec = client._client.jobs.create_job.call_args.kwargs["job"]
+    if expected_in_spec:
+        assert job_spec["secret_names"] == secret_names
+    else:
+        assert "secret_names" not in job_spec
