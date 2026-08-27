@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import sys
+import threading
 import traceback
 import uuid
 from collections.abc import Mapping
@@ -29,8 +30,6 @@ from bravado.exception import (
     HTTPInternalServerError,
     HTTPNotFound,
 )
-from mock import Mock
-
 from reana_commons.config import OPENAPI_SPECS
 from reana_commons.errors import (
     MissingAPIClientConfiguration,
@@ -170,43 +169,55 @@ class StreamingRequestsClient(RequestsClient):
 class BaseAPIClient(object):
     """REANA API client code."""
 
-    _bravado_client_instance = None
+    _bravado_client_instances = {}
+    _bravado_client_lock = threading.Lock()
 
-    def __init__(self, service, http_client=None):
+    def __init__(self, service, http_client=None, ssl_verify=True, server_url=None):
         """Create an OpenAPI client."""
-        server_url, spec_file = OPENAPI_SPECS[service]
-        json_spec = self._get_spec(spec_file)
-        current_instance = BaseAPIClient._bravado_client_instance
-        # We reinstantiate the bravado client instance if
-        # 1. The current instance doesn't exist, or
-        # 2. We're passing an http client (likely a mock), or
-        # 3. The current instance is a Mock, meaning that either we want to
-        #    use the `RequestClient` or we're passing a different mock.
-        if (
-            current_instance is None
-            or http_client
-            or isinstance(current_instance.swagger_spec.http_client, Mock)
-        ):
-            BaseAPIClient._bravado_client_instance = SwaggerClient.from_spec(
-                json_spec,
-                http_client=http_client or StreamingRequestsClient(ssl_verify=False),
-                config={"also_return_response": True},
-            )
-        self._load_config_from_env()
-        self._client = BaseAPIClient._bravado_client_instance
+        configured_url, spec_file = OPENAPI_SPECS[service]
+        server_url = self._resolve_server_url(service, server_url, configured_url)
         if server_url is None:
             raise MissingAPIClientConfiguration(
                 "Configuration to connect to {} is missing.".format(service)
             )
+        json_spec = self._get_spec(spec_file)
+        if http_client is not None:
+            client = SwaggerClient.from_spec(
+                json_spec,
+                http_client=http_client,
+                config={"also_return_response": True},
+            )
+        else:
+            cache_key = (service, server_url, ssl_verify)
+            with BaseAPIClient._bravado_client_lock:
+                client = BaseAPIClient._bravado_client_instances.get(cache_key)
+                if client is None:
+                    client = SwaggerClient.from_spec(
+                        json_spec,
+                        http_client=StreamingRequestsClient(ssl_verify=ssl_verify),
+                        config={"also_return_response": True},
+                    )
+                    client.swagger_spec.api_url = server_url
+                    BaseAPIClient._bravado_client_instances[cache_key] = client
+        self._client = client
         self._client.swagger_spec.api_url = server_url
         self.server_url = server_url
 
-    def _load_config_from_env(self):
-        """Override configuration from environment."""
-        OPENAPI_SPECS["reana-server"] = (
-            os.getenv("REANA_SERVER_URL"),
-            "reana_server.json",
-        )
+    @staticmethod
+    def _resolve_server_url(service, server_url, configured_url):
+        """Resolve this client's API URL without touching shared state.
+
+        An explicit URL wins, then the REANA Server environment override, then
+        the configured mapping. ``OPENAPI_SPECS`` is never mutated: a client
+        built for one server must not change the URL seen by the next one, and
+        callers that already resolved an address (reana-client's active server)
+        must not have it overwritten by a raw, unnormalised environment value.
+        """
+        if server_url:
+            return server_url
+        if service == "reana-server":
+            return os.getenv("REANA_SERVER_URL") or configured_url
+        return configured_url
 
     def _get_spec(self, spec_file):
         """Get json specification from package data."""
@@ -425,8 +436,10 @@ class JobControllerAPIClient(BaseAPIClient):
         return http_response
 
 
-def get_current_api_client(component):
+def get_current_api_client(component, ssl_verify=True, server_url=None):
     """Proxy which returns current API client for a given component."""
-    rwc_api_client = BaseAPIClient(component)
+    rwc_api_client = BaseAPIClient(
+        component, ssl_verify=ssl_verify, server_url=server_url
+    )
 
     return rwc_api_client._client

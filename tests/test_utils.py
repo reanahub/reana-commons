@@ -21,6 +21,7 @@ from reana_commons.utils import (
     calculate_hash_of_dir,
     calculate_job_input_hash,
     click_table_printer,
+    copy_openapi_specs,
     format_cmd,
     get_workflow_status_change_verb,
     get_trimmed_workflow_id,
@@ -170,3 +171,51 @@ def test_get_workflow_status_change_verb_invalid():
 def test_get_trimmed_workflow_id(workflow_id, trim_level, expected):
     """Test get_trimmed_workflow_id function with several different inputs."""
     assert get_trimmed_workflow_id(workflow_id, trim_level) == expected
+
+
+def test_copy_openapi_specs_warns_loudly_when_no_sibling_checkout(
+    tmp_path, monkeypatch, capsys
+):
+    """A missing reana-commons checkout must not fail silently."""
+    monkeypatch.setenv("REANA_SRCDIR", str(tmp_path / "does-not-exist"))
+    output_path = tmp_path / "reana_server.json"
+    output_path.write_text("{}")
+
+    copy_openapi_specs(str(output_path), "reana-server")
+
+    assert "WARNING" in capsys.readouterr().out
+
+
+def test_copy_openapi_specs_warns_loudly_when_output_missing(
+    tmp_path, monkeypatch, capsys
+):
+    """A missing generated spec file must not fail silently."""
+    commons_specs_dir = (
+        tmp_path / "reana-commons" / "reana_commons" / "openapi_specifications"
+    )
+    commons_specs_dir.mkdir(parents=True)
+    monkeypatch.setenv("REANA_SRCDIR", str(tmp_path))
+
+    copy_openapi_specs(str(tmp_path / "does-not-exist.json"), "reana-server")
+
+    assert "WARNING" in capsys.readouterr().out
+
+
+def test_copy_openapi_specs_copies_when_both_paths_exist(tmp_path, monkeypatch, capsys):
+    """The happy path still copies the spec to reana-commons and docs/."""
+    commons_specs_dir = (
+        tmp_path / "reana-commons" / "reana_commons" / "openapi_specifications"
+    )
+    commons_specs_dir.mkdir(parents=True)
+    monkeypatch.setenv("REANA_SRCDIR", str(tmp_path))
+    output_path = tmp_path / "reana_server.json"
+    output_path.write_text('{"spec": true}')
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    monkeypatch.chdir(tmp_path)
+
+    copy_openapi_specs(str(output_path), "reana-server")
+
+    assert "WARNING" not in capsys.readouterr().out
+    assert (commons_specs_dir / "reana_server.json").read_text() == '{"spec": true}'
+    assert (docs_dir / "openapi.json").read_text() == '{"spec": true}'
