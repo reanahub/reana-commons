@@ -23,12 +23,7 @@ if sys.version_info >= (3, 9):
     from importlib.resources import files
 else:
     from importlib_resources import files
-from bravado.exception import (
-    HTTPBadRequest,
-    HTTPError,
-    HTTPInternalServerError,
-    HTTPNotFound,
-)
+from bravado.exception import HTTPError, HTTPNotFound
 from mock import Mock
 
 from reana_commons.config import OPENAPI_SPECS
@@ -406,23 +401,6 @@ class JobControllerAPIClient(BaseAPIClient):
                 "The given job ID was not found. Error: {}".format(http_response.data)
             )
         return http_response.text
-
-    def check_if_cached(self, job_spec, step, workflow_workspace):
-        """Check if job result is in cache."""
-        response, http_response = self._client.job_cache.check_if_cached(
-            job_spec=json.dumps(job_spec),
-            workflow_json=json.dumps(step),
-            workflow_workspace=workflow_workspace,
-        ).result()
-        if http_response.status_code == 400:
-            raise HTTPBadRequest(
-                "Bad request to check cache. Error: {}".format(http_response.data)
-            )
-        elif http_response.status_code == 500:
-            raise HTTPInternalServerError(
-                "Internal Server Error. Error: {}".format(http_response.data)
-            )
-        return http_response
 
 
 def get_current_api_client(component):

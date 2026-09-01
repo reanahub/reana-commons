@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2020, 2022 CERN.
+# Copyright (C) 2020, 2022, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -17,7 +17,8 @@ from reana_commons.validation.operational_options import validate_operational_op
 @pytest.mark.parametrize(
     "workflow_type, options, except_msg",
     [
-        ("serial", "CACHE=on", "must be a dict"),
+        ("serial", "TARGET=gendata", "must be a dict"),
+        ("serial", {"CACHE": "off"}, 'option "CACHE" not supported'),
         ("yadage", {"unsupported": "yes"}, "not supported"),
         ("foo", {"TARGET": "gendata"}, "not supported for {workflow_type} workflows"),
         (

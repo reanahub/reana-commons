@@ -13,12 +13,10 @@ import logging
 import os
 import platform
 import shutil
-import stat
 import subprocess
 import sys
 import time
 import uuid
-from hashlib import md5
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
@@ -67,70 +65,6 @@ def click_table_printer(headers, _filter, data, colours=None):
         )
 
 
-def calculate_hash_of_dir(directory, file_list=None):
-    """Calculate hash of directory."""
-    md5_hash = md5()
-    if not os.path.exists(directory):
-        return -1
-
-    sorted_by_dirs = sorted(list(os.walk(directory)), key=lambda x: x[2])
-    try:
-        for subdir, dirs, files in sorted_by_dirs:
-            for _file in files:
-                file_path = os.path.join(subdir, _file)
-                if file_list is not None and file_path not in file_list:
-                    continue
-                try:
-                    _file_object = open(file_path, "rb")
-                except Exception:
-                    # You can't open the file for some reason
-                    _file_object.close()
-                    # We return -1 since we cannot ensure that the file that
-                    # can not be read, will not change from one execution to
-                    # another.
-                    return -1
-                while 1:
-                    # Read file in little chunks
-                    buf = _file_object.read(4096)
-                    if not buf:
-                        break
-                    md5_hash.update(md5(buf).hexdigest().encode())
-                _file_object.close()
-    except Exception:
-        return -1
-    return md5_hash.hexdigest()
-
-
-def calculate_job_input_hash(job_spec, workflow_json):
-    """Calculate md5 hash of job specification and workflow json."""
-    if "workflow_workspace" in job_spec:
-        del job_spec["workflow_workspace"]
-    job_md5_buffer = md5()
-    job_md5_buffer.update(json.dumps(job_spec).encode("utf-8"))
-    job_md5_buffer.update(json.dumps(workflow_json).encode("utf-8"))
-    return job_md5_buffer.hexdigest()
-
-
-def calculate_file_access_time(workflow_workspace):
-    """Calculate access times of files in workspace."""
-    access_times = {}
-    for file_path in workspace.walk(workflow_workspace, include_dirs=False):
-        try:
-            file_stat = workspace.lstat(workflow_workspace, file_path)
-        except FileNotFoundError:
-            logging.warn(
-                f"Could not get stats of '{file_path}' in '{workflow_workspace}' "
-                "while calculating access times. "
-                "Maybe file was deleted or moved?"
-            )
-            continue
-        if stat.S_ISLNK(file_stat.st_mode):
-            continue
-        full_path = os.path.join(workflow_workspace, file_path)
-        access_times[full_path] = file_stat.st_atime
-    return access_times
-
-
 def copy_openapi_specs(output_path, component):
     """Copy generated and validated openapi specs to reana-commons module."""
     if component == "reana-server":
@@ -173,9 +107,7 @@ def get_workflow_status_change_verb(status: str) -> str:
     raise ValueError(f"Unrecognised status {status}")
 
 
-def build_progress_message(
-    total=None, running=None, finished=None, failed=None, cached=None
-):
+def build_progress_message(total=None, running=None, finished=None, failed=None):
     """Build the progress message with correct formatting."""
     progress_message = {}
     if total:
@@ -186,23 +118,7 @@ def build_progress_message(
         progress_message["finished"] = finished
     if failed:
         progress_message["failed"] = failed
-    if cached:
-        progress_message["cached"] = cached
     return progress_message
-
-
-def build_caching_info_message(
-    job_spec, job_id, workflow_workspace, workflow_json, result_path
-):
-    """Build the caching info message with correct formatting."""
-    caching_info_message = {
-        "job_spec": job_spec,
-        "job_id": job_id,
-        "workflow_workspace": workflow_workspace,
-        "workflow_json": workflow_json,
-        "result_path": result_path,
-    }
-    return caching_info_message
 
 
 def run_command(cmd, display=True, return_output=False, stderr_output=False):

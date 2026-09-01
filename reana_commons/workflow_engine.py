@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2021 CERN.
+# Copyright (C) 2021, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -141,7 +141,7 @@ def create_workflow_engine_command(
     )
     @click.option(
         "--operational-options",
-        help="Options to be passed to the workflow engine (i.e. caching).",
+        help="Options to be passed to the workflow engine.",
         callback=workflow_engines[engine_type]["load_operational_options_callback"],
     )
     def run_workflow_engine_run_command(**kwargs):

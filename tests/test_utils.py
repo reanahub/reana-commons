@@ -8,18 +8,11 @@
 
 """REANA-Commons utilities testing."""
 
-import os
-import shutil
 import sys
-import time
-from hashlib import md5
 
 import pytest
 
 from reana_commons.utils import (
-    calculate_file_access_time,
-    calculate_hash_of_dir,
-    calculate_job_input_hash,
     click_table_printer,
     format_cmd,
     get_workflow_status_change_verb,
@@ -62,62 +55,6 @@ def test_click_table_printer_filter_wrong_header(capsys):
     click_table_printer(headers, ["badheader"], sample_data)
     out, err = capsys.readouterr()
     assert out == "\n\n\n"
-
-
-def test_calculate_hash_of_dir(sample_workflow_workspace):  # noqa: F811
-    """Test calculate_hash_of_dir."""
-    non_existing_dir_hash = calculate_hash_of_dir("a/b/c")
-    assert non_existing_dir_hash == -1
-
-    from reana_commons.testing import TEST_WORKSPACE_DIR
-
-    test_workspace_path = TEST_WORKSPACE_DIR
-
-    sample_workflow_workspace_path = next(sample_workflow_workspace("sample"))
-    shutil.rmtree(sample_workflow_workspace_path)
-    shutil.copytree(test_workspace_path, sample_workflow_workspace_path)
-    dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path)
-    assert dir_hash == "cb2669b4d7651aa717b6952fce85575f"
-    include_only_path = os.path.join(
-        sample_workflow_workspace_path, "code", "worldpopulation.ipynb"
-    )
-    hash_of_single_file = calculate_hash_of_dir(
-        sample_workflow_workspace_path, [include_only_path]
-    )
-    assert hash_of_single_file == "18ce945e21ab4db472525abe1e0f8080"
-    empty_dir_hash = calculate_hash_of_dir(sample_workflow_workspace_path, [])
-    md5_hash = md5()
-    assert empty_dir_hash == md5_hash.hexdigest()
-    shutil.rmtree(sample_workflow_workspace_path)
-
-
-def test_calculate_job_input_hash():
-    """Test calculate_job_input_hash."""
-    job_spec_1 = {"workflow_workspace": "test"}
-    workflow_json = {}
-    job_spec_2 = {}
-    assert calculate_job_input_hash(
-        job_spec_1, workflow_json
-    ) == calculate_job_input_hash(job_spec_2, workflow_json)
-
-
-def test_calculate_file_access_time(tmp_path):
-    """Test calculate_file_access_time."""
-    before_writing_files = time.time() - 1
-    tmp_path.joinpath("a.txt").write_text("content of a")
-    tmp_path.joinpath("subdir").mkdir()
-    tmp_path.joinpath("subdir", "b.txt").write_text("content of b")
-    tmp_path.joinpath("c.txt").symlink_to("a.txt")
-    tmp_path.joinpath("another_subdir").mkdir()
-    after_writing_files = time.time() + 1
-
-    access_times = calculate_file_access_time(str(tmp_path))
-
-    assert len(access_times) == 2
-    assert str(tmp_path / "a.txt") in access_times
-    assert str(tmp_path / "subdir" / "b.txt") in access_times
-    for access_time in access_times.values():
-        assert before_writing_files <= access_time <= after_writing_files
 
 
 def test_format_cmd():
