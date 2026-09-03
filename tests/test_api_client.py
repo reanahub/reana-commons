@@ -24,9 +24,27 @@ from bravado.testing.response_mocks import IncomingResponseMock
 from bravado_core.response import unmarshal_response
 
 from reana_commons.api_client import (
+    BaseAPIClient,
     JobControllerAPIClient,
     StreamingMultipartBody,
 )
+from reana_commons.config import OPENAPI_SPECS
+
+
+def test_base_api_client_uses_server_url_set_after_import(monkeypatch):
+    """Use the current server URL when constructing the first API client."""
+    server_url = "https://reana.example.org"
+    monkeypatch.setenv("REANA_SERVER_URL", server_url)
+    monkeypatch.setitem(
+        OPENAPI_SPECS,
+        "reana-server",
+        ("http://0.0.0.0:80", "reana_server.json"),
+    )
+    monkeypatch.setattr(BaseAPIClient, "_bravado_client_instance", None)
+
+    client = BaseAPIClient("reana-server")
+
+    assert client.server_url == server_url
 
 
 def _make_client():

@@ -174,6 +174,8 @@ class BaseAPIClient(object):
 
     def __init__(self, service, http_client=None):
         """Create an OpenAPI client."""
+        # Refresh first so the initial request uses the current server URL.
+        self._load_config_from_env()
         server_url, spec_file = OPENAPI_SPECS[service]
         json_spec = self._get_spec(spec_file)
         current_instance = BaseAPIClient._bravado_client_instance
@@ -192,7 +194,6 @@ class BaseAPIClient(object):
                 http_client=http_client or StreamingRequestsClient(ssl_verify=False),
                 config={"also_return_response": True},
             )
-        self._load_config_from_env()
         self._client = BaseAPIClient._bravado_client_instance
         if server_url is None:
             raise MissingAPIClientConfiguration(
