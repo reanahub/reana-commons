@@ -8,6 +8,7 @@
 
 """REANA-Commons Snakemake tests."""
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -19,6 +20,7 @@ from reana_commons.validation.compute_backends import (
     build_compute_backends_validator,
 )
 from reana_commons.validation.parameters import build_parameters_validator
+from reana_commons.validation.utils import validate_json_tree
 
 
 def test_snakemake_load(tmpdir, dummy_snakefile):
@@ -46,6 +48,18 @@ def test_snakemake_load(tmpdir, dummy_snakefile):
     assert all(step["commands"] for step in metadata["steps"])
     assert all(step["kubernetes_memory_limit"] == "256Mi" for step in metadata["steps"])
     assert all(step["compute_backend"] is None for step in metadata["steps"])
+
+    loader_paths = [
+        value
+        for step in metadata["steps"]
+        for field in ("inputs", "outputs")
+        for value in step[field].values()
+    ]
+    assert any(
+        isinstance(value, str) and type(value) is not str for value in loader_paths
+    )
+    validate_json_tree(metadata)
+    json.dumps(metadata)
 
     if sys.version_info < (3, 11):
         for step in metadata["steps"]:
@@ -105,6 +119,40 @@ rule create_output:
     assert metadata["steps"][0]["compute_backend"] == "kubernetes"
     assert metadata["steps"][0]["kubernetes_memory_limit"] is None
     assert metadata["steps"][0]["kubernetes_uid"] == 1000
+
+
+def test_snakemake_load_repeated_tuple_params(tmpdir):
+    """Constant-folded tuple parameters remain JSON-compatible."""
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write("""
+rule all:
+    input:
+        "one.txt",
+        "two.txt"
+    default_target: True
+
+rule one:
+    output: "one.txt"
+    params:
+        flags=("-v", "-x"),
+        extra=()
+    shell: "touch {output}"
+
+rule two:
+    output: "two.txt"
+    params:
+        flags=("-v", "-x"),
+        extra=()
+    shell: "touch {output}"
+""")
+
+    metadata = snakemake_load(Path(snakefile.strpath), workdir=Path(tmpdir.strpath))
+    params = [step["params"] for step in metadata["steps"]]
+
+    assert params[0]["flags"] is params[1]["flags"]
+    assert params[0]["extra"] is params[1]["extra"]
+    validate_json_tree(metadata)
+    json.dumps(metadata)
 
 
 def test_snakemake_load_rule_without_shell_command(tmpdir):

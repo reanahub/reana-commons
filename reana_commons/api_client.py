@@ -12,6 +12,8 @@ import logging
 import os
 import sys
 import traceback
+import uuid
+from collections.abc import Mapping
 from typing import Optional
 
 from bravado.client import RequestsClient, SwaggerClient
@@ -37,6 +39,134 @@ from reana_commons.errors import (
 from reana_commons.job_utils import serialise_job_command
 
 
+class StreamingMultipartBody:
+    """Lazily yield a multipart body without reading file parts into memory."""
+
+    chunk_size = 1024 * 1024
+
+    def __init__(self, files, fields=None):
+        """Build framing and determine the exact request length."""
+        self.boundary = "----reana-{}".format(uuid.uuid4().hex)
+        self.content_type = "multipart/form-data; boundary={}".format(self.boundary)
+        self._parts = []
+
+        for name, value in (fields or {}).items():
+            values = value if isinstance(value, (list, tuple)) else [value]
+            for item in values:
+                payload = str(item).encode("utf-8")
+                self._parts.append(
+                    (
+                        self._field_header(name),
+                        payload,
+                        len(payload),
+                    )
+                )
+
+        for name, value in files:
+            filename, source = value
+            self._parts.append(
+                (
+                    self._file_header(name, filename),
+                    source,
+                    self._remaining_size(source),
+                )
+            )
+
+        self._closing = "--{}--\r\n".format(self.boundary).encode("ascii")
+        self._length = len(self._closing) + sum(
+            len(header) + size + 2 for header, _source, size in self._parts
+        )
+
+    @staticmethod
+    def _quote(value):
+        """Return a safe quoted multipart disposition value."""
+        return (
+            str(value)
+            .replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("\r", "")
+            .replace("\n", "")
+        )
+
+    def _field_header(self, name):
+        return (
+            '--{}\r\nContent-Disposition: form-data; name="{}"\r\n\r\n'.format(
+                self.boundary, self._quote(name)
+            )
+        ).encode("utf-8")
+
+    def _file_header(self, name, filename):
+        return (
+            (
+                "--{}\r\n"
+                'Content-Disposition: form-data; name="{}"; filename="{}"\r\n'
+                "Content-Type: application/octet-stream\r\n\r\n"
+            )
+            .format(
+                self.boundary,
+                self._quote(name),
+                self._quote(filename),
+            )
+            .encode("utf-8")
+        )
+
+    @staticmethod
+    def _remaining_size(source):
+        if isinstance(source, (bytes, bytearray)):
+            return len(source)
+        position = source.tell()
+        try:
+            source.seek(0, os.SEEK_END)
+            return source.tell() - position
+        finally:
+            source.seek(position)
+
+    def __len__(self):
+        """Return the exact Content-Length used by requests."""
+        return self._length
+
+    def __iter__(self):
+        """Yield multipart framing and bounded source chunks."""
+        for header, source, _size in self._parts:
+            yield header
+            if isinstance(source, (bytes, bytearray)):
+                yield bytes(source)
+            else:
+                while True:
+                    chunk = source.read(self.chunk_size)
+                    if not chunk:
+                        break
+                    yield chunk
+            yield b"\r\n"
+        yield self._closing
+
+
+class StreamingRequestsClient(RequestsClient):
+    """Bravado transport that preserves streaming for OpenAPI file parameters."""
+
+    def request(self, request_params, operation=None, request_config=None):
+        """Replace Bravado's eager ``requests`` file encoder with a lazy body."""
+        if request_params.get("files"):
+            request_params = dict(request_params)
+            fields = request_params.pop("data", None) or {}
+            if not isinstance(fields, Mapping):
+                raise TypeError("Multipart form fields must be a mapping.")
+            body = StreamingMultipartBody(
+                request_params.pop("files"),
+                fields=fields,
+            )
+            headers = dict(request_params.get("headers") or {})
+            headers["Content-Type"] = body.content_type
+            headers["Content-Length"] = str(len(body))
+            request_params["headers"] = headers
+            request_params["data"] = body
+        return super().request(
+            request_params,
+            operation=operation,
+            request_config=request_config,
+        )
+
+
 class BaseAPIClient(object):
     """REANA API client code."""
 
@@ -59,7 +189,7 @@ class BaseAPIClient(object):
         ):
             BaseAPIClient._bravado_client_instance = SwaggerClient.from_spec(
                 json_spec,
-                http_client=http_client or RequestsClient(ssl_verify=False),
+                http_client=http_client or StreamingRequestsClient(ssl_verify=False),
                 config={"also_return_response": True},
             )
         self._load_config_from_env()

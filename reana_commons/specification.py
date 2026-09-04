@@ -14,6 +14,8 @@ import os
 import subprocess
 import yaml
 
+from reana_commons.errors import REANAValidationError
+from reana_commons.specification_paths import workflow_parameter_file
 from reana_commons.serial import serial_load
 from reana_commons.snakemake import snakemake_load
 from reana_commons.yadage import yadage_load
@@ -79,7 +81,7 @@ def load_workflow_spec_from_reana_yaml(reana_yaml, workspace_path=None):
         if workflow_type == "cwl":
             kwargs["basedir"] = workspace_path
         if workflow_type == "snakemake":
-            input_file = reana_yaml.get("inputs", {}).get("parameters", {}).get("input")
+            input_file, _legacy = workflow_parameter_file(reana_yaml)
             if workspace_path and input_file:
                 input_file = os.path.join(workspace_path, input_file)
             kwargs["input"] = input_file
@@ -100,7 +102,8 @@ def load_input_parameters(reana_yaml, workspace_path=None):
 
     At the moment, this is needed only for CWL and Snakemake workflows.
     The input parameters are loaded from the file specified in the
-    `inputs.parameters.input` field of the REANA specification.
+    ``workflow.parameters.file`` field of the REANA specification. The legacy
+    ``inputs.parameters.input`` spelling remains supported.
 
     :param reana_yaml: A dictionary which represents the REANA specification.
     :param workspace_path: A path to the workspace where the workflow is located.
@@ -108,12 +111,19 @@ def load_input_parameters(reana_yaml, workspace_path=None):
     """
     workflow_type = reana_yaml["workflow"]["type"]
     if workflow_type in ("cwl", "snakemake"):
-        input_file = reana_yaml.get("inputs", {}).get("parameters", {}).get("input")
+        input_file, _legacy = workflow_parameter_file(reana_yaml)
         if input_file:
             if workspace_path:
                 input_file = os.path.join(workspace_path, input_file)
             with open(input_file) as f:
-                return yaml.safe_load(f)
+                parameters = yaml.safe_load(f)
+            if parameters is None:
+                return {}
+            if not isinstance(parameters, dict):
+                raise REANAValidationError(
+                    "The workflow parameter file must contain a YAML mapping."
+                )
+            return parameters
     return None
 
 
@@ -130,7 +140,7 @@ def load_reana_spec(filepath, workspace_path=None):
         )
         input_params = load_input_parameters(reana_yaml, workspace_path)
         if input_params is not None:
-            reana_yaml["inputs"]["parameters"] = input_params
+            reana_yaml.setdefault("inputs", {})["parameters"] = input_params
         return reana_yaml
     except IOError as e:
         logging.info(

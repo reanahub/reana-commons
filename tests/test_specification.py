@@ -54,3 +54,38 @@ def test_parameters_file(tmp_path: pathlib.Path):
 
     reana_spec = load_reana_spec(str(reana_yaml), workspace_path=str(tmp_path))
     assert reana_spec["inputs"]["parameters"]["qwerty"] == 123
+
+
+def test_workflow_parameters_file(tmp_path: pathlib.Path):
+    """Test the preferred workflow.parameters.file spelling."""
+    cwl_spec = tmp_path / "spec.cwl"
+    cwl_spec.write_text("cwlVersion: v1.0\nclass: Workflow")
+    (tmp_path / "params.yaml").write_text("qwerty: 123")
+    reana_yaml = tmp_path / "reana.yaml"
+    reana_yaml.write_text(
+        "workflow:\n"
+        "  type: cwl\n"
+        "  file: spec.cwl\n"
+        "  parameters:\n"
+        "    file: params.yaml\n"
+    )
+    reana_spec = load_reana_spec(str(reana_yaml), workspace_path=str(tmp_path))
+    assert reana_spec["inputs"]["parameters"]["qwerty"] == 123
+    assert reana_spec["workflow"]["parameters"]["file"] == "params.yaml"
+
+
+def test_parameters_file_requires_mapping(tmp_path: pathlib.Path):
+    """Parameter files cannot replace inputs.parameters with a scalar/list."""
+    cwl_spec = tmp_path / "spec.cwl"
+    cwl_spec.write_text("cwlVersion: v1.0\nclass: Workflow")
+    (tmp_path / "params.yaml").write_text("- invalid")
+    reana_yaml = tmp_path / "reana.yaml"
+    reana_yaml.write_text(
+        "workflow:\n"
+        "  type: cwl\n"
+        "  file: spec.cwl\n"
+        "  parameters:\n"
+        "    file: params.yaml\n"
+    )
+    with pytest.raises(Exception, match="must contain a YAML mapping"):
+        load_reana_spec(str(reana_yaml), workspace_path=str(tmp_path))

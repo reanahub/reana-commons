@@ -8,9 +8,10 @@
 
 """Utilities for extracting container images from REANA workflow specifications."""
 
-from typing import Dict, Iterator, List
+from typing import Dict, Iterable, Iterator, List
 
 from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+from reana_commons.errors import REANAValidationError
 
 
 def extract_images(reana_yaml: Dict) -> List[str]:
@@ -42,6 +43,99 @@ def extract_images(reana_yaml: Dict) -> List[str]:
     elif workflow_type == "cwl":
         return extract_cwl_images(specification.get("$graph", specification))
     return []
+
+
+def iter_image_environments(
+    reana_yaml: Dict, runtime_uid: int, runtime_gid: int
+) -> Iterator[Dict]:
+    """Yield distinct image and effective runtime-identity combinations.
+
+    A workflow may use the same image in several steps with different
+    ``kubernetes_uid`` overrides. Keeping the image and identity together lets
+    clients check every effective execution context instead of incorrectly
+    caching compatibility by image name alone. Records are yielded in first-use
+    order, allowing bounded consumers to stop without materialising the whole
+    workflow. At most one deduplication key is retained per yielded record.
+
+    :param reana_yaml: Parsed REANA specification dictionary.
+    :param runtime_uid: Default workflow runtime UID.
+    :param runtime_gid: Workflow runtime GID.
+    :yields: ``{image, runtime_uid, runtime_gid}`` records, deduplicated by the
+        complete tuple.
+    """
+    workflow_type = reana_yaml["workflow"]["type"]
+    specification = reana_yaml["workflow"].get("specification") or {}
+    default_uid = int(runtime_uid)
+    default_gid = int(runtime_gid)
+    seen = set()
+
+    def raw_environments():
+        """Yield image and optional UID pairs without deduplicating them."""
+        if workflow_type in ("serial", "snakemake"):
+            for step in specification.get("steps", []):
+                image = step.get("environment", "")
+                if workflow_type == "snakemake":
+                    image = image or REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+                yield image, step.get("kubernetes_uid")
+        elif workflow_type == "yadage":
+            for environment in iter_yadage_environments(
+                specification.get("stages", [])
+            ):
+                kubernetes_uid = next(
+                    (
+                        resource["kubernetes_uid"]
+                        for resource in environment.get("resources", [])
+                        if "kubernetes_uid" in resource
+                    ),
+                    None,
+                )
+                yield _yadage_env_to_image(environment), kubernetes_uid
+        elif workflow_type == "cwl":
+            for image in iter_cwl_images(specification.get("$graph", specification)):
+                yield image, None
+
+    for image, kubernetes_uid in raw_environments():
+        if not image:
+            continue
+        effective_uid = int(default_uid if kubernetes_uid is None else kubernetes_uid)
+        key = (image, effective_uid, default_gid)
+        if key in seen:
+            continue
+        seen.add(key)
+        yield {
+            "image": image,
+            "runtime_uid": effective_uid,
+            "runtime_gid": default_gid,
+        }
+
+
+def extract_image_environments(
+    reana_yaml: Dict, runtime_uid: int, runtime_gid: int
+) -> List[Dict]:
+    """Return sorted distinct image/runtime-identity records.
+
+    This compatibility wrapper preserves the ordering of the original list API.
+    Bounded consumers should use :func:`iter_image_environments` directly.
+    """
+    return [
+        {
+            "image": image,
+            "runtime_uid": effective_uid,
+            "runtime_gid": effective_gid,
+        }
+        for image, effective_uid, effective_gid in sorted(
+            {
+                (
+                    environment["image"],
+                    environment["runtime_uid"],
+                    environment["runtime_gid"],
+                )
+                for environment in iter_image_environments(
+                    reana_yaml, runtime_uid, runtime_gid
+                )
+            }
+        )
+    ]
 
 
 def iter_yadage_environments(stages: List) -> Iterator[Dict]:
@@ -78,6 +172,16 @@ def _iter_cwl_reqs(node: Dict) -> Iterator[Dict]:
                     yield item
 
 
+def iter_cwl_images(cwl_graph) -> Iterator[str]:
+    """Yield ``dockerPull`` images from a CWL workflow or ``$graph`` value."""
+    if isinstance(cwl_graph, dict):
+        cwl_graph = [cwl_graph]
+    for workflow in cwl_graph:
+        for requirement in _iter_cwl_reqs(workflow):
+            if "dockerPull" in requirement:
+                yield requirement["dockerPull"]
+
+
 def extract_cwl_images(cwl_graph) -> List[str]:
     """Extract ``dockerPull`` images from a CWL ``$graph`` value.
 
@@ -86,17 +190,27 @@ def extract_cwl_images(cwl_graph) -> List[str]:
         no ``$graph`` key is present).
     :returns: List of image strings from ``DockerRequirement.dockerPull`` entries.
     """
-    if isinstance(cwl_graph, dict):
-        cwl_graph = [cwl_graph]
-    return [
-        req["dockerPull"]
-        for wf in cwl_graph
-        for req in _iter_cwl_reqs(wf)
-        if "dockerPull" in req
-    ]
+    return list(iter_cwl_images(cwl_graph))
 
 
 def _yadage_env_to_image(env: Dict) -> str:
     """Build a full image string from a Yadage environment dict."""
     tag = env.get("imagetag", "")
     return "{}{}".format(env["image"], ":{}".format(tag) if tag else "")
+
+
+def validate_images(reana_yaml: Dict, enabled: bool, allowlist: Iterable[str]) -> None:
+    """Validate workflow container images against the vetted images allowlist.
+
+    :param reana_yaml: REANA specification.
+    :param enabled: Whether container image vetting is enabled in the cluster.
+    :param allowlist: Iterable of allowed image strings.
+    :raises REANAValidationError: If an image is not in the allowlist.
+    """
+    if not enabled:
+        return
+
+    allowed_images = set(allowlist)
+    for image in extract_images(reana_yaml):
+        if image and image not in allowed_images:
+            raise REANAValidationError(f"Image not allowed: {image}")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022, 2024 CERN.
+# Copyright (C) 2022, 2024, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -10,6 +10,7 @@
 from contextlib import nullcontext as does_not_raise
 import os
 from pathlib import Path
+import stat
 
 import pytest
 
@@ -140,6 +141,26 @@ def test_open_file_write(path, expectation, test_workspace):
     with expectation:
         with workspace.open_file(test_workspace, path, mode="w") as f:
             assert f.write(content) == len(content)
+
+
+@pytest.mark.parametrize(
+    "umask, expected_mode",
+    [
+        (0o022, 0o644),
+        (0o002, 0o664),
+    ],
+)
+def test_open_file_write_creation_mode(umask, expected_mode, test_workspace: Path):
+    """Create regular files without executable permission bits."""
+    previous_umask = os.umask(umask)
+    try:
+        with workspace.open_file(test_workspace, "new_file", mode="w") as f:
+            f.write("content")
+    finally:
+        os.umask(previous_umask)
+
+    mode = stat.S_IMODE((test_workspace / "new_file").stat().st_mode)
+    assert mode == expected_mode
 
 
 @pytest.mark.parametrize(

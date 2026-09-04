@@ -1,8 +1,58 @@
 {
+  "definitions": {
+    "ErrorResponse": {
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "WorkflowSubmissionResponse": {
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "run_number": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "validation_warnings": {
+          "items": {
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
   "info": {
     "description": "Submit workflows to be run on REANA Cloud",
     "title": "REANA Server",
-    "version": "0.95.0a5"
+    "version": "0.95.0a6"
   },
   "paths": {
     "/account/settings/linkedaccounts/": {},
@@ -1140,6 +1190,26 @@
               "type": "object"
             }
           },
+          "409": {
+            "description": "Another workflow-family mutation is in progress.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
           "500": {
             "description": "Request failed. Internal server error.",
             "examples": {
@@ -1155,6 +1225,12 @@
               },
               "type": "object"
             }
+          },
+          "503": {
+            "description": "Workspace mutation or controller service is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         },
         "summary": "Launch workflow from a remote REANA specification file."
@@ -1162,7 +1238,7 @@
     },
     "/api/ping": {
       "get": {
-        "description": "Ping the server.",
+        "description": "Ping the server.\n\nThis endpoint is deliberately unauthenticated: it also carries the protocol bootstrap signal that a client needs *before* it authenticates or builds a request body. ``api_capabilities`` advertises the client-facing protocols the server implements; a released server omits the field, which identifies it as legacy.",
         "operationId": "ping",
         "produces": [
           "application/json"
@@ -1172,13 +1248,27 @@
             "description": "Ping succeeded. Service is running and accessible.",
             "examples": {
               "application/json": {
+                "api_capabilities": [
+                  "workflow-specification-bundles-v1"
+                ],
                 "message": "OK",
+                "reana_server_version": "0.95.0a6",
                 "status": 200
               }
             },
             "schema": {
               "properties": {
+                "api_capabilities": {
+                  "description": "Client-facing protocols implemented by this server. Absent on released servers that predate protocol negotiation.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
                 "message": {
+                  "type": "string"
+                },
+                "reana_server_version": {
                   "type": "string"
                 },
                 "status": {
@@ -2271,6 +2361,20 @@
               "type": "object"
             }
           },
+          "429": {
+            "description": "Request rate limit exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
           "500": {
             "description": "Request failed. Internal server error.",
             "examples": {
@@ -2859,9 +2963,9 @@
       },
       "post": {
         "consumes": [
-          "application/json"
+          "multipart/form-data"
         ],
-        "description": "This resource is expecting a REANA specification in JSON format with all the necessary information to instantiate a workflow.",
+        "description": "Creates a workflow from one uncompressed ZIP validation snapshot in the multipart ``bundle`` field. The archive contains canonical ``reana.yaml`` plus explicitly declared workflow/parameter files. The server loads and validates the specification authoritatively (sandboxed for Snakemake/CWL/Yadage).",
         "operationId": "create_workflow",
         "parameters": [
           {
@@ -2872,20 +2976,11 @@
             "type": "string"
           },
           {
-            "description": "Remote repository which contains a valid REANA specification.",
-            "in": "query",
-            "name": "spec",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "description": "REANA specification with necessary data to instantiate a workflow.",
-            "in": "body",
-            "name": "reana_specification",
-            "required": false,
-            "schema": {
-              "type": "object"
-            }
+            "description": "Uncompressed ZIP validation snapshot containing canonical reana.yaml plus explicitly declared workflow sources.",
+            "in": "formData",
+            "name": "bundle",
+            "required": true,
+            "type": "file"
           },
           {
             "description": "The API access_token of workflow owner.",
@@ -2912,6 +3007,23 @@
               "properties": {
                 "message": {
                   "type": "string"
+                },
+                "validation_warnings": {
+                  "items": {
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
                 },
                 "workflow_id": {
                   "type": "string"
@@ -2971,11 +3083,45 @@
               "type": "object"
             }
           },
+          "409": {
+            "description": "Another workflow-family mutation is in progress.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "413": {
+            "description": "The uploaded request exceeds the bounded bundle limit.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
           "500": {
             "description": "Request failed. Internal controller error.",
             "examples": {
               "application/json": {
-                "message": "Internal controller error."
+                "message": "An internal server error occurred."
               }
             },
             "schema": {
@@ -2989,6 +3135,12 @@
           },
           "501": {
             "description": "Request failed. Not implemented."
+          },
+          "503": {
+            "description": "Workspace mutation or controller service is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         },
         "summary": "Creates a new workflow based on a REANA specification file."
@@ -3138,9 +3290,170 @@
               },
               "type": "object"
             }
+          },
+          "503": {
+            "description": "Workspace mutation serialization is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         },
         "summary": "Move files within workspace."
+      }
+    },
+    "/api/workflows/validate": {
+      "post": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "description": "Accepts one uncompressed ZIP validation snapshot in the multipart ``bundle`` field. The archive contains canonical ``reana.yaml`` plus its explicitly declared workflow/configuration files. Serial specs are loaded and validated in-process; Snakemake/CWL/Yadage specs -- whose loading executes user code -- are validated inside a sandboxed job spawned by reana-workflow-controller. Returns a structured validation report.",
+        "operationId": "validate_workflow_specification",
+        "parameters": [
+          {
+            "description": "Uncompressed ZIP validation snapshot containing canonical reana.yaml plus explicitly declared workflow sources.",
+            "in": "formData",
+            "name": "bundle",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "in": "query",
+            "name": "access_token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "If true, run offline reproducibility checks on runtime environment image references and return the loaded image and effective runtime UID/GID combinations so the client can optionally pull and inspect them locally.",
+            "in": "query",
+            "name": "environments",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation ran; a structured report is returned.",
+            "schema": {
+              "properties": {
+                "environments": {
+                  "description": "Distinct runtime image and effective UID/GID combinations of the loaded spec (only when environments is requested), for client-side checks.",
+                  "items": {
+                    "properties": {
+                      "image": {
+                        "type": "string"
+                      },
+                      "runtime_gid": {
+                        "type": "integer"
+                      },
+                      "runtime_uid": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "image",
+                      "runtime_uid",
+                      "runtime_gid"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "environments_truncated": {
+                  "description": "Whether one or more requested environment identities were omitted from the bounded response.",
+                  "type": "boolean"
+                },
+                "errors": {
+                  "items": {
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "valid": {
+                  "type": "boolean"
+                },
+                "warnings": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "The bundle was missing or malformed.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Request malformed or missing access token.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Request access forbidden.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "413": {
+            "description": "The uploaded request exceeds the bounded bundle limit.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal error while validating the specification.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Validate a raw workflow specification bundle."
       }
     },
     "/api/workflows/{workflow_id_or_name_a}/diff/{workflow_id_or_name_b}": {
@@ -4084,6 +4397,12 @@
               "type": "object"
             }
           },
+          "409": {
+            "description": "The workspace is currently being mutated.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
           "500": {
             "description": "Request failed. Internal controller error.",
             "examples": {
@@ -4099,9 +4418,118 @@
               },
               "type": "object"
             }
+          },
+          "503": {
+            "description": "Workspace mutation serialization is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         },
         "summary": "Prune the workspace's files."
+      }
+    },
+    "/api/workflows/{workflow_id_or_name}/restart": {
+      "post": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "description": "Atomically validates and applies one raw replacement REANA specification. Workflow source files are reused from the existing workspace.",
+        "operationId": "restart_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workflow_id_or_name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "access_token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Raw replacement REANA specification.",
+            "in": "formData",
+            "name": "replacement",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "description": "JSON object containing optional input_parameters and operational_options objects.",
+            "in": "formData",
+            "name": "parameters",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow restart was submitted.",
+            "schema": {
+              "$ref": "#/definitions/WorkflowSubmissionResponse"
+            }
+          },
+          "400": {
+            "description": "Replacement or parameters are malformed or invalid.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Request malformed or missing access token.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Restart is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Workflow does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "The workspace is currently being mutated.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "413": {
+            "description": "Replacement exceeds the configured request limit.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "503": {
+            "description": "Workspace mutation serialization is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "summary": "Restart a workflow with a replacement specification."
       }
     },
     "/api/workflows/{workflow_id_or_name}/retention_rules": {
@@ -4752,7 +5180,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "This resource starts the workflow execution process. Resource is expecting a workflow UUID.",
+        "description": "This resource starts the workflow execution process. Resource is expecting a workflow UUID.\n\nThe workspace is the authoritative copy of the specification: before the workflow is queued, the server re-loads and re-validates the specification *from the current workspace* (in a sandbox for Snakemake/CWL/Yadage, in-process for serial) and refreshes the stored specification from it. A workspace that no longer loads or fails policy is rejected with a 400 and the workflow keeps its current status. Any non-blocking validation findings are returned in ``validation_warnings``.",
         "operationId": "start_workflow",
         "parameters": [
           {
@@ -4784,10 +5212,6 @@
                   "description": "Optional. Additional operational options for workflow execution.",
                   "type": "object"
                 },
-                "reana_specification": {
-                  "description": "Optional. Replace the original workflow specification with the given one. Only considered when restarting a workflow.",
-                  "type": "object"
-                },
                 "restart": {
                   "description": "Optional. If true, restart the given workflow.",
                   "type": "boolean"
@@ -4805,32 +5229,16 @@
             "description": "Request succeeded. Info about a workflow, including the execution status is returned.",
             "examples": {
               "application/json": {
-                "id": "256b25f4-4cfb-4684-b7a8-73872ef455a1",
-                "message": "Workflow submitted",
+                "message": "Workflow submitted.",
+                "run_number": "1",
                 "status": "queued",
                 "user": "00000000-0000-0000-0000-000000000000",
-                "workflow_name": "mytest.1"
+                "workflow_id": "256b25f4-4cfb-4684-b7a8-73872ef455a1",
+                "workflow_name": "mytest"
               }
             },
             "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "string"
-                },
-                "user": {
-                  "type": "string"
-                },
-                "workflow_id": {
-                  "type": "string"
-                },
-                "workflow_name": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
+              "$ref": "#/definitions/WorkflowSubmissionResponse"
             }
           },
           "400": {
@@ -4897,11 +5305,25 @@
               "type": "object"
             }
           },
+          "429": {
+            "description": "Request rate limit exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
           "500": {
             "description": "Request failed. Internal controller error.",
             "examples": {
               "application/json": {
-                "message": "Internal controller error."
+                "message": "An internal server error occurred."
               }
             },
             "schema": {
@@ -4927,6 +5349,12 @@
                 }
               },
               "type": "object"
+            }
+          },
+          "503": {
+            "description": "Workspace mutation serialization is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           }
         },
@@ -5177,7 +5605,7 @@
             "type": "string"
           },
           {
-            "description": "Required. New workflow status.",
+            "description": "Required. New workflow status. The `start` value is retained for compatibility; new clients should use POST /api/workflows/<workflow_id_or_name>/start.",
             "enum": [
               "start",
               "stop",
@@ -5215,7 +5643,7 @@
                   "type": "object"
                 },
                 "restart": {
-                  "description": "Optional. If true, the workflow is a restart of an earlier workflow execution. Only allowed when status is `start`.",
+                  "description": "Optional. If true, restart the given workflow. Only allowed when status is `start`.",
                   "type": "boolean"
                 },
                 "workspace": {
@@ -5235,32 +5663,15 @@
             "description": "Request succeeded. Info about a workflow, including the status is returned.",
             "examples": {
               "application/json": {
-                "id": "256b25f4-4cfb-4684-b7a8-73872ef455a1",
                 "message": "Workflow successfully launched",
                 "status": "created",
                 "user": "00000000-0000-0000-0000-000000000000",
-                "workflow_name": "mytest.1"
+                "workflow_id": "256b25f4-4cfb-4684-b7a8-73872ef455a1",
+                "workflow_name": "mytest"
               }
             },
             "schema": {
-              "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "string"
-                },
-                "user": {
-                  "type": "string"
-                },
-                "workflow_id": {
-                  "type": "string"
-                },
-                "workflow_name": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
+              "$ref": "#/definitions/WorkflowSubmissionResponse"
             }
           },
           "400": {
@@ -5327,6 +5738,20 @@
               "type": "object"
             }
           },
+          "429": {
+            "description": "Request rate limit exceeded.",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          },
           "500": {
             "description": "Request failed. Internal controller error.",
             "examples": {
@@ -5357,6 +5782,12 @@
                 }
               },
               "type": "object"
+            }
+          },
+          "503": {
+            "description": "Workspace mutation serialization is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           }
         },
@@ -5765,6 +6196,18 @@
               "type": "object"
             }
           },
+          "409": {
+            "description": "The workspace is currently being mutated.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "411": {
+            "description": "A Content-Length header is required for streaming uploads.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
           "500": {
             "description": "Request failed. Internal server error.",
             "examples": {
@@ -5779,6 +6222,12 @@
                 }
               },
               "type": "object"
+            }
+          },
+          "503": {
+            "description": "Workspace mutation or controller service is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           }
         },
@@ -5878,6 +6327,12 @@
               "type": "object"
             }
           },
+          "409": {
+            "description": "The workspace is currently being mutated.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
           "500": {
             "description": "Request failed. Internal server error.",
             "examples": {
@@ -5892,6 +6347,12 @@
                 }
               },
               "type": "object"
+            }
+          },
+          "503": {
+            "description": "Workspace mutation serialization is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           }
         },

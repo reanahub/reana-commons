@@ -23,6 +23,7 @@
         "files": {
           "$id": "/properties/inputs/properties/files",
           "type": "array",
+          "maxItems": 1000,
           "title": "Analysis input files.",
           "description": "List of files provided as input for a given analysis.",
           "items": {
@@ -34,6 +35,7 @@
         "directories": {
           "$id": "/properties/inputs/properties/directories",
           "type": "array",
+          "maxItems": 1000,
           "title": "Analysis input directories.",
           "description": "List of directories provided as input for a given analysis.",
           "items": {
@@ -72,6 +74,46 @@
           "$id": "/properties/workflow/properties/file",
           "type": "string",
           "title": "Workflow file name."
+        },
+        "files": {
+          "$id": "/properties/workflow/properties/files",
+          "type": "array",
+          "maxItems": 1000,
+          "title": "Extra workflow definition files.",
+          "description": "Additional workflow definition files required while loading and running the workflow. Paths are relative to the directory containing the REANA specification.",
+          "items": {
+            "$id": "/properties/workflow/properties/files/items",
+            "type": "string",
+            "title": "Relative path to the file."
+          }
+        },
+        "directories": {
+          "$id": "/properties/workflow/properties/directories",
+          "type": "array",
+          "maxItems": 1000,
+          "title": "Workflow definition directories.",
+          "description": "Directories containing workflow definitions required while loading and running the workflow. Paths are relative to the directory containing the REANA specification.",
+          "items": {
+            "$id": "/properties/workflow/properties/directories/items",
+            "type": "string",
+            "title": "Relative path to the directory."
+          }
+        },
+        "parameters": {
+          "$id": "/properties/workflow/properties/parameters",
+          "type": "object",
+          "title": "External workflow parameters.",
+          "description": "External parameter source used while loading CWL and Snakemake workflows.",
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "$id": "/properties/workflow/properties/parameters/properties/file",
+              "type": "string",
+              "title": "Workflow parameter file.",
+              "description": "Path to the CWL job object or Snakemake configuration file, relative to the directory containing the REANA specification."
+            }
+          },
+          "required": ["file"]
         },
         "type": {
           "$id": "/properties/workflow/properties/type",

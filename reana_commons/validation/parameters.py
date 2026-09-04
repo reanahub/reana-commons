@@ -8,7 +8,6 @@
 
 """REANA-Commons parameters validation."""
 
-import os
 import re
 from collections import defaultdict
 
@@ -16,7 +15,7 @@ from reana_commons.config import COMMAND_DANGEROUS_OPERATIONS
 from reana_commons.errors import REANAValidationError
 
 
-def build_parameters_validator(reana_yaml):
+def build_parameters_validator(reana_yaml, max_warnings=None):
     """Validate the presence of input parameters in workflow step commands and viceversa.
 
     :param reana_yaml: REANA YAML specification.
@@ -24,19 +23,20 @@ def build_parameters_validator(reana_yaml):
     workflow = reana_yaml["workflow"]
     workflow_type = workflow["type"]
     if workflow_type == "serial":
-        return ParameterValidatorSerial(reana_yaml)
+        return ParameterValidatorSerial(reana_yaml, max_warnings=max_warnings)
     if workflow_type == "yadage":
-        return ParameterValidatorYadage(reana_yaml)
+        return ParameterValidatorYadage(reana_yaml, max_warnings=max_warnings)
     if workflow_type == "cwl":
-        return ParameterValidatorCWL(reana_yaml)
+        return ParameterValidatorCWL(reana_yaml, max_warnings=max_warnings)
     if workflow_type == "snakemake":
-        return ParameterValidatorSnakemake(reana_yaml)
+        return ParameterValidatorSnakemake(reana_yaml, max_warnings=max_warnings)
+    raise REANAValidationError("Unsupported workflow type '{}'.".format(workflow_type))
 
 
 class ParameterValidatorBase:
     """REANA workflow parameter validation base class."""
 
-    def __init__(self, reana_yaml):
+    def __init__(self, reana_yaml, max_warnings=None):
         """Validate parameters in REANA workflow.
 
         :param reana_yaml: REANA YAML specification.
@@ -49,9 +49,20 @@ class ParameterValidatorBase:
         self.operations_warnings = []
         self.reana_params_warnings = []
         self.workflow_params_warnings = []
+        self.max_warnings = max_warnings
+        self.warning_count = 0
+        self.warnings_truncated = False
 
         self.steps = self.parse_specification()
         self._initial_parameter_validation()
+
+    def _add_warning(self, collection, warning):
+        """Append one warning without exceeding the shared warning budget."""
+        if self.max_warnings is not None and self.warning_count >= self.max_warnings:
+            self.warnings_truncated = True
+            return
+        collection.append(warning)
+        self.warning_count += 1
 
     def parse_specification(self):
         """Parse REANA workflow specification tree."""
@@ -63,11 +74,12 @@ class ParameterValidatorBase:
 
     def _initial_parameter_validation(self):
         if "inputs" not in self.reana_yaml:
-            self.reana_params_warnings.append(
+            self._add_warning(
+                self.reana_params_warnings,
                 {
                     "type": "warning",
                     "message": 'Workflow "inputs" are missing in the REANA specification.',
-                }
+                },
             )
 
     def _validate_dangerous_operations(self, commands, step=None):
@@ -82,13 +94,14 @@ class ParameterValidatorBase:
                     msg = 'Operation "{}" found in step "{}" might be dangerous.'
                     if not step:
                         msg = 'Operation "{}" might be dangerous.'
-                    self.operations_warnings.append(
+                    self._add_warning(
+                        self.operations_warnings,
                         {
                             "type": "warning",
                             "message": msg.format(
                                 operation.strip(), step if step else None
                             ),
-                        }
+                        },
                     )
 
     def _validate_not_used_parameters(
@@ -103,13 +116,14 @@ class ParameterValidatorBase:
         """
         unused_parameters = workflow_parameters.difference(command_parameters)
         for parameter in unused_parameters:
-            self.reana_params_warnings.append(
+            self._add_warning(
+                self.reana_params_warnings,
                 {
                     "type": "warning",
                     "message": '{} input parameter "{}" does not seem to be used.'.format(
                         type_, parameter
                     ),
-                }
+                },
             )
 
     def _validate_not_defined_parameters(
@@ -127,7 +141,8 @@ class ParameterValidatorBase:
         )
         for parameter in command_parameters_not_defined:
             steps_used = cmd_param_steps_mapping[parameter]
-            self.workflow_params_warnings.append(
+            self._add_warning(
+                self.workflow_params_warnings,
                 {
                     "type": "warning",
                     "message": '{type} parameter "{parameter}" found on step{s} "{steps}" is not defined in input parameters.'.format(
@@ -136,7 +151,7 @@ class ParameterValidatorBase:
                         steps=", ".join(steps_used),
                         s="s" if len(steps_used) > 1 else "",
                     ),
-                }
+                },
             )
 
     def _validate_misused_parameters_in_steps(
@@ -155,7 +170,8 @@ class ParameterValidatorBase:
             param_steps = param_steps_mapping[parameter]
             steps_diff = cmd_param_steps.difference(param_steps)
             if steps_diff:
-                self.workflow_params_warnings.append(
+                self._add_warning(
+                    self.workflow_params_warnings,
                     {
                         "type": "warning",
                         "message": '{type} parameter "{parameter}" found on step{s} "{steps}" is not defined in input parameters.'.format(
@@ -164,14 +180,15 @@ class ParameterValidatorBase:
                             steps=", ".join(steps_diff),
                             s="s" if len(steps_diff) > 1 else "",
                         ),
-                    }
+                    },
                 )
         for parameter in workflow_params:
             param_steps = param_steps_mapping[parameter]
             cmd_param_steps = cmd_param_steps_mapping[parameter]
             steps_diff = param_steps.difference(cmd_param_steps)
             if steps_diff:
-                self.workflow_params_warnings.append(
+                self._add_warning(
+                    self.workflow_params_warnings,
                     {
                         "type": "warning",
                         "message": '{type} input parameter "{parameter}" found on step{s} "{steps}" does not seem to be used.'.format(
@@ -180,7 +197,7 @@ class ParameterValidatorBase:
                             steps=", ".join(steps_diff),
                             s="s" if len(steps_diff) > 1 else "",
                         ),
-                    }
+                    },
                 )
 
 
@@ -347,7 +364,17 @@ class ParameterValidatorCWL(ParameterValidatorBase):
         pass
 
     def validate_parameters(self):
-        """Validate input parameters for CWL workflows."""
+        """Validate input parameters for CWL workflows.
+
+        This operates purely on the *already-serialized* specification: it walks
+        the loaded ``$graph`` looking for dangerous operations and never touches
+        the filesystem. Structural validation of the on-disk CWL files (the
+        ``cwltool`` parse) is a *loading*/generation concern handled by
+        :func:`reana_commons.utils.cwl_load` (``cwltool --pack``, run via an argv
+        list inside the sandbox), so it deliberately does not happen here -- that
+        keeps :func:`reana_commons.validation.report.validate_serialized_spec`
+        free of code execution and safe to call in-process.
+        """
 
         def _check_dangerous_operations(workflow):
             """Check for "baseCommand" and "arguments" in workflow.
@@ -365,21 +392,6 @@ class ParameterValidatorCWL(ParameterValidatorBase):
                     self._validate_dangerous_operations(
                         commands, step=workflow.get("id")
                     )
-
-        from reana_commons.utils import run_command
-
-        cwl_main_spec_path = self.reana_yaml["workflow"].get("file")
-        if os.path.exists(cwl_main_spec_path):
-            run_command(
-                "cwltool --validate --strict {}".format(cwl_main_spec_path),
-                display=False,
-                return_output=True,
-                stderr_output=True,
-            )
-        else:
-            raise REANAValidationError(
-                "Workflow path {} is not valid.".format(cwl_main_spec_path)
-            )
 
         workflow = self.specification.get("$graph", self.specification)
 

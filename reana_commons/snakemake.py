@@ -38,6 +38,21 @@ from reana_commons.errors import REANAValidationError
 from reana_commons.config import SNAKEMAKE_MAX_PARALLEL_JOBS
 
 
+def _invalid_snakemake_message(error):
+    """Build an actionable "invalid Snakemake" message including the cause.
+
+    The underlying Snakemake error usually names the real problem -- most
+    importantly a referenced ``include:``/config file that is missing, which
+    matters now that the client uploads only a *scoped* bundle (the
+    ``workflow.file`` sub-tree). Surfacing it tells the user to co-locate the
+    file instead of leaving them with an opaque "invalid" message.
+    """
+    detail = " ".join(str(error).split())
+    if not detail:
+        return "Snakemake specification is invalid."
+    return "Snakemake specification is invalid: {}".format(detail)
+
+
 def snakemake_validate(
     workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
 ):
@@ -78,7 +93,7 @@ def snakemake_validate_v7(
             quiet=True,
         )
     except Exception as e:
-        raise REANAValidationError("Snakemake specification is invalid.") from e
+        raise REANAValidationError(_invalid_snakemake_message(e)) from e
     if not valid:
         raise REANAValidationError("Snakemake specification is invalid.")
 
@@ -98,6 +113,11 @@ def snakemake_validate_v8(
     :param workdir: Path to working directory.
     :type workdir: string or None
     """
+    # Snakemake's WorkflowApi expects Path objects (it calls e.g.
+    # ``workdir.exists()``), so convert from str.
+    workflow_file = Path(workflow_file)
+    if workdir:
+        workdir = Path(workdir)
     with SnakemakeApi(
         OutputSettings(
             quiet={Quietness.ALL},
@@ -119,7 +139,7 @@ def snakemake_validate_v8(
 
         except Exception as e:
             snakemake_api.print_exception(e)
-            raise REANAValidationError("Snakemake specification is invalid.")
+            raise REANAValidationError(_invalid_snakemake_message(e)) from e
 
 
 def snakemake_load_v7(workflow_file: str, **kwargs: Any):
@@ -305,6 +325,9 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
     workdir = kwargs.get("workdir")
     if workdir:
         workflow_file = os.path.join(workdir, workflow_file)
+        # Snakemake's WorkflowApi expects a Path workdir (it calls
+        # ``workdir.exists()``), so convert from str.
+        workdir = Path(workdir)
 
     workflow_file = Path(workflow_file)  # convert str to Path
     configfiles = [Path(kwargs.get("input"))] if kwargs.get("input") else []
@@ -328,7 +351,7 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
             workflow_api.dag()
             rules = workflow_api._workflow.rules
         except Exception as e:
-            raise REANAValidationError("Snakemake specification is invalid.") from e
+            raise REANAValidationError(_invalid_snakemake_message(e)) from e
 
     return {
         "job_dependencies": {},

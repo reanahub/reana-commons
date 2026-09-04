@@ -1,5 +1,5 @@
 # This file is part of REANA.
-# Copyright (C) 2022, 2023, 2024 CERN.
+# Copyright (C) 2022, 2023, 2024, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -42,7 +42,7 @@ def _open_single_component(name: str, dir_fd: int, flags: int = READ_SAFE_FLAGS)
     """Open a file contained in a directory."""
     _validate_path_component(name)
     try:
-        fd = os.open(name, flags | SAFE_FLAGS, dir_fd=dir_fd)
+        fd = os.open(name, flags | SAFE_FLAGS, mode=0o666, dir_fd=dir_fd)
     except OSError as e:
         if e.errno == errno.ELOOP:
             raise REANAWorkspaceError(f"Opening symlink '{name}' is not allowed")

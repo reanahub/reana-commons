@@ -165,4 +165,9 @@ def test_test_expected_workflow_fail_not_skipped(
     )
     for scenario in test_results:
         assert scenario.result == expected_tests_result
-        assert scenario.error_log == expected_error_log
+        if expected_error_log is None:
+            assert scenario.error_log is None
+        else:
+            # Recent pytest versions append assertion introspection after
+            # the stable user-facing error message.
+            assert scenario.error_log.startswith(expected_error_log)
