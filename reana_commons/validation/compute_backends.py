@@ -34,7 +34,11 @@ def build_compute_backends_validator(
             workflow_steps=workflow_steps, supported_backends=supported_backends
         )
     if workflow_type == "cwl":
-        workflow_steps = workflow.get("specification", {}).get("$graph", workflow)
+        # An unpacked CWL workflow carries its steps directly in the
+        # specification; a packed one nests them under ``$graph``. The
+        # complexity estimator resolves the two shapes the same way.
+        specification = workflow.get("specification", {})
+        workflow_steps = specification.get("$graph", specification)
         return ComputeBackendValidatorCWL(
             workflow_steps=workflow_steps, supported_backends=supported_backends
         )
@@ -98,16 +102,18 @@ class ComputeBackendValidatorYadage(ComputeBackendValidatorBase):
                     parse_stages(nested_stages)
                 else:
                     environment = stage["scheduler"]["step"]["environment"]
-                    backend = next(
-                        (
-                            resource["compute_backend"]
-                            for resource in environment.get("resources", [])
-                            if "compute_backend" in resource
-                        ),
-                        None,
-                    )
-                    if backend and backend not in self.supported_backends:
-                        self.raise_error(backend, stage["name"])
+                    # Every declaration is validated, not just the first one:
+                    # reana-workflow-engine-yadage resolves the effective backend
+                    # by iterating all resources with overwrite, so the *last*
+                    # declaration is the one that actually runs.
+                    backends = [
+                        resource["compute_backend"]
+                        for resource in environment.get("resources", [])
+                        if isinstance(resource, dict) and "compute_backend" in resource
+                    ]
+                    for backend in backends:
+                        if backend and backend not in self.supported_backends:
+                            self.raise_error(backend, stage["name"])
 
         return parse_stages(self.workflow_steps)
 
@@ -118,21 +124,28 @@ class ComputeBackendValidatorCWL(ComputeBackendValidatorBase):
     def validate(self) -> None:
         """Validate compute backends in REANA CWL workflow."""
 
-        def _get_reana_hints(hints: List[Dict]) -> Dict:
-            for hint in hints:
-                if hint.get("class") == "reana":
-                    return hint
-            return {}
+        def _get_declared_backends(hints: List[Dict]) -> List[str]:
+            """Return every compute backend declared in a step's hints.
+
+            The canonical REANA representation is a ``class: reana`` hint, but
+            reana-workflow-engine-cwl resolves hints by scanning them all and
+            taking the first one carrying the key, regardless of its class. All
+            declarations are therefore validated, so that no hint can smuggle an
+            unsupported backend past validation and into execution.
+            """
+            return [
+                hint["compute_backend"]
+                for hint in hints or []
+                if isinstance(hint, dict) and "compute_backend" in hint
+            ]
 
         def _validate_compute_backends(workflow: Dict) -> None:
             """Validate compute backends in REANA CWL workflow steps."""
             steps = workflow.get("steps", [])
             for step in steps:
-                hints = step.get("hints", [])
-                reana_hints = _get_reana_hints(hints)
-                backend = reana_hints.get("compute_backend")
-                if backend and backend not in self.supported_backends:
-                    self.raise_error(backend, step.get("id"))
+                for backend in _get_declared_backends(step.get("hints", [])):
+                    if backend and backend not in self.supported_backends:
+                        self.raise_error(backend, step.get("id"))
 
         workflow = self.workflow_steps
         if isinstance(workflow, dict):
