@@ -31,10 +31,16 @@ def test_htcondor_request_integer_field_accepts_positive_int_string(field):
 
 
 @pytest.mark.parametrize("field", HTCONDOR_REQUEST_INTEGER_FIELDS)
-@pytest.mark.parametrize("bad_value", ["0", "-1", "1.5", "4 GB", "abc", " "])
+@pytest.mark.parametrize("bad_value", ["0", "-1", "1.5", "4 GB", "abc", " ", "02"])
 def test_htcondor_request_integer_field_rejects_invalid(field, bad_value):
     """Non-positive-integer strings are rejected for htcondor_request_cpus."""
     assert check_htcondor_request_parameters(_spec({field: bad_value})) is False
+
+
+@pytest.mark.parametrize("field", HTCONDOR_REQUEST_INTEGER_FIELDS)
+def test_htcondor_request_integer_field_rejects_non_string(field):
+    """Non-string values are rejected for integer fields."""
+    assert check_htcondor_request_parameters(_spec({field: 2})) is False
 
 
 @pytest.mark.parametrize("field", HTCONDOR_REQUEST_INTEGER_FIELDS)

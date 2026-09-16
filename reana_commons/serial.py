@@ -19,6 +19,7 @@ from reana_commons.config import (
     HTCONDOR_JOB_FLAVOURS,
     KUBERNETES_MEMORY_FORMAT,
 )
+from reana_commons.job_utils import validate_htcondor_cpu_gpu
 
 serial_workflow_schema = {
     "$schema": "http://json-schema.org/draft-06/schema#",
@@ -289,7 +290,7 @@ def check_htcondor_request_parameters(specification):
             value = step.get(field)
             if not value:
                 continue
-            if not (isinstance(value, str) and value.isdigit() and int(value) > 0):
+            if not (isinstance(value, str) and validate_htcondor_cpu_gpu(value)):
                 check_pass = False
                 click.secho(
                     "In step {0}:\n'{1}' is not a valid input for {2}. "
