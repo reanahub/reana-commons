@@ -19,6 +19,7 @@ from reana_commons.config import (
     HTCONDOR_JOB_FLAVOURS,
     KUBERNETES_MEMORY_FORMAT,
 )
+from reana_commons.job_utils import validate_htcondor_cpu_gpu
 
 serial_workflow_schema = {
     "$schema": "http://json-schema.org/draft-06/schema#",
@@ -134,10 +135,25 @@ serial_workflow_schema = {
                         "type": "string",
                         "default": "",
                     },
+                    "c4p_gpu_count": {
+                        "$id": "#/properties/steps/properties/c4p_gpu_count",
+                        "type": "string",
+                        "default": "",
+                    },
                     "c4p_memory_limit": {
                         "$id": "#/properties/steps/properties/c4p_memory_limit",
                         "type": "string",
                         "default": "",
+                    },
+                    "c4p_notification": {
+                        "$id": "#/properties/steps/properties/c4p_notification",
+                        "type": "string",
+                        "enum": [
+                            "Always",
+                            "Complete",
+                            "Error",
+                            "Never",
+                        ],
                     },
                     "c4p_additional_requirements": {
                         "$id": "#/properties/steps/properties/c4p_additional_requirements",
@@ -223,7 +239,11 @@ def _expand_parameters(specification, parameters, original=None):
             )
 
 
-HTCONDOR_REQUEST_INTEGER_FIELDS = ("htcondor_request_cpus",)
+HTCONDOR_REQUEST_INTEGER_FIELDS = (
+    "htcondor_request_cpus",
+    "c4p_cpu_cores",
+    "c4p_gpu_count",
+)
 """Step fields that must be a plain positive integer string."""
 
 HTCONDOR_REQUEST_QUANTITY_FIELDS = (
@@ -250,7 +270,8 @@ def check_htcondor_request_parameters(specification):
 
     Validation here is intentionally lightweight:
 
-    * ``htcondor_request_cpus`` must be a positive integer string.
+    * ``htcondor_request_cpus``, ``c4p_cpu_cores`` and ``c4p_gpu_count``
+      must be positive integer strings when provided.
     * ``htcondor_request_memory`` and ``htcondor_request_disk`` must be a
       positive integer with an optional ``K|KB|M|MB|G|GB|T|TB`` suffix
       (case-insensitive). The actual conversion to ``RequestMemory`` MB
@@ -269,7 +290,7 @@ def check_htcondor_request_parameters(specification):
             value = step.get(field)
             if not value:
                 continue
-            if not (isinstance(value, str) and value.isdigit() and int(value) > 0):
+            if not (isinstance(value, str) and validate_htcondor_cpu_gpu(value)):
                 check_pass = False
                 click.secho(
                     "In step {0}:\n'{1}' is not a valid input for {2}. "

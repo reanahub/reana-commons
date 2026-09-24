@@ -266,6 +266,24 @@ def test_submit_forwards_kubernetes_uid(kubernetes_uid, expected_in_spec):
         assert "kubernetes_uid" not in job_spec
 
 
+@pytest.mark.parametrize(
+    "c4p_gpu_count",
+    [0, "0"],
+)
+def test_submit_forwards_c4p_gpu_count_zero(c4p_gpu_count):
+    """Preserve zero GPU requests so the job controller can validate them."""
+    client = _make_client()
+    client.submit(
+        image="busybox",
+        cmd="ls",
+        c4p_gpu_count=c4p_gpu_count,
+    )
+
+    job_spec = client._client.jobs.create_job.call_args.kwargs["job"]
+
+    assert job_spec["c4p_gpu_count"] == c4p_gpu_count
+
+
 def test_streaming_multipart_body_never_reads_a_file_without_a_bound():
     """Bravado file uploads must not use requests' eager ``read()`` encoder."""
 

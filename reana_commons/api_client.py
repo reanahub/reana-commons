@@ -281,7 +281,9 @@ class JobControllerAPIClient(BaseAPIClient):
         slurm_time="",
         kubernetes_job_timeout: Optional[int] = None,
         c4p_cpu_cores="",
+        c4p_gpu_count="",
         c4p_memory_limit="",
+        c4p_notification="",
         c4p_additional_requirements="",
     ):
         """Submit a job to RJC API.
@@ -321,8 +323,10 @@ class JobControllerAPIClient(BaseAPIClient):
         :param slurm_time: Maximum timelimit of a Slurm job.
         :param kubernetes_job_timeout: Timeout for the job in seconds.
         :param c4p_cpu_cores: Amount of CPU cores requested to process C4P job
+        :param c4p_gpu_count: Amount of GPUs requested to process C4P job
         :param c4p_memory_limit: Amount of memory requested to process C4P job
-        :param c4p_additional_requirements: Additional requirements requested to process C4P job like GPU, etc.
+        :param c4p_notification: notification option to process C4P job
+        :param c4p_additional_requirements: Additional requirements requested to process C4P job like choice of a compute site
         :return: Returns a dict with the ``job_id``.
         """
         job_spec = {
@@ -396,8 +400,16 @@ class JobControllerAPIClient(BaseAPIClient):
         if c4p_cpu_cores:
             job_spec["c4p_cpu_cores"] = c4p_cpu_cores
 
+        # Preserve 0 so it reaches the Job Controller and is rejected by validation
+        # Omit unset values
+        if c4p_gpu_count not in (None, ""):
+            job_spec["c4p_gpu_count"] = c4p_gpu_count
+
         if c4p_memory_limit:
             job_spec["c4p_memory_limit"] = c4p_memory_limit
+
+        if c4p_notification:
+            job_spec["c4p_notification"] = c4p_notification
 
         if c4p_additional_requirements:
             job_spec["c4p_additional_requirements"] = c4p_additional_requirements

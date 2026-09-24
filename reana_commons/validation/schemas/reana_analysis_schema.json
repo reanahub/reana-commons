@@ -416,18 +416,36 @@
                     },
                     "c4p_cpu_cores": {
                       "type": "string",
+                      "pattern": "^$|^[1-9][0-9]*$",
                       "title": "C4P CPU Cores",
                       "description": "Number of CPU cores requested from Compute4PUNCH for running the task."
+                    },
+                    "c4p_gpu_count": {
+                      "type": "string",
+                      "pattern": "^$|^[1-9][0-9]*$",
+                      "title": "C4P GPU Count",
+                      "description": "Number of GPUs requested from Compute4PUNCH for running the task."
                     },
                     "c4p_memory_limit": {
                       "type": "string",
                       "title": "C4P Memory Limit",
                       "description": "Amount of memory requested from Compute4PUNCH for running the task."
                     },
+                    "c4p_notification": {
+                      "type": "string",
+                      "enum": [
+                        "Always",
+                        "Complete",
+                        "Error",
+                        "Never"
+                      ],
+                      "title": "C4P Notification",
+                      "description": "Notification option used when running the task on Compute4PUNCH."
+                    },
                     "c4p_additional_requirements": {
                       "type": "string",
                       "title": "C4P Additional Requirements",
-                      "description": "Additional HTCondor requirements like RequestGPUs for running the task."
+                      "description": "Additional HTCondor requirements - like choice of a compute site - for running the task."
                     }
                   },
                   "required": ["commands", "environment"]

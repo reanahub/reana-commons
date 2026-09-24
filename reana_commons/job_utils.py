@@ -10,7 +10,11 @@
 import base64
 import re
 
-from reana_commons.config import KUBERNETES_CPU_FORMAT, KUBERNETES_MEMORY_FORMAT
+from reana_commons.config import (
+    KUBERNETES_CPU_FORMAT,
+    KUBERNETES_MEMORY_FORMAT,
+    HTCONDOR_CPU_GPU_FORMAT,
+)
 from reana_commons.errors import REANAKubernetesWrongMemoryFormat
 
 
@@ -22,6 +26,11 @@ def serialise_job_command(command):
 def deserialise_job_command(command):
     """Deserialise job commands received through REST API."""
     return base64.b64decode(command).decode("utf-8")
+
+
+def validate_htcondor_cpu_gpu(value):
+    """Verify that provided value matches the HTCondor cpu/gpu format."""
+    return re.match(HTCONDOR_CPU_GPU_FORMAT, value) is not None
 
 
 def validate_kubernetes_cpu(memory):

@@ -426,6 +426,8 @@ service account" -- a strictly less-privileged failure mode than reusing the
 infrastructure identity.
 """
 
+HTCONDOR_CPU_GPU_FORMAT = r"^[1-9]\d*$"
+
 HTCONDOR_JOB_FLAVOURS = {
     "espresso": 1200,
     "microcentury": 3600,
