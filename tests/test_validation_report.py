@@ -13,6 +13,7 @@ import math
 import pytest
 import yaml
 
+from reana_commons.config import SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE
 from reana_commons.errors import REANAValidationError
 from reana_commons.validation.dask import validate_dask_limits
 from reana_commons.validation.images import validate_images
@@ -225,6 +226,65 @@ def test_allowed_image_passes_vetting():
     }
     report = validate_serialized_spec(reana_yaml, policy)
     assert report["valid"] is True
+
+
+def _snakemake_spec(*images):
+    """Return a minimal already-serialized Snakemake specification."""
+    return {
+        "workflow": {
+            "type": "snakemake",
+            "file": "Snakefile",
+            "specification": {
+                "job_dependencies": {},
+                "steps": [
+                    {
+                        "name": "step{}".format(i),
+                        "environment": image,
+                        "commands": ["echo hello"],
+                    }
+                    for i, image in enumerate(images)
+                ],
+            },
+        },
+        "inputs": {"parameters": {}},
+    }
+
+
+def test_dynamic_images_are_reported_as_warnings():
+    """Each container chosen per job is reported once, as it is not checked."""
+    reana_yaml = _snakemake_spec(
+        "python:{version}", SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE, "python:{version}"
+    )
+
+    report = validate_serialized_spec(reana_yaml, policy={})
+
+    assert report["valid"] is True
+    assert [
+        warning["message"]
+        for warning in report["warnings"]
+        if warning["code"] == "dynamic_image"
+    ] == [
+        "Cannot pull or check container image 'python:{version}' before the "
+        "workflow runs, because it is chosen per job.",
+        "Cannot pull or check a container image set by a function before the "
+        "workflow runs, because it is chosen per job.",
+    ]
+
+
+def test_dynamic_image_is_an_error_when_vetting_is_enabled():
+    """With vetting enabled a dynamic container is rejected, not just warned of."""
+    reana_yaml = _snakemake_spec("python:{version}")
+    policy = {
+        "vetted_images_enabled": True,
+        "vetted_images_allowlist": [ALLOWED_IMAGE],
+    }
+
+    report = validate_serialized_spec(reana_yaml, policy)
+
+    assert report["valid"] is False
+    assert [error["code"] for error in report["errors"]] == ["image_not_allowed"]
+    assert "chosen per job" in report["errors"][0]["message"]
+    assert "dynamic_image" not in [warning["code"] for warning in report["warnings"]]
 
 
 def test_unsupported_compute_backend_reports_error():

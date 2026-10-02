@@ -35,7 +35,29 @@ else:
     from snakemake.workflow import Workflow
 
 from reana_commons.errors import REANAValidationError
-from reana_commons.config import SNAKEMAKE_MAX_PARALLEL_JOBS
+from reana_commons.config import (
+    SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE,
+    SNAKEMAKE_MAX_PARALLEL_JOBS,
+)
+
+
+def _rule_environment(container_img: Any) -> str:
+    """Return the container image to record for a Snakemake rule.
+
+    A ``container:`` directive accepts a callable as well as a (possibly
+    wildcard-templated) string. A callable is neither JSON-serialisable nor
+    resolvable without a concrete job, so it is recorded as
+    :data:`SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE`.
+
+    :param container_img: Raw ``Rule.container_img`` value.
+    :returns: Image name without the ``docker://`` prefix, ``""`` when the rule
+        declares no container, or the dynamic-container placeholder.
+    """
+    if container_img is None:
+        return ""
+    if not isinstance(container_img, str):
+        return SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE
+    return container_img.replace("docker://", "")
 
 
 def _invalid_snakemake_message(error):
@@ -296,7 +318,7 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
         "steps": [
             {
                 "name": rule.name,
-                "environment": (rule._container_img or "").replace("docker://", ""),
+                "environment": _rule_environment(rule._container_img),
                 "inputs": dict(rule._input),
                 "params": dict(rule._params),
                 "outputs": dict(rule._output),
@@ -358,7 +380,7 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
         "steps": [
             {
                 "name": rule.name,
-                "environment": (rule.container_img or "").replace("docker://", ""),
+                "environment": _rule_environment(rule.container_img),
                 "inputs": dict(rule._input),
                 "params": dict(rule._params),
                 "outputs": dict(rule._output),
