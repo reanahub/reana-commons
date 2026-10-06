@@ -67,6 +67,14 @@ class REANAConfigDoesNotExist(Exception):
         self.message = message
 
 
+class REANAConfigurationError(Exception):
+    """Misconfigured REANA deployment error."""
+
+    def __init__(self, message):
+        """Initialize REANAConfigurationError exception."""
+        self.message = message
+
+
 class REANAEmailNotificationError(Exception):
     """Email notification error."""
 
