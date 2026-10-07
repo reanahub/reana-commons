@@ -322,6 +322,12 @@ All jobs will have ``/mydata`` mounted with the content of
 REANA_WORKFLOW_NAME_ILLEGAL_CHARACTERS = ["."]
 """List of illegal characters for workflow name validation."""
 
+REANA_WORKFLOW_NAME_MAX_LENGTH = 255
+"""Maximum length of a workflow name.
+
+Matches the length of the database column that stores workflow names.
+"""
+
 REANA_WORKFLOW_UMASK = 0o0002
 """Umask used for workflow workspace."""
 
