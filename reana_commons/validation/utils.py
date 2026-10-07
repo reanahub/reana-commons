@@ -23,6 +23,7 @@ from jsonschema.validators import validator_for
 
 from reana_commons.config import (
     REANA_WORKFLOW_NAME_ILLEGAL_CHARACTERS,
+    REANA_WORKFLOW_NAME_MAX_LENGTH,
     WORKSPACE_PATHS,
     reana_yaml_schema_file_path,
 )
@@ -185,8 +186,18 @@ def validate_reana_yaml(reana_yaml: Dict) -> Dict:
 
 
 def validate_workflow_name(workflow_name: str) -> str:
-    """Validate workflow name."""
+    """Validate workflow name.
+
+    :param workflow_name: Workflow name to validate.
+    :returns: The validated workflow name.
+    :raises ValueError: If the name is too long or contains illegal characters.
+    """
     if workflow_name:
+        if len(workflow_name) > REANA_WORKFLOW_NAME_MAX_LENGTH:
+            raise ValueError(
+                f"Workflow name is too long ({len(workflow_name)} characters): "
+                f"the maximum is {REANA_WORKFLOW_NAME_MAX_LENGTH} characters"
+            )
         for item in REANA_WORKFLOW_NAME_ILLEGAL_CHARACTERS:
             if item in workflow_name:
                 raise ValueError(
