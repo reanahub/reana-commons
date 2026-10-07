@@ -25,6 +25,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from kombu import Connection, Exchange, Queue
+from kombu.transport import memory
 
 from reana_commons.consumer import BaseConsumer
 
@@ -527,14 +528,14 @@ def consume_queue():
     return _consume_queue
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def in_memory_queue_connection():
     """In memory message queue.
 
-    Scope: session
+    Scope: function
 
-    This fixture offers an in memory class:`kombu.Connection` scoped to the
-    testing session.
+    This fixture offers an in memory class:`kombu.Connection` scoped to a
+    single test.
 
     .. code-block:: python
 
@@ -544,7 +545,14 @@ def in_memory_queue_connection():
 
 
     """
-    return Connection("memory:///")
+    connection = Connection("memory:///")
+    yield connection
+    connection.release()
+    # Kombu stores the queues of the ``memory://`` transport in a class
+    # attribute, so a new connection alone does not give a new set of queues.
+    # Empty them here, otherwise messages left behind by one test are still
+    # waiting in the queue when the next test runs.
+    memory.Channel.queues.clear()
 
 
 @pytest.fixture

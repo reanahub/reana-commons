@@ -35,6 +35,21 @@ def test_consume_msg(
     consumer.on_message.assert_called_once_with({"hello": "REANA"}, ANY)
 
 
+def test_leave_stray_message_in_queue(default_in_memory_producer, default_queue):
+    """Publish a message and leave it in the queue on purpose.
+
+    This test pairs with ``test_queue_starts_empty``, which must not see the
+    message published here. The two tests have to stay in this order.
+    """
+    default_in_memory_producer.publish({"stray": "message"}, declare=[default_queue])
+
+
+def test_queue_starts_empty(in_memory_queue_connection, default_queue):
+    """Test that messages do not leak from one test to the next."""
+    bound_queue = default_queue(in_memory_queue_connection.channel())
+    assert bound_queue.queue_declare(passive=False).message_count == 0
+
+
 def test_server_unreachable(ConsumerBase, default_queue):
     """Test consumer never starts because server is unreachable."""
     unreachable_connection = Connection("amqp://unreachable:5672")
