@@ -57,7 +57,7 @@
   "paths": {
     "/api/.well-known/openid-configuration": {
       "get": {
-        "description": "Relays the OIDC discovery document of the deployment's trusted issuer, extended with the public client id that reana-client must use for the device authorization grant. This lets clients discover the identity provider knowing only the REANA URL.",
+        "description": "Relays the OIDC discovery document of the deployment's trusted issuer, extended with the public client id that reana-client must use for the device authorization grant and, when the deployment configures one, the fixed loopback port that CLI clients must use for the browser login callback. This lets clients discover the identity provider knowing only the REANA URL.",
         "operationId": "get_openid_configuration",
         "produces": [
           "application/json"
@@ -81,6 +81,12 @@
                 },
                 "reana_cli_client_id": {
                   "type": "string"
+                },
+                "reana_cli_loopback_port": {
+                  "description": "Fixed loopback port that CLI clients must use for the browser login callback. Present only when configured by the deployment.",
+                  "maximum": 65535,
+                  "minimum": 1,
+                  "type": "integer"
                 },
                 "reana_client_id": {
                   "type": "string"
