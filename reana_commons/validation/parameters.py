@@ -420,6 +420,12 @@ class ParameterValidatorSnakemake(ParameterValidatorBase):
             for command in step["command_params"]:
                 cmd_param_steps_mapping[command].add(step["name"])
 
+            # Named inputs declare dependencies between rules, so they are in
+            # use even when the command never refers to them by name, e.g. when
+            # it reads them through `{input}`, a script or a hard-coded path.
+            for dependency in step["dependencies"]:
+                cmd_param_steps_mapping[dependency].add(step["name"])
+
         # We skip REANA input parameter validation as we set these parameters via
         # `configfile`, so it's possible to assign the input parameters to Snakemake
         # parameters named differently, thus causing false positives.
@@ -436,7 +442,17 @@ class ParameterValidatorSnakemake(ParameterValidatorBase):
         """Parse Snakemake workflow tree."""
 
         def parse_command(command):
-            return re.findall(r".*?{(?:params|input|output)\.(.*?)}.*?", command)
+            # Capture the section and the whole name, which need not be a Python
+            # identifier (e.g. `sample-id`), leaving out what may follow it:
+            # format specifications (`:q`), conversions (`!r`), indexes and
+            # attributes. Keep the section so that, e.g., `{params.data}` does
+            # not count as a use of a named input `data`.
+            return [
+                f"{section}.{name}"
+                for section, name in re.findall(
+                    r"{(params|input|output)\.([^.\[!:}]+)", command
+                )
+            ]
 
         def parse_commands(commands):
             cmd_list = set()
@@ -452,14 +468,15 @@ class ParameterValidatorSnakemake(ParameterValidatorBase):
                 {
                     "name": step.get("name", str(idx)),
                     "commands": commands,
-                    "input_params": set(
-                        [
-                            *step.get("params", {}).keys(),
-                            *step.get("inputs", {}).keys(),
-                            *step.get("outputs", {}).keys(),
-                        ]
-                    ),
+                    "input_params": {
+                        *(f"params.{name}" for name in step.get("params", {})),
+                        *(f"input.{name}" for name in step.get("inputs", {})),
+                        *(f"output.{name}" for name in step.get("outputs", {})),
+                    },
                     "command_params": parse_commands(commands),
+                    "dependencies": {
+                        f"input.{name}" for name in step.get("inputs", {})
+                    },
                 }
             )
         return steps
