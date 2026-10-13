@@ -12,14 +12,22 @@ import json
 import os
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from reana_commons.config import SNAKEMAKE_DYNAMIC_VALUE
 from reana_commons.errors import REANAValidationError
-from reana_commons.snakemake import snakemake_load
+from reana_commons.snakemake import (
+    _replace_functions,
+    _resource_value,
+    snakemake_load,
+)
 from reana_commons.validation.compute_backends import (
     build_compute_backends_validator,
 )
+from reana_commons.validation.images import extract_image_environments
 from reana_commons.validation.parameters import build_parameters_validator
+from reana_commons.validation.report import validate_serialized_spec
 from reana_commons.validation.utils import validate_json_tree
 
 
@@ -153,6 +161,200 @@ rule two:
     assert params[0]["extra"] is params[1]["extra"]
     validate_json_tree(metadata)
     json.dumps(metadata)
+
+
+def _snakemake_reana_yaml(metadata):
+    """Return a REANA specification that holds loaded Snakemake metadata."""
+    return {
+        "inputs": {"parameters": {}},
+        "workflow": {
+            "type": "snakemake",
+            "file": "Snakefile",
+            "specification": metadata,
+        },
+    }
+
+
+def test_snakemake_load_named_input_and_param_functions(tmpdir):
+    """Test that named input and parameter functions are recorded by name.
+
+    Snakemake calls such functions for each job, so they have no value when
+    the specification is loaded, and a function cannot be stored as JSON.
+    """
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write("""
+def get_data(wildcards):
+    return "static.txt"
+
+rule all:
+    input: "output.txt"
+    default_target: True
+
+rule create_output:
+    input:
+        data=get_data,
+        static="static.txt"
+    output: "output.txt"
+    params:
+        label=lambda wildcards: "hello",
+        flags=("-v", "-x")
+    shell: "cat {input.data} {input.static} > {output}; echo {params.label} {params.flags}"
+""")
+    tmpdir.join("static.txt").write("Content of static.txt")
+
+    metadata = snakemake_load(Path(snakefile.strpath), workdir=Path(tmpdir.strpath))
+
+    assert len(metadata["steps"]) == 1
+    step = metadata["steps"][0]
+    assert step["inputs"] == {
+        "data": SNAKEMAKE_DYNAMIC_VALUE,
+        "static": "static.txt",
+    }
+    assert step["params"] == {
+        "label": SNAKEMAKE_DYNAMIC_VALUE,
+        "flags": ("-v", "-x"),
+    }
+    validate_json_tree(metadata)
+    json.dumps(metadata, allow_nan=False)
+
+    # The names stay usable by the parameter validator.
+    validator = build_parameters_validator(_snakemake_reana_yaml(metadata))
+    validator.validate_parameters()
+    assert not validator.workflow_params_warnings
+
+    report = validate_serialized_spec(_snakemake_reana_yaml(metadata), policy={})
+    assert report == {"valid": True, "errors": [], "warnings": []}
+
+
+def test_snakemake_replace_functions():
+    """Test that only functions are replaced, also inside lists and mappings."""
+
+    def function(wildcards):
+        return "static.txt"
+
+    assert _replace_functions(function) == SNAKEMAKE_DYNAMIC_VALUE
+    assert _replace_functions([function, "static.txt"]) == [
+        SNAKEMAKE_DYNAMIC_VALUE,
+        "static.txt",
+    ]
+    assert _replace_functions({"flags": ("-v", function)}) == {
+        "flags": ["-v", SNAKEMAKE_DYNAMIC_VALUE]
+    }
+
+    # Values without functions are returned as they are, not copied.
+    for value in ("static.txt", 3, None, ("-v", "-x"), ["-v"], {"flags": ["-v"]}):
+        assert _replace_functions(value) is value
+
+
+@pytest.mark.parametrize(
+    "resource, function",
+    [
+        ("compute_backend", 'lambda wildcards, attempt: "kubernetes"'),
+        ("kubernetes_memory_limit", 'lambda wildcards, attempt: "256Mi"'),
+        ("kubernetes_uid", "lambda wildcards, attempt: 1000"),
+    ],
+)
+def test_snakemake_load_resource_functions(tmpdir, resource, function):
+    """Test that a REANA resource set by a function is recorded as dynamic.
+
+    The other resources keep their static values, and the loaded metadata
+    passes the specification validation with a warning that names the rule and
+    the resource.
+    """
+    static_resources = {
+        "compute_backend": "kubernetes",
+        "kubernetes_memory_limit": "256Mi",
+        "kubernetes_uid": 1000,
+    }
+    resources = dict(
+        {name: repr(value) for name, value in static_resources.items()},
+        **{resource: function},
+    )
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write(
+        """
+rule all:
+    input: "output.txt"
+    default_target: True
+
+rule create_output:
+    output: "output.txt"
+    container: "docker://docker.io/library/python:3.10.0-buster"
+    resources:
+        {}
+    shell: "touch {{output}}"
+""".format(
+            ",\n        ".join(
+                "{}={}".format(name, value) for name, value in resources.items()
+            )
+        )
+    )
+
+    metadata = snakemake_load(Path(snakefile.strpath), workdir=Path(tmpdir.strpath))
+
+    assert len(metadata["steps"]) == 1
+    step = metadata["steps"][0]
+    assert {name: step[name] for name in static_resources} == dict(
+        static_resources, **{resource: SNAKEMAKE_DYNAMIC_VALUE}
+    )
+    validate_json_tree(metadata)
+    json.dumps(metadata, allow_nan=False)
+
+    reana_yaml = _snakemake_reana_yaml(metadata)
+    report = validate_serialized_spec(
+        reana_yaml, policy={"supported_backends": ["kubernetes"]}
+    )
+    assert report["valid"] is True
+    assert report["warnings"] == [
+        {
+            "code": "dynamic_resource",
+            "message": 'Rule "create_output" sets "{}" with a function. REANA '
+            "does not check this value during validation. REANA checks it "
+            "when each job starts.".format(resource),
+            "path": "",
+        }
+    ]
+
+    # The effective UID of the rule is known only when no function sets it.
+    environments = extract_image_environments(reana_yaml, 1001, 0)
+    if resource == "kubernetes_uid":
+        assert environments == []
+    else:
+        assert environments == [
+            {
+                "image": "docker.io/library/python:3.10.0-buster",
+                "runtime_uid": 1000,
+                "runtime_gid": 0,
+            }
+        ]
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (None, None),
+        ("kubernetes", "kubernetes"),
+        (1000, 1000),
+        (lambda wildcards: 1000, SNAKEMAKE_DYNAMIC_VALUE),
+    ],
+)
+def test_snakemake_resource_value(value, expected):
+    """Test the value recorded for a raw resource, as Snakemake 7 holds it."""
+    rule = SimpleNamespace(name="create_output", resources={"kubernetes_uid": value})
+
+    assert _resource_value(rule, "kubernetes_uid") == expected
+    assert _resource_value(rule, "compute_backend") is None
+
+
+def test_snakemake_resource_value_of_unsupported_type():
+    """Test that an unsupported resource value names the rule and resource."""
+    rule = SimpleNamespace(name="create_output", resources={"kubernetes_uid": [1000]})
+
+    with pytest.raises(
+        REANAValidationError,
+        match='resource "kubernetes_uid" of rule "create_output" must be',
+    ):
+        _resource_value(rule, "kubernetes_uid")
 
 
 def test_snakemake_load_rule_without_shell_command(tmpdir):
