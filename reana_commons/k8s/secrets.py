@@ -374,6 +374,20 @@ class Secret:
 
     types = ["env", "file"]
 
+    is_reference = False
+    """Whether only the name and the type of the secret are known."""
+
+    @classmethod
+    def reference(cls, name: str, type_: str):
+        """Return a secret that is known by its name and type only.
+
+        A job can still use such a secret, because the job specification only
+        refers to the secret store by name.
+        """
+        secret = cls(name, type_, b"")
+        secret.is_reference = True
+        return secret
+
     @classmethod
     def from_base64(cls, name: str, type_: str, value: str):
         """Initialise Secret from base64 encoded value."""
@@ -394,11 +408,13 @@ class Secret:
     @property
     def value_str(self) -> str:
         """Get secret value as string."""
-        return self._value_bytes.decode()
+        return self.value_bytes.decode()
 
     @property
     def value_bytes(self) -> bytes:
         """Get secret value as bytes."""
+        if self.is_reference:
+            raise ValueError(f"The value of secret {self.name} is not available here.")
         return self._value_bytes
 
     def set_value(self, value: Union[str, bytes]):
@@ -412,6 +428,7 @@ class Secret:
         return (
             self.name == other.name
             and self.type_ == other.type_
+            and self.is_reference == other.is_reference
             and self._value_bytes == other._value_bytes
         )
 
@@ -497,7 +514,13 @@ class UserSecrets:
         mount_path: Optional[str] = None,
         env: Optional[Dict[str, str]] = None,
     ) -> "UserSecrets":
-        """Rebuild scoped secrets from the pod env and mounted files."""
+        """Rebuild scoped secrets from the pod env and mounted files.
+
+        The workflow controller gives the job controller only the values of
+        the env secrets that it consumes itself. Every other env secret is
+        kept as a reference, because jobs read its value from the secret
+        store and not from the job-controller environment.
+        """
         user_id = str(user_id)
         mount_path = mount_path or REANA_USER_SECRET_MOUNT_PATH
         env = env or os.environ
@@ -508,7 +531,7 @@ class UserSecrets:
             if secret_type == "env":
                 secret_value = env.get(secret_name)
                 if secret_value is None:
-                    missing_secrets.append(secret_name)
+                    secrets.append(Secret.reference(secret_name, "env"))
                     continue
                 secrets.append(Secret(secret_name, "env", secret_value))
                 continue

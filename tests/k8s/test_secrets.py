@@ -571,6 +571,51 @@ def test_user_secrets_from_pod_secrets(tmp_path):
     assert user_secrets.get_secret(".keytab").value_bytes == b"keytab"
 
 
+def test_user_secrets_from_pod_secrets_keeps_absent_env_secrets_as_references(
+    tmp_path,
+):
+    """Env secrets outside the job-controller env stay usable by name."""
+    user_secrets = UserSecrets.from_pod_secrets(
+        user_id="123",
+        secrets_types={"VONAME": "env", "MY_APP_TOKEN": "env"},
+        mount_path=str(tmp_path),
+        env={"VONAME": "dummy-vo"},
+    )
+
+    assert user_secrets.get_secret("VONAME").value_str == "dummy-vo"
+    reference = user_secrets.get_secret("MY_APP_TOKEN")
+    assert reference.is_reference is True
+    with pytest.raises(ValueError, match="MY_APP_TOKEN"):
+        reference.value_str
+    # Jobs still receive the secret from the store under its original name.
+    assert user_secrets.get_env_secrets_as_k8s_spec() == [
+        {
+            "name": name,
+            "valueFrom": {
+                "secretKeyRef": {
+                    "name": user_secrets.k8s_secret_name,
+                    "key": name,
+                }
+            },
+        }
+        for name in ("VONAME", "MY_APP_TOKEN")
+    ]
+    # A rebuilt collection must never be written back to the store.
+    with pytest.raises(ValueError):
+        user_secrets.to_k8s_secret()
+
+
+def test_user_secrets_from_pod_secrets_fails_for_missing_file(tmp_path):
+    """A missing file secret is still reported as missing."""
+    with pytest.raises(REANASecretDoesNotExist):
+        UserSecrets.from_pod_secrets(
+            user_id="123",
+            secrets_types={"missing.keytab": "file"},
+            mount_path=str(tmp_path),
+            env={},
+        )
+
+
 def test_create_secret():
     """Test creation of user secrets."""
     corev1_api_client = Mock()
