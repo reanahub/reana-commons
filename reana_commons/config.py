@@ -492,6 +492,14 @@ client can never disagree on the spelling."""
 REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "docker.io/snakemake/snakemake:v9.27.0"
 """Snakemake default job environment image."""
 
+SNAKEMAKE_DYNAMIC_VALUE = "{dynamic}"
+"""Value recorded for a Snakemake rule value that a function sets.
+
+Snakemake calls such a function for each job, so no value exists when the
+specification is loaded. The marker keeps the loaded specification
+JSON-serialisable. The braces mark the value as unresolved, like the wildcards
+of a Snakemake rule do."""
+
 REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP = float(
     os.getenv("REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP", "10")
 )

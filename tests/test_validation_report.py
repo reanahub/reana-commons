@@ -13,6 +13,7 @@ import math
 import pytest
 import yaml
 
+from reana_commons.config import SNAKEMAKE_DYNAMIC_VALUE
 from reana_commons.errors import REANAValidationError
 from reana_commons.validation.dask import validate_dask_limits
 from reana_commons.validation.images import validate_images
@@ -254,6 +255,105 @@ def test_supported_compute_backend_passes():
         reana_yaml, policy={"supported_backends": ["kubernetes"]}
     )
     assert report["valid"] is True
+
+
+def _snakemake_spec(*steps):
+    """Return a minimal already-serialized Snakemake specification."""
+    return {
+        "workflow": {
+            "type": "snakemake",
+            "file": "Snakefile",
+            "specification": {
+                "job_dependencies": {},
+                "steps": [
+                    dict(
+                        {
+                            "name": "rule{}".format(idx),
+                            "environment": ALLOWED_IMAGE,
+                            "commands": ["echo hello"],
+                        },
+                        **step,
+                    )
+                    for idx, step in enumerate(steps)
+                ],
+            },
+        },
+        "inputs": {"parameters": {}},
+    }
+
+
+@pytest.mark.parametrize(
+    "rules, subject",
+    [
+        (1, 'Rule "rule0" sets'),
+        (2, 'Rule "rule0" and 1 other rule set'),
+        (3, 'Rule "rule0" and 2 other rules set'),
+    ],
+)
+def test_dynamic_snakemake_resources_are_reported_once_per_resource(rules, subject):
+    """Resources set by functions pass validation with one warning each."""
+    dynamic_step = {
+        "compute_backend": SNAKEMAKE_DYNAMIC_VALUE,
+        "kubernetes_memory_limit": SNAKEMAKE_DYNAMIC_VALUE,
+        "kubernetes_uid": SNAKEMAKE_DYNAMIC_VALUE,
+    }
+    static_step = {
+        "compute_backend": "kubernetes",
+        "kubernetes_memory_limit": "256Mi",
+        "kubernetes_uid": 1000,
+    }
+    reana_yaml = _snakemake_spec(*([dynamic_step] * rules), static_step)
+
+    report = validate_serialized_spec(
+        reana_yaml, policy={"supported_backends": ["kubernetes"]}
+    )
+
+    assert report["valid"] is True
+    assert report["warnings"] == [
+        {
+            "code": "dynamic_resource",
+            "message": '{} "{}" with a function. REANA does not check this '
+            "value during validation. REANA checks it when each job "
+            "starts.".format(subject, resource),
+            "path": "",
+        }
+        for resource in (
+            "compute_backend",
+            "kubernetes_memory_limit",
+            "kubernetes_uid",
+        )
+    ]
+
+
+def test_static_snakemake_resources_are_not_reported_as_dynamic():
+    """Static and unset resources produce no warning."""
+    reana_yaml = _snakemake_spec(
+        {"compute_backend": "kubernetes", "kubernetes_uid": 1000},
+        {"kubernetes_memory_limit": None},
+        {},
+    )
+
+    report = validate_serialized_spec(
+        reana_yaml, policy={"supported_backends": ["kubernetes"]}
+    )
+
+    assert report == {"valid": True, "errors": [], "warnings": []}
+
+
+def test_unsupported_snakemake_backend_is_rejected_next_to_a_dynamic_one():
+    """A dynamic backend does not hide a static backend that is unsupported."""
+    reana_yaml = _snakemake_spec(
+        {"compute_backend": SNAKEMAKE_DYNAMIC_VALUE},
+        {"compute_backend": "htcondorcern"},
+    )
+
+    report = validate_serialized_spec(
+        reana_yaml, policy={"supported_backends": ["kubernetes"]}
+    )
+
+    assert report["valid"] is False
+    assert [error["code"] for error in report["errors"]] == ["compute_backend"]
+    assert '"htcondorcern" found in step "rule1"' in report["errors"][0]["message"]
 
 
 def test_disallowed_workspace_root_path_reports_error():

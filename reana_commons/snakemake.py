@@ -35,7 +35,77 @@ else:
     from snakemake.workflow import Workflow
 
 from reana_commons.errors import REANAValidationError
-from reana_commons.config import SNAKEMAKE_MAX_PARALLEL_JOBS
+from reana_commons.config import (
+    SNAKEMAKE_DYNAMIC_VALUE,
+    SNAKEMAKE_MAX_PARALLEL_JOBS,
+)
+
+
+def _replace_functions(value: Any) -> Any:
+    """Replace the functions in a rule value with the dynamic-value marker.
+
+    A named input or parameter can be a function that Snakemake calls for each
+    job. A function is not JSON-serialisable and has no value without a job,
+    so it is recorded as :data:`SNAKEMAKE_DYNAMIC_VALUE` and never called here.
+
+    :param value: Value of a named input or parameter of a Snakemake rule.
+    :returns: The same object when it contains no function, otherwise a copy
+        in which each function is replaced by the marker.
+    """
+    if callable(value):
+        return SNAKEMAKE_DYNAMIC_VALUE
+    if isinstance(value, dict):
+        replaced = {key: _replace_functions(item) for key, item in value.items()}
+        changed = any(replaced[key] is not item for key, item in value.items())
+        return replaced if changed else value
+    if isinstance(value, (list, tuple)):
+        replaced = [_replace_functions(item) for item in value]
+        changed = any(new is not old for new, old in zip(replaced, value))
+        return replaced if changed else value
+    return value
+
+
+def _named_values(namedlist: Any) -> Dict[str, Any]:
+    """Return the named entries of a rule's inputs, parameters or outputs.
+
+    :param namedlist: Snakemake ``Namedlist`` of a rule.
+    :returns: Dictionary of the named entries, with functions replaced by
+        :data:`SNAKEMAKE_DYNAMIC_VALUE`.
+    """
+    return {name: _replace_functions(value) for name, value in dict(namedlist).items()}
+
+
+def _resource_value(rule: Any, name: str) -> Any:
+    """Return the value to record for a REANA resource of a Snakemake rule.
+
+    A resource can be a function that Snakemake calls for each job. Such a
+    resource is recorded as :data:`SNAKEMAKE_DYNAMIC_VALUE`. The job controller
+    checks its value when the job is submitted.
+
+    :param rule: Snakemake rule that can declare the resource.
+    :param name: Name of the resource.
+    :returns: The static value, ``None`` when the resource is not set, or the
+        dynamic-value marker.
+    :raises REANAValidationError: If the value is not a string, an integer or
+        a function.
+    """
+    resource = rule.resources.get(name)
+    if hasattr(resource, "is_evaluable"):
+        # Snakemake 8 and later wrap each resource in a ``Resource`` object,
+        # which refuses to return the value of a function.
+        if resource.is_evaluable():
+            return SNAKEMAKE_DYNAMIC_VALUE
+        resource = resource.value
+    if callable(resource):
+        return SNAKEMAKE_DYNAMIC_VALUE
+    if resource is None or isinstance(resource, (str, int)):
+        return resource
+    raise REANAValidationError(
+        'Snakemake specification is invalid: resource "{}" of rule "{}" must '
+        "be a string, an integer or a function, not {}.".format(
+            name, rule.name, type(resource).__name__
+        )
+    )
 
 
 def _invalid_snakemake_message(error):
@@ -297,15 +367,15 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
             {
                 "name": rule.name,
                 "environment": (rule._container_img or "").replace("docker://", ""),
-                "inputs": dict(rule._input),
-                "params": dict(rule._params),
+                "inputs": _named_values(rule._input),
+                "params": _named_values(rule._params),
                 "outputs": dict(rule._output),
                 "commands": [rule.shellcmd] if rule.shellcmd else [],
-                "compute_backend": rule.resources.get("compute_backend"),
-                "kubernetes_memory_limit": rule.resources.get(
-                    "kubernetes_memory_limit"
+                "compute_backend": _resource_value(rule, "compute_backend"),
+                "kubernetes_memory_limit": _resource_value(
+                    rule, "kubernetes_memory_limit"
                 ),
-                "kubernetes_uid": rule.resources.get("kubernetes_uid"),
+                "kubernetes_uid": _resource_value(rule, "kubernetes_uid"),
             }
             for rule in snakemake_dag.rules
             if not rule.norun
@@ -332,10 +402,6 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
     workflow_file = Path(workflow_file)  # convert str to Path
     configfiles = [Path(kwargs.get("input"))] if kwargs.get("input") else []
 
-    def resource_value(rule, name):
-        """Return a concrete Snakemake resource value or None when unset."""
-        return rule.resources.get(name).value
-
     with SnakemakeApi(OutputSettings(quiet={Quietness.ALL})) as snakemake_api:
         try:
             workflow_api = snakemake_api.workflow(
@@ -359,15 +425,15 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
             {
                 "name": rule.name,
                 "environment": (rule.container_img or "").replace("docker://", ""),
-                "inputs": dict(rule._input),
-                "params": dict(rule._params),
+                "inputs": _named_values(rule._input),
+                "params": _named_values(rule._params),
                 "outputs": dict(rule._output),
                 "commands": [rule.shellcmd] if rule.shellcmd else [],
-                "compute_backend": resource_value(rule, "compute_backend"),
-                "kubernetes_memory_limit": resource_value(
+                "compute_backend": _resource_value(rule, "compute_backend"),
+                "kubernetes_memory_limit": _resource_value(
                     rule, "kubernetes_memory_limit"
                 ),
-                "kubernetes_uid": resource_value(rule, "kubernetes_uid"),
+                "kubernetes_uid": _resource_value(rule, "kubernetes_uid"),
             }
             for rule in rules
             if not rule.norun
