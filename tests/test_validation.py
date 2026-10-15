@@ -13,11 +13,13 @@ import operator
 import pytest
 from jsonschema.exceptions import ValidationError
 
+from reana_commons.config import REANA_WORKFLOW_NAME_MAX_LENGTH
 from reana_commons.validation.utils import (
     MAX_LOAD_ERROR_MESSAGE_CHARS,
     MAX_SCHEMA_WARNINGS,
     bound_error_message,
     validate_reana_yaml,
+    validate_workflow_name,
 )
 
 
@@ -129,3 +131,22 @@ def test_bound_error_message_truncates_long_input():
 def test_bound_error_message_empty_falls_back(value):
     """An error with no text yields a generic fallback sentence."""
     assert bound_error_message(value) == "The specification could not be loaded."
+
+
+@pytest.mark.parametrize("workflow_name", ["", "myanalysis", "a" * 255])
+def test_validate_workflow_name(workflow_name):
+    """Test that valid workflow names are returned unchanged."""
+    assert validate_workflow_name(workflow_name) == workflow_name
+
+
+def test_validate_workflow_name_illegal_character():
+    """Test that workflow names with illegal characters are rejected."""
+    with pytest.raises(ValueError, match="illegal character"):
+        validate_workflow_name("my.analysis")
+
+
+def test_validate_workflow_name_too_long():
+    """Test that workflow names over the maximum length are rejected."""
+    assert REANA_WORKFLOW_NAME_MAX_LENGTH == 255
+    with pytest.raises(ValueError, match="too long"):
+        validate_workflow_name("a" * 256)
