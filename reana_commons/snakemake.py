@@ -25,6 +25,8 @@ if sys.version_info >= (3, 11):
         StorageSettings,
         DeploymentSettings,
     )
+    from snakemake.common.configfile import load_configfile
+    from snakemake.utils import update_config
 else:
     from snakemake import snakemake
     from snakemake.dag import DAG
@@ -32,6 +34,7 @@ else:
     from snakemake.jobs import Job
     from snakemake.persistence import Persistence
     from snakemake.rules import Rule
+    from snakemake.utils import update_config
     from snakemake.workflow import Workflow
 
 from reana_commons.errors import REANAValidationError
@@ -53,14 +56,82 @@ def _invalid_snakemake_message(error):
     return "Snakemake specification is invalid: {}".format(detail)
 
 
+def _invalid_parameter_file_message(error):
+    """Build an actionable "invalid parameter file" message including the cause.
+
+    Snakemake's reader reports the real problem -- a mapping-less top level, a
+    YAML syntax error, a failed YTE expansion -- and its wording is lost if the
+    exception is replaced wholesale.
+    """
+    detail = " ".join(str(error).split())
+    message = "The workflow parameter file must contain a YAML or JSON mapping."
+    if detail:
+        message = "{} {}".format(message, detail)
+    return message
+
+
+def snakemake_configuration(
+    parameter_file: Optional[str] = None,
+    overrides: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Resolve the configuration a Snakemake workflow is loaded and run with.
+
+    REANA gives Snakemake a single ``config`` mapping and no configuration
+    file: the workflow engine starts a run from the persisted
+    ``inputs.parameters`` alone, as ``ConfigSettings(config=...)``. Resolving
+    the external parameter file here, instead of forwarding it to the loaders
+    as ``configfiles``, is what lets load time and run time see the same
+    configuration.
+
+    The file is read with Snakemake's own reader so that it keeps its runtime
+    semantics -- JSON as well as YAML, and YTE templating for files that opt
+    in -- and the direct overrides are merged recursively, as Snakemake itself
+    merges ``--configfile`` with ``--config``, so that a partial override of a
+    nested mapping does not drop the siblings it does not mention.
+
+    Note that a Snakefile's own ``configfile:`` directive is deliberately left
+    to Snakemake, so that its defaults stay internal to the workflow instead of
+    being promoted into the REANA-visible parameters.
+
+    :param parameter_file: Path to the external workflow parameter file.
+    :param overrides: Direct parameter overrides, winning over the file.
+    :returns: The resolved configuration mapping.
+    :raises OSError: The parameter file cannot be read.
+    :raises REANAValidationError: The parameter file is not a valid mapping.
+    """
+    config: Dict[str, Any] = dict()
+    if parameter_file:
+        # Reading the file here also pins down what a *missing* one raises:
+        # Snakemake 7 wraps it in a ``WorkflowError`` while Snakemake 9 lets
+        # ``FileNotFoundError`` through, and ``load_reana_spec`` reports a
+        # missing file by catching ``IOError``.
+        with open(parameter_file) as f:
+            is_empty = not f.read().strip()
+        # An empty parameter file means "no parameters", as it did when REANA
+        # read it with ``yaml.safe_load``; both Snakemake readers reject it for
+        # having no keys at the top level.
+        if not is_empty:
+            try:
+                config = load_configfile(parameter_file)
+            except OSError:
+                raise
+            except Exception as e:
+                raise REANAValidationError(_invalid_parameter_file_message(e)) from e
+    update_config(config, overrides or dict())
+    return config
+
+
 def snakemake_validate(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+    workflow_file: str,
+    configfiles: List[str],
+    workdir: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
 ):
     """Validate Snakemake workflow."""
     if sys.version_info >= (3, 11):
-        snakemake_validate_v8(workflow_file, configfiles, workdir)
+        snakemake_validate_v8(workflow_file, configfiles, workdir, config)
     else:
-        snakemake_validate_v7(workflow_file, configfiles, workdir)
+        snakemake_validate_v7(workflow_file, configfiles, workdir, config)
 
 
 def snakemake_load(workflow_file: str, **kwargs: Any):
@@ -72,7 +143,10 @@ def snakemake_load(workflow_file: str, **kwargs: Any):
 
 
 def snakemake_validate_v7(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+    workflow_file: str,
+    configfiles: List[str],
+    workdir: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
 ):
     """Snakemake 7 workflow validation function, necessary for Python versions < 3.11.
 
@@ -83,23 +157,38 @@ def snakemake_validate_v7(
     :type configfiles: List
     :param workdir: Path to working directory.
     :type workdir: string or None
+    :param config: Direct config overrides, taking precedence over `configfiles`.
+    :type config: Dict or None
     """
+    # Snakemake 7 logs most workflow errors and returns ``False`` instead of
+    # raising, so the cause is collected from its log records.
+    log_records = []
     try:
         valid = snakemake(
             snakefile=workflow_file,
             configfiles=configfiles,
+            config=config or dict(),
             workdir=workdir,
             dryrun=True,
             quiet=True,
+            log_handler=[log_records.append],
         )
     except Exception as e:
         raise REANAValidationError(_invalid_snakemake_message(e)) from e
     if not valid:
-        raise REANAValidationError("Snakemake specification is invalid.")
+        errors = [
+            str(record.get("msg", ""))
+            for record in log_records
+            if record.get("level") == "error"
+        ]
+        raise REANAValidationError(_invalid_snakemake_message(" ".join(errors)))
 
 
 def snakemake_validate_v8(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+    workflow_file: str,
+    configfiles: List[str],
+    workdir: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
 ):
     """Snakemake 8 workflow validation function for Python versions >= 3.11.
 
@@ -112,6 +201,8 @@ def snakemake_validate_v8(
     :type configfiles: List
     :param workdir: Path to working directory.
     :type workdir: string or None
+    :param config: Direct config overrides, taking precedence over `configfiles`.
+    :type config: Dict or None
     """
     # Snakemake's WorkflowApi expects Path objects (it calls e.g.
     # ``workdir.exists()``), so convert from str.
@@ -126,7 +217,9 @@ def snakemake_validate_v8(
         try:
             workflow_api = snakemake_api.workflow(
                 resource_settings=ResourceSettings(nodes=SNAKEMAKE_MAX_PARALLEL_JOBS),
-                config_settings=ConfigSettings(configfiles=configfiles),
+                config_settings=ConfigSettings(
+                    configfiles=configfiles, config=config or dict()
+                ),
                 storage_settings=StorageSettings(),
                 storage_provider_settings=dict(),
                 workflow_settings=WorkflowSettings(),
@@ -152,9 +245,7 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
     :returns: Dictonary containing relevant workflow metadata.
     """
 
-    def _create_snakemake_dag(
-        snakefile: str, configfiles: Optional[List[str]] = None, **kwargs: Any
-    ) -> DAG:
+    def _create_snakemake_dag(snakefile: str, **kwargs: Any) -> DAG:
         """Create ``snakemake.dag.DAG`` instance.
 
         The code of this function comes from the Snakemake codebase and is adapted
@@ -165,23 +256,13 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
 
         :param snakefile: Path to Snakefile.
         :type snakefile: string
-        :param configfiles: List of config files paths.
-        :type configfiles: List
         :param kwargs: Snakemake args.
         :type kwargs: Any
         """
-        overwrite_config = dict()
-        if configfiles is None:
-            configfiles = []
-        for f in configfiles:
-            # get values to override. Later configfiles override earlier ones.
-            overwrite_config.update(load_configfile(f))
-        # convert provided paths to absolute paths
-        configfiles = list(map(os.path.abspath, configfiles))
         workflow = Workflow(
             snakefile=snakefile,
-            overwrite_configfiles=configfiles,
-            overwrite_config=overwrite_config,
+            overwrite_configfiles=[],
+            overwrite_config=dict(kwargs.get("config") or dict()),
         )
 
         workdir = kwargs.get("workdir")
@@ -270,19 +351,21 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
     if workdir:
         workflow_file = os.path.join(workdir, workflow_file)
 
-    configfiles = [kwargs.get("input")] if kwargs.get("input") else []
-
+    # The external parameter file has already been resolved into ``config`` by
+    # ``snakemake_configuration``, so the workflow is loaded in the same shape
+    # the runtime engine runs it: a config mapping and no config file.
     snakemake_validate(
-        workflow_file=workflow_file, configfiles=configfiles, workdir=workdir
+        workflow_file=workflow_file,
+        configfiles=[],
+        workdir=workdir,
+        config=kwargs.get("config"),
     )
 
     # save the cwd to restore it after _create_snakemake_dag, because this function
     # changes the cwd if `workdir` is in `kwargs`
     prev_cwd = os.getcwd()
     try:
-        snakemake_dag = _create_snakemake_dag(
-            workflow_file, configfiles=configfiles, **kwargs
-        )
+        snakemake_dag = _create_snakemake_dag(workflow_file, **kwargs)
     finally:
         os.chdir(prev_cwd)
 
@@ -330,7 +413,9 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
         workdir = Path(workdir)
 
     workflow_file = Path(workflow_file)  # convert str to Path
-    configfiles = [Path(kwargs.get("input"))] if kwargs.get("input") else []
+    # See ``snakemake_load_v7``: the parameter file is already resolved into
+    # ``config``, matching the runtime engine's ``ConfigSettings(config=...)``.
+    config = kwargs.get("config") or dict()
 
     def resource_value(rule, name):
         """Return a concrete Snakemake resource value or None when unset."""
@@ -340,7 +425,7 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
         try:
             workflow_api = snakemake_api.workflow(
                 resource_settings=ResourceSettings(nodes=SNAKEMAKE_MAX_PARALLEL_JOBS),
-                config_settings=ConfigSettings(configfiles=configfiles),
+                config_settings=ConfigSettings(configfiles=[], config=config),
                 storage_settings=StorageSettings(),
                 storage_provider_settings=dict(),
                 workflow_settings=WorkflowSettings(),
