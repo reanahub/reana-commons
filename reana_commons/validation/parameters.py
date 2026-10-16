@@ -426,6 +426,17 @@ class ParameterValidatorSnakemake(ParameterValidatorBase):
             for dependency in step["dependencies"]:
                 cmd_param_steps_mapping[dependency].add(step["name"])
 
+            # Outputs are files the rule produces, so they count as used even if
+            # the command never names them (e.g. a script writes them).
+            for output in step["outputs"]:
+                cmd_param_steps_mapping[output].add(step["name"])
+
+            # Rules without a shell command (script/run/notebook) read their
+            # params via the `snakemake` object, so treat them all as used.
+            if not step["commands"]:
+                for param in step["input_params"]:
+                    cmd_param_steps_mapping[param].add(step["name"])
+
         # We skip REANA input parameter validation as we set these parameters via
         # `configfile`, so it's possible to assign the input parameters to Snakemake
         # parameters named differently, thus causing false positives.
@@ -454,29 +465,31 @@ class ParameterValidatorSnakemake(ParameterValidatorBase):
                 )
             ]
 
-        def parse_commands(commands):
+        def parse_commands(commands, step_params):
             cmd_list = set()
             for command in commands:
                 for cmd in parse_command(command):
                     cmd_list.add(cmd)
+                # `{params}` placeholder expands all rule parameters into the command.
+                if re.search(r"{params(?:[:!][^}]+)?}", command):
+                    for name in step_params:
+                        cmd_list.add(f"params.{name}")
             return cmd_list
 
         steps = []
         for idx, step in enumerate(self.specification.get("steps", [])):
             commands = step["commands"]
+            step_params = {f"params.{name}" for name in step.get("params", {})}
+            step_inputs = {f"input.{name}" for name in step.get("inputs", {})}
+            step_outputs = {f"output.{name}" for name in step.get("outputs", {})}
             steps.append(
                 {
                     "name": step.get("name", str(idx)),
                     "commands": commands,
-                    "input_params": {
-                        *(f"params.{name}" for name in step.get("params", {})),
-                        *(f"input.{name}" for name in step.get("inputs", {})),
-                        *(f"output.{name}" for name in step.get("outputs", {})),
-                    },
-                    "command_params": parse_commands(commands),
-                    "dependencies": {
-                        f"input.{name}" for name in step.get("inputs", {})
-                    },
+                    "input_params": {*step_params, *step_inputs, *step_outputs},
+                    "command_params": parse_commands(commands, step.get("params", {})),
+                    "dependencies": step_inputs,
+                    "outputs": step_outputs,
                 }
             )
         return steps
