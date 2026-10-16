@@ -18,6 +18,8 @@ from mock import ANY, patch
 
 from reana_commons.publisher import WorkflowStatusPublisher
 
+pytest_plugins = ["pytester"]
+
 
 def test_consume_msg(
     ConsumerBaseOnMessageMock,
@@ -33,6 +35,57 @@ def test_consume_msg(
     default_in_memory_producer.publish({"hello": "REANA"}, declare=[default_queue])
     consume_queue(consumer, limit=1)
     consumer.on_message.assert_called_once_with({"hello": "REANA"}, ANY)
+
+
+@pytest.mark.parametrize("fail_first_test", [False, True])
+def test_in_memory_queue_connection_isolated_between_tests(
+    pytester, monkeypatch, fail_first_test
+):
+    """Test teardown after passing and failing tests in an isolated pytest run."""
+    # Own the test order and plugin set so selection, shuffling or parallel
+    # execution of the outer suite cannot turn this regression into a no-op.
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    test_file = pytester.makepyfile(
+        """
+        from queue import Empty
+
+        import pytest
+
+        from reana_commons.testing.fixtures import in_memory_queue_connection
+
+
+        def test_leave_message(in_memory_queue_connection):
+            queue = in_memory_queue_connection.SimpleQueue("fixture-isolation")
+            queue.put({"hello": "previous test"})
+            assert queue.qsize() == 1
+            assert in_memory_queue_connection.transport.state.exchanges
+            if FAIL_FIRST_TEST:
+                pytest.fail("Intentional failure to exercise fixture teardown")
+
+
+        def test_next_connection_is_clean(in_memory_queue_connection):
+            transport = in_memory_queue_connection.transport
+            assert not transport.Channel.queues
+            assert not transport.state.exchanges
+            assert not transport.state.bindings
+            queue = in_memory_queue_connection.SimpleQueue("fixture-isolation")
+            with pytest.raises(Empty):
+                queue.get(block=False)
+        """.replace(
+            "FAIL_FIRST_TEST", repr(fail_first_test)
+        )
+    )
+    result = pytester.runpytest_subprocess(
+        "-q",
+        f"{test_file}::test_leave_message",
+        f"{test_file}::test_next_connection_is_clean",
+        timeout=30,
+    )
+    result.assert_outcomes(passed=2 - int(fail_first_test), failed=int(fail_first_test))
+    if fail_first_test:
+        result.stdout.fnmatch_lines(
+            ["*Failed: Intentional failure to exercise fixture teardown*"]
+        )
 
 
 def test_server_unreachable(ConsumerBase, default_queue):
