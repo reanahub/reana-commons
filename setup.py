@@ -37,7 +37,7 @@ extras_require = {
         "adage~=0.11.0",
         "setuptools<81",  # pkg_resources needed by yadage-schemas
         "yadage~=0.20.1",
-        "yadage-schemas~=0.10.6",
+        "yadage-schemas @ https://github.com/tiborsimko/yadage-schemas/archive/fb4fd499fd2bcb5e63311c9c81b8106f3bf4fa4f.tar.gz",
     ],
     "cwl": ["cwltool==3.1.20210628163208"],
     "snakemake": [
@@ -68,12 +68,9 @@ install_requires = [
     "click>=7.0",
     "fs>=2.0",
     "importlib_resources>=5.0; python_version<'3.9'",
-    # Cap jsonschema below 4.0 because 4.9.x has a latent bug in
-    # _find_in_subschemas that is exposed by the urllib.parse.urljoin
-    # behaviour change in Python 3.13+, and the bravado-core / yadage-schemas
-    # constraints prevent moving to a fixed jsonschema release.
-    # See also https://github.com/yadage/yadage-schemas/issues/38
-    "jsonschema[format]>=3.0.1,<4.0",
+    # Snakemake 9 uses Draft 2020-12 validation APIs introduced in jsonschema 4.
+    # Version 4.18 added the registry API used by snakemake.utils.validate().
+    "jsonschema[format]>=4.18,<5",
     "kombu>=4.6",
     "mock>=3.0,<4",
     "PyYAML>=5.1,<7.0",
