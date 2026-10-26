@@ -35,11 +35,13 @@ extras_require = {
     ],
     "yadage": [
         "adage~=0.11.0",
-        "setuptools<81",  # pkg_resources needed by yadage-schemas
-        "yadage~=0.20.1",
-        "yadage-schemas~=0.10.6",
+        "yadage~=0.21.2",
+        "yadage-schemas~=0.11.1",
     ],
-    "cwl": ["cwltool==3.1.20210628163208"],
+    "cwl": [
+        "cwltool==3.1.20210628163208",
+        "setuptools<81",  # pkg_resources needed by cwltool
+    ],
     "snakemake": [
         "snakemake==7.32.4 ; python_version<'3.11'",
         "pulp>=2.7.0,<2.8.0 ; python_version<'3.11'",
