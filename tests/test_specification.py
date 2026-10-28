@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2023 CERN.
+# Copyright (C) 2023, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -11,7 +11,11 @@ import pathlib
 import pytest
 import sys
 
-from reana_commons.specification import load_reana_spec
+from reana_commons.specification import (
+    load_reana_spec,
+    load_workflow_spec_from_reana_yaml,
+)
+from reana_commons.validation.images import extract_images
 
 
 def test_empty_parameters(tmp_path: pathlib.Path):
@@ -89,3 +93,24 @@ def test_parameters_file_requires_mapping(tmp_path: pathlib.Path):
     )
     with pytest.raises(Exception, match="must contain a YAML mapping"):
         load_reana_spec(str(reana_yaml), workspace_path=str(tmp_path))
+
+
+def test_snakemake_container_image_extraction(tmp_path: pathlib.Path):
+    """Test that loading a Snakemake workflow exposes its container images."""
+    (tmp_path / "Snakefile").write_text(
+        "rule all:\n"
+        '    input: "output.txt"\n'
+        "    default_target: True\n"
+        "\n"
+        "rule create_output:\n"
+        '    output: "output.txt"\n'
+        '    container: "docker://docker.io/library/ubuntu:24.04"\n'
+        '    shell: "touch {output}"\n'
+    )
+    reana_yaml = {"workflow": {"type": "snakemake", "file": "Snakefile"}}
+
+    reana_yaml["workflow"]["specification"] = load_workflow_spec_from_reana_yaml(
+        reana_yaml, str(tmp_path)
+    )
+
+    assert extract_images(reana_yaml) == ["docker.io/library/ubuntu:24.04"]
