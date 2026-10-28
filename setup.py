@@ -34,9 +34,10 @@ extras_require = {
         "google-auth<2.46.0; python_version<'3.9'",
     ],
     "yadage": [
-        "adage~=0.11.0",
-        "yadage~=0.21.2",
-        "yadage-schemas~=0.11.1",
+        "adage==0.11.0",
+        "packtivity==0.17.1",
+        "yadage==0.21.2",
+        "yadage-schemas==0.11.1",
     ],
     "cwl": [
         "cwltool==3.1.20210628163208",
