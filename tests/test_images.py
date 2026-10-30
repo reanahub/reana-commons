@@ -8,7 +8,10 @@
 
 """Tests for reana_commons.validation.images."""
 
-from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+from reana_commons.config import (
+    REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE,
+    SNAKEMAKE_DYNAMIC_VALUE,
+)
 from reana_commons.validation.images import (
     extract_cwl_images,
     extract_image_environments,
@@ -137,6 +140,30 @@ def test_snakemake_image_environment_uses_step_kubernetes_uid():
             "type": "snakemake",
             "specification": {
                 "steps": [{"environment": IMAGE, "kubernetes_uid": 2000}]
+            },
+        }
+    }
+
+    assert extract_image_environments(specification, RUNTIME_UID, RUNTIME_GID) == [
+        {
+            "image": IMAGE,
+            "runtime_uid": 2000,
+            "runtime_gid": RUNTIME_GID,
+        }
+    ]
+
+
+def test_snakemake_image_environment_omits_dynamic_kubernetes_uid():
+    """A step whose UID is set by a function has no known runtime identity."""
+    specification = {
+        "workflow": {
+            "type": "snakemake",
+            "specification": {
+                "steps": [
+                    {"environment": IMAGE, "kubernetes_uid": SNAKEMAKE_DYNAMIC_VALUE},
+                    {"environment": "", "kubernetes_uid": SNAKEMAKE_DYNAMIC_VALUE},
+                    {"environment": IMAGE, "kubernetes_uid": 2000},
+                ]
             },
         }
     }
