@@ -627,6 +627,16 @@ REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP = float(
 )
 """How many seconds to wait between job controller connection checks."""
 
+REANA_JOB_CONTROLLER_REQUEST_TIMEOUT = float(
+    os.getenv("REANA_JOB_CONTROLLER_REQUEST_TIMEOUT", "300")
+)
+"""How many seconds to wait for a connection to, or a response from, the job
+controller before a request of a workflow engine fails."""
+
+REANA_JOB_CONTROLLER_STATUS_CHECK_RETRIES = 3
+"""How many times to retry a job status check that failed to reach the job
+controller. The job controller connection check sleep is used between retries."""
+
 COMMAND_DANGEROUS_OPERATIONS = ["sudo ", "cd /"]
 """Operations in workflow commands considered dangerous."""
 
