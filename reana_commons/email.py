@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2020, 2022, 2023 CERN.
+# Copyright (C) 2020, 2022, 2023, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -30,6 +30,8 @@ REANA_EMAIL_SMTP_SSL = bool(strtobool(os.getenv("REANA_EMAIL_SMTP_SSL", "False")
 REANA_EMAIL_SMTP_STARTTLS = bool(
     strtobool(os.getenv("REANA_EMAIL_SMTP_STARTTLS", "True"))
 )
+# Seconds to wait for the SMTP server before sending the email fails
+REANA_EMAIL_SMTP_TIMEOUT = 30
 
 
 def send_email(
@@ -71,10 +73,17 @@ def send_email(
     context = ssl.create_default_context()
     if REANA_EMAIL_SMTP_SSL:
         smtp_server = smtplib.SMTP_SSL(
-            REANA_EMAIL_SMTP_SERVER, REANA_EMAIL_SMTP_PORT, context=context
+            REANA_EMAIL_SMTP_SERVER,
+            REANA_EMAIL_SMTP_PORT,
+            context=context,
+            timeout=REANA_EMAIL_SMTP_TIMEOUT,
         )
     else:
-        smtp_server = smtplib.SMTP(REANA_EMAIL_SMTP_SERVER, REANA_EMAIL_SMTP_PORT)
+        smtp_server = smtplib.SMTP(
+            REANA_EMAIL_SMTP_SERVER,
+            REANA_EMAIL_SMTP_PORT,
+            timeout=REANA_EMAIL_SMTP_TIMEOUT,
+        )
 
     with smtp_server:
         if REANA_EMAIL_SMTP_STARTTLS:
@@ -85,6 +94,6 @@ def send_email(
 
     logging.info(
         f"Email sent, login: {login_email}, "
-        f"sender: {sender_email}, receiver: {receiver_email}\n"
-        f"Body:\n{message}"
+        f"sender: {sender_email}, receiver: {receiver_email}, "
+        f"subject: {subject}"
     )
