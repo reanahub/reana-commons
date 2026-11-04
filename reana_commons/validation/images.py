@@ -180,6 +180,13 @@ def iter_cwl_images(cwl_graph) -> Iterator[str]:
         for requirement in _iter_cwl_reqs(workflow):
             if "dockerPull" in requirement:
                 yield requirement["dockerPull"]
+        # Workflow steps can set their own images, also in inline ``run`` tools
+        steps = workflow.get("steps") or []
+        for step in steps.values() if isinstance(steps, dict) else steps:
+            if isinstance(step, dict):
+                yield from iter_cwl_images(step)
+                if isinstance(step.get("run"), dict):
+                    yield from iter_cwl_images(step["run"])
 
 
 def extract_cwl_images(cwl_graph) -> List[str]:
@@ -195,7 +202,8 @@ def extract_cwl_images(cwl_graph) -> List[str]:
 
 def _yadage_env_to_image(env: Dict) -> str:
     """Build a full image string from a Yadage environment dict."""
-    tag = env.get("imagetag", "")
+    # Apptainer image files are referenced by path and carry no tag
+    tag = "" if env["image"].endswith(".sif") else env.get("imagetag", "")
     return "{}{}".format(env["image"], ":{}".format(tag) if tag else "")
 
 
@@ -214,3 +222,9 @@ def validate_images(reana_yaml: Dict, enabled: bool, allowlist: Iterable[str]) -
     for image in extract_images(reana_yaml):
         if image and image not in allowed_images:
             raise REANAValidationError(f"Image not allowed: {image}")
+        # Users can change SIF files outside CVMFS, so their names say nothing
+        if image.endswith(".sif") and not image.startswith("/cvmfs/"):
+            raise REANAValidationError(
+                f"Image not allowed: {image}. With vetted container images,"
+                " only SIF files on /cvmfs can be used."
+            )

@@ -410,6 +410,28 @@ def test_validate_images_disabled_is_noop():
     validate_images(reana_yaml, enabled=False, allowlist=[])
 
 
+@pytest.mark.parametrize(
+    "image,allowed",
+    [
+        ("my_tool.sif", False),
+        ("/cvmfs/unpacked.cern.ch/images/my_tool.sif", True),
+    ],
+)
+def test_validate_images_refuses_sif_files_outside_cvmfs(image, allowed):
+    """Allowlisted SIF files are accepted only on CVMFS."""
+    reana_yaml = {
+        "workflow": {
+            "type": "serial",
+            "specification": {"steps": [{"environment": image}]},
+        }
+    }
+    if allowed:
+        validate_images(reana_yaml, enabled=True, allowlist=[image])
+    else:
+        with pytest.raises(REANAValidationError, match="only SIF files on /cvmfs"):
+            validate_images(reana_yaml, enabled=True, allowlist=[image])
+
+
 def test_validate_dask_limits_blocks_when_disabled():
     """Requesting Dask resources on a cluster without Dask is rejected."""
     reana_yaml = {"workflow": {"type": "serial", "resources": {"dask": {}}}}
