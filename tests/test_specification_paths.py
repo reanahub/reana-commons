@@ -2,6 +2,9 @@
 #
 # This file is part of REANA.
 # Copyright (C) 2026 CERN.
+#
+# REANA is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
 
 """Tests for the authoritative workflow-source path contract."""
 
@@ -261,8 +264,11 @@ def test_declared_path_count_is_bounded_before_processing(tmp_path, monkeypatch)
         specification_paths, "_add_directory", unexpected_path_processing
     )
 
-    with pytest.raises(REANAValidationError, match="too many declared paths"):
+    with pytest.raises(
+        REANASpecificationPathError, match="too many declared paths"
+    ) as caught:
         gather_validation_members(str(specification))
+    assert caught.value.reason == "max_files"
 
 
 def test_repeated_directory_root_is_traversed_once_across_scopes(tmp_path, monkeypatch):
@@ -307,8 +313,13 @@ def test_empty_repeated_directory_is_still_rejected(tmp_path):
         "  directories: [empty, empty]\n"
     )
 
-    with pytest.raises(REANAValidationError, match="contains no regular files"):
+    with pytest.raises(
+        REANASpecificationPathError, match="contains no regular files"
+    ) as caught:
         gather_validation_members(str(specification))
+    assert caught.value.reason == "empty_directory"
+    assert caught.value.field == "workflow.directories"
+    assert caught.value.path == "empty"
 
 
 def test_raw_specification_is_bounded_before_yaml_parsing(tmp_path, monkeypatch):
@@ -417,10 +428,13 @@ def test_declared_directory_surfaces_walk_error(tmp_path, monkeypatch):
     monkeypatch.setattr(specification_paths.os, "scandir", _failing_scandir)
 
     with pytest.raises(
-        REANAValidationError,
+        REANASpecificationPathError,
         match="Could not read declared directory.*permission denied",
-    ):
+    ) as caught:
         gather_validation_members(str(specification))
+    assert caught.value.reason == "unreadable"
+    assert caught.value.field == "workflow.directories"
+    assert caught.value.path == "rules"
 
 
 def test_cwl_workflow_fragment_selects_base_document(tmp_path):
@@ -550,8 +564,11 @@ def test_declared_directory_has_a_bounded_breadth(tmp_path, monkeypatch):
     specification.write_text("workflow:\n  type: serial\n  directories: [declared]\n")
     monkeypatch.setattr(specification_paths, "SPECIFICATION_BUNDLE_MAX_DIRECTORIES", 2)
 
-    with pytest.raises(REANAValidationError, match="too many directories"):
+    with pytest.raises(
+        REANASpecificationPathError, match="too many directories"
+    ) as caught:
         gather_validation_members(str(specification))
+    assert caught.value.reason == "max_directories"
 
 
 def test_scope_depth_is_bounded(tmp_path, monkeypatch):
