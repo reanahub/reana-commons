@@ -54,13 +54,16 @@ def _invalid_snakemake_message(error):
 
 
 def snakemake_validate(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+    workflow_file: str,
+    configfiles: List[str],
+    workdir: Optional[str] = None,
+    config: Optional[Dict] = None,
 ):
     """Validate Snakemake workflow."""
     if sys.version_info >= (3, 11):
-        snakemake_validate_v8(workflow_file, configfiles, workdir)
+        snakemake_validate_v8(workflow_file, configfiles, workdir, config)
     else:
-        snakemake_validate_v7(workflow_file, configfiles, workdir)
+        snakemake_validate_v7(workflow_file, configfiles, workdir, config)
 
 
 def snakemake_load(workflow_file: str, **kwargs: Any):
@@ -72,7 +75,10 @@ def snakemake_load(workflow_file: str, **kwargs: Any):
 
 
 def snakemake_validate_v7(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+    workflow_file: str,
+    configfiles: List[str],
+    workdir: Optional[str] = None,
+    config: Optional[Dict] = None,
 ):
     """Snakemake 7 workflow validation function, necessary for Python versions < 3.11.
 
@@ -88,6 +94,7 @@ def snakemake_validate_v7(
         valid = snakemake(
             snakefile=workflow_file,
             configfiles=configfiles,
+            config=config or {},
             workdir=workdir,
             dryrun=True,
             quiet=True,
@@ -99,7 +106,10 @@ def snakemake_validate_v7(
 
 
 def snakemake_validate_v8(
-    workflow_file: str, configfiles: List[str], workdir: Optional[str] = None
+    workflow_file: str,
+    configfiles: List[str],
+    workdir: Optional[str] = None,
+    config: Optional[Dict] = None,
 ):
     """Snakemake 8 workflow validation function for Python versions >= 3.11.
 
@@ -126,7 +136,9 @@ def snakemake_validate_v8(
         try:
             workflow_api = snakemake_api.workflow(
                 resource_settings=ResourceSettings(nodes=SNAKEMAKE_MAX_PARALLEL_JOBS),
-                config_settings=ConfigSettings(configfiles=configfiles),
+                config_settings=ConfigSettings(
+                    configfiles=configfiles, config=config or {}
+                ),
                 storage_settings=StorageSettings(),
                 storage_provider_settings=dict(),
                 workflow_settings=WorkflowSettings(),
@@ -176,6 +188,7 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
         for f in configfiles:
             # get values to override. Later configfiles override earlier ones.
             overwrite_config.update(load_configfile(f))
+        overwrite_config.update(kwargs.get("config") or {})
         # convert provided paths to absolute paths
         configfiles = list(map(os.path.abspath, configfiles))
         workflow = Workflow(
@@ -273,7 +286,10 @@ def snakemake_load_v7(workflow_file: str, **kwargs: Any):
     configfiles = [kwargs.get("input")] if kwargs.get("input") else []
 
     snakemake_validate(
-        workflow_file=workflow_file, configfiles=configfiles, workdir=workdir
+        workflow_file=workflow_file,
+        configfiles=configfiles,
+        workdir=workdir,
+        config=kwargs.get("config"),
     )
 
     # save the cwd to restore it after _create_snakemake_dag, because this function
@@ -340,7 +356,9 @@ def snakemake_load_v8(workflow_file: str, **kwargs: Any):
         try:
             workflow_api = snakemake_api.workflow(
                 resource_settings=ResourceSettings(nodes=SNAKEMAKE_MAX_PARALLEL_JOBS),
-                config_settings=ConfigSettings(configfiles=configfiles),
+                config_settings=ConfigSettings(
+                    configfiles=configfiles, config=kwargs.get("config") or {}
+                ),
                 storage_settings=StorageSettings(),
                 storage_provider_settings=dict(),
                 workflow_settings=WorkflowSettings(),

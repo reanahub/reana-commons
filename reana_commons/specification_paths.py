@@ -89,9 +89,12 @@ class _ScopeBudget:
             if directory in self.directories:
                 continue
             if len(self.directories) >= self.max_directories:
-                raise REANAValidationError(
+                raise REANASpecificationPathError(
                     "Specification scope has too many directories "
-                    "(maximum is {}).".format(self.max_directories)
+                    "(maximum is {}).".format(self.max_directories),
+                    field,
+                    relative_directory,
+                    "max_directories",
                 )
             self.directories.add(directory)
 
@@ -104,10 +107,13 @@ class _ScopeBudget:
         if relative_path in self.files:
             return
         if len(self.files) >= self.max_files:
-            raise REANAValidationError(
+            raise REANASpecificationPathError(
                 "Specification scope has too many files (maximum is {}).".format(
                     self.max_files
-                )
+                ),
+                field,
+                relative_path,
+                "max_files",
             )
         self.files.add(relative_path)
 
@@ -503,10 +509,13 @@ def _add_directory(  # noqa: C901
     has_regular_file = False
 
     def _raise_walk_error(error):
-        raise REANAValidationError(
+        raise REANASpecificationPathError(
             "Could not read declared directory in {}: {} ({})".format(
                 field, relative_directory, error
-            )
+            ),
+            field,
+            relative_directory,
+            "unreadable",
         )
 
     pending = [(absolute_directory, relative_directory)]
@@ -553,10 +562,13 @@ def _add_directory(  # noqa: C901
             _add_file(members, base_directory, file_relative, field, budget)
         pending.extend(reversed(sorted(directories, key=lambda item: item[1])))
     if not has_regular_file:
-        raise REANAValidationError(
+        raise REANASpecificationPathError(
             "Declared directory contains no regular files in {}: {}".format(
                 field, relative_directory
-            )
+            ),
+            field,
+            relative_directory,
+            "empty_directory",
         )
     budget.traversed_directory_roots.add(relative_directory)
 
@@ -584,9 +596,12 @@ def _add_declared_paths(
                 "{}.{} must be a list.".format(field_prefix, directories_key)
             )
     if len(files) + len(directories) > budget.max_files:
-        raise REANAValidationError(
+        raise REANASpecificationPathError(
             "Specification scope has too many declared paths in {} "
-            "(maximum is {}).".format(field_prefix, budget.max_files)
+            "(maximum is {}).".format(field_prefix, budget.max_files),
+            field_prefix,
+            "",
+            "max_files",
         )
 
     for path in files:
@@ -716,6 +731,19 @@ def _gather_validation_members(
             ("inputs.parameters.input" if legacy else "workflow.parameters.file"),
             budget,
         )
+    if workflow.get("type") == "yadage":
+        options = (reana_specification.get("inputs") or {}).get("options", {})
+        if not isinstance(options, dict):
+            raise REANASpecificationScopeError("inputs.options must be a mapping.")
+        initfiles = options.get("initfiles", [])
+        if not isinstance(initfiles, list):
+            raise REANASpecificationScopeError(
+                "inputs.options.initfiles must be a list."
+            )
+        for initfile in initfiles:
+            _add_file(
+                members, base_directory, initfile, "inputs.options.initfiles", budget
+            )
     return members, reana_specification, legacy, budget
 
 
