@@ -185,17 +185,20 @@ def serial_load(workflow_file, specification, parameters=None, original=None, **
     :returns: A dictionary which represents the valid Serial workflow with all
         parameters expanded.
     """
-    if not check_htcondor_max_runtime(specification):
-        raise Exception("Invalid input in htcondor_max_runtime.")
-
-    if not check_htcondor_request_parameters(specification):
-        raise Exception("Invalid input in htcondor_request_* parameters.")
-
-    parameters = parameters or {}
 
     if not specification:
         with open(workflow_file, "r") as f:
             specification = json.loads(f.read())
+
+    if not check_htcondor_max_runtime(specification):
+        raise Exception("Invalid input in htcondor_max_runtime.")
+
+    errors = get_htcondor_request_parameter_errors(specification)
+
+    if errors:
+        raise Exception("; ".join(errors))
+
+    parameters = parameters or {}
 
     expanded_specification = _expand_parameters(specification, parameters, original)
 
@@ -265,8 +268,8 @@ plain client environments."""
 _HTCONDOR_QUANTITY_RE = re.compile(HTCONDOR_QUANTITY_FORMAT, re.IGNORECASE)
 
 
-def check_htcondor_request_parameters(specification):
-    """Check the htcondor_request_* and htcondor_requirements step fields.
+def get_htcondor_request_parameter_errors(specification):
+    """Return validation errors for HTCondor request parameters.
 
     Validation here is intentionally lightweight:
 
@@ -283,49 +286,52 @@ def check_htcondor_request_parameters(specification):
 
     :param specification: reana specification of workflow.
     """
-    check_pass = True
+    errors = []
     for i, step in enumerate(specification["steps"]):
         step_label = step.get("name", i)
         for field in HTCONDOR_REQUEST_INTEGER_FIELDS:
             value = step.get(field)
-            if not value:
+            if value is None or value == "":
                 continue
             if not (isinstance(value, str) and validate_htcondor_cpu_gpu(value)):
-                check_pass = False
-                click.secho(
-                    "In step {0}:\n'{1}' is not a valid input for {2}. "
+                errors.append(
+                    "In step {0}: {2}={1!r} is not a valid input. "
                     "It must be a positive integer in the form of a string.".format(
                         step_label, value, field
-                    ),
-                    fg="red",
+                    )
                 )
         for field in HTCONDOR_REQUEST_QUANTITY_FIELDS:
             value = step.get(field)
-            if not value:
+            if value is None or value == "":
                 continue
             if not (isinstance(value, str) and _HTCONDOR_QUANTITY_RE.match(value)):
-                check_pass = False
-                click.secho(
-                    "In step {0}:\n'{1}' is not a valid input for {2}. "
+                errors.append(
+                    "In step {0}: {2}={1!r} is not a valid input. "
                     "It must be a positive integer with an optional "
                     "K/KB/M/MB/G/GB/T/TB suffix (case-insensitive). "
                     "Kubernetes-style Gi/Mi suffixes are not accepted.".format(
                         step_label, value, field
-                    ),
-                    fg="red",
+                    )
                 )
         requirements = step.get("htcondor_requirements")
         if requirements is not None and not (
             isinstance(requirements, str) and requirements.strip()
         ):
-            check_pass = False
-            click.secho(
-                "In step {0}:\nhtcondor_requirements must be a non-empty "
-                "string ClassAd expression.".format(step_label),
-                fg="red",
+            errors.append(
+                "In step {0}: htcondor_requirements must be a non-empty "
+                "string ClassAd expression.".format(step_label)
             )
-    return check_pass
+    return errors
 
+def check_htcondor_request_parameters(specification):
+    """Check the htcondor_request_* and htcondor_requirements step fields."""
+
+    errors = get_htcondor_request_parameter_errors(specification)
+
+    for error in errors:
+        click.secho(error, fg="red")
+
+    return not errors
 
 def check_htcondor_max_runtime(specification):
     """Check if the field htcondor_max_runtime has a valid input.

@@ -14,11 +14,100 @@ from reana_commons.serial import (
     HTCONDOR_REQUEST_INTEGER_FIELDS,
     HTCONDOR_REQUEST_QUANTITY_FIELDS,
     check_htcondor_request_parameters,
+    get_htcondor_request_parameter_errors,
+    serial_load,
 )
 
 
 def _spec(step):
     return {"steps": [step]}
+
+
+# --- Detailed validation errors -----------------------------------------------
+
+
+def test_get_htcondor_request_parameter_errors_valid():
+    """Valid HTCondor request parameters produce no errors."""
+    assert (
+        get_htcondor_request_parameter_errors(
+            _spec({"c4p_cpu_cores": "4", "c4p_gpu_count": "2"})
+        )
+        == []
+    )
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("c4p_cpu_cores", "two"),
+        ("c4p_gpu_count", "0"),
+    ],
+)
+def test_get_htcondor_request_parameter_errors_one_field_not_valid(field, value):
+    """Invalid HTCondor request parameters produce error messages."""
+    errors = get_htcondor_request_parameter_errors(_spec({field: value}))
+
+    assert len(errors) == 1
+    assert "In step 0:" in errors[0]
+    assert field in errors[0]
+    assert repr(value) in errors[0]
+    assert "positive integer" in errors[0]
+
+
+def test_get_htcondor_request_parameter_errors_two_fields_not_valid():
+    """Invalid HTCondor request parameters produce error messages."""
+    errors = get_htcondor_request_parameter_errors(
+        _spec({"c4p_cpu_cores": "two", "c4p_gpu_count": "0"})
+    )
+
+    assert len(errors) == 2
+    assert any("c4p_cpu_cores" in error for error in errors)
+    assert any("c4p_gpu_count" in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("c4p_cpu_cores", "two"),
+        ("c4p_gpu_count", "two"),
+        ("c4p_gpu_count", "0"),
+    ],
+)
+def test_serial_load_raises_htcondor_request_parameter_errors(field, value):
+    """Invalid HTCondor request parameters raise detailed exceptions."""
+    specification = {"steps": [{field: value}]}
+
+    with pytest.raises(Exception) as exception_info:
+        serial_load(None, specification)
+
+    error_message = str(exception_info.value)
+
+    assert field in error_message
+    assert repr(value) in error_message
+    assert "positive integer" in error_message
+
+
+def test_serial_load_raises_multiple_htcondor_request_parameter_errors():
+    """Multiple invalid HTCondor request parameters raise detailed exceptions."""
+    specification = {
+        "steps": [
+            {
+                "c4p_cpu_cores": "two",
+                "c4p_gpu_count": "two",
+            }
+        ]
+    }
+
+    with pytest.raises(Exception) as exception_info:
+        serial_load(None, specification)
+
+    error_message = str(exception_info.value)
+
+    assert "c4p_cpu_cores" in error_message
+    assert "'two'" in error_message
+    assert "c4p_gpu_count" in error_message
+    assert "'two'" in error_message
+    assert "; " in error_message
 
 
 # --- htcondor_request_cpus (positive integer string only) ---------------------
