@@ -54,7 +54,8 @@ def iter_environment_tag_warnings(images: Iterable[str]) -> Iterator[Dict]:
     """Yield tag warnings for distinct images in first-use order."""
     seen = set()
     for image in images:
-        if not image or image in seen:
+        # Apptainer image files are referenced by path and carry no tag
+        if not image or image in seen or image.endswith(".sif"):
             continue
         seen.add(image)
         _registry, _repository, tag, digest = parse_image_reference(image)

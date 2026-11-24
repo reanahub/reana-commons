@@ -8,6 +8,8 @@
 
 """Tests for reana_commons.validation.images."""
 
+import pytest
+
 from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
 from reana_commons.validation.images import (
     extract_cwl_images,
@@ -60,6 +62,32 @@ def test_null_workflow_specification_has_no_extractable_images():
     }
 
     assert extract_images(specification) == []
+
+
+def test_yadage_sif_environment_has_no_image_tag():
+    """Apptainer image files keep their path, also with the default tag."""
+    specification = {
+        "workflow": {
+            "type": "yadage",
+            "specification": {
+                "stages": [
+                    {
+                        "scheduler": {
+                            "step": {
+                                "environment": {
+                                    "image": image,
+                                    "imagetag": "latest",
+                                }
+                            }
+                        }
+                    }
+                    for image in ("images/my_tool.sif", "python")
+                ]
+            },
+        }
+    }
+
+    assert extract_images(specification) == ["images/my_tool.sif", "python:latest"]
 
 
 def test_image_environments_preserve_per_step_kubernetes_uid():
@@ -304,6 +332,26 @@ def test_graph_list_multiple_nodes():
         _wf(requirements=[{"class": "DockerRequirement", "dockerPull": IMAGE}]),
         _wf(hints=[{"class": "DockerRequirement", "dockerPull": IMAGE2}]),
     ]
+    assert extract_cwl_images(graph) == [IMAGE, IMAGE2]
+
+
+@pytest.mark.parametrize("steps_as_mapping", [False, True])
+def test_workflow_step_images_collected(steps_as_mapping):
+    """Images set on workflow steps and inline step tools are found too."""
+    steps = [
+        {
+            "id": "#main/gendata",
+            "run": "#gendata.cwl",
+            "requirements": [{"class": "DockerRequirement", "dockerPull": IMAGE}],
+        },
+        {
+            "id": "#main/fitdata",
+            "run": _wf(hints={"DockerRequirement": {"dockerPull": IMAGE2}}),
+        },
+    ]
+    if steps_as_mapping:
+        steps = {step["id"]: step for step in steps}
+    graph = [{"class": "Workflow", "steps": steps}, {"class": "CommandLineTool"}]
     assert extract_cwl_images(graph) == [IMAGE, IMAGE2]
 
 

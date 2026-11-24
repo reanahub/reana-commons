@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2019, 2020, 2021, 2023 CERN.
+# Copyright (C) 2019, 2020, 2021, 2023, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -9,6 +9,7 @@
 """REANA Kubernetes volumes."""
 
 import os
+import re
 
 from kubernetes.client.rest import ApiException
 from reana_commons.k8s.api_client import current_k8s_corev1_api_client
@@ -24,6 +25,9 @@ from reana_commons.config import (
 )
 
 REANA_SHARED_VOLUME_NAME = "reana-shared-volume"
+
+CVMFS_REPOSITORY_NAME_PATTERN = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,59}")
+"""Valid CVMFS repository name, as in the ``resources.cvmfs`` schema."""
 
 
 def get_reana_shared_volume():
@@ -90,6 +94,25 @@ def get_k8s_cvmfs_volumes(cvmfs_repositories):
         for repository in cvmfs_repositories
     ]
     return volume_mounts, volumes
+
+
+def extract_cvmfs_repository(cvmfs_path):
+    """Extract the CVMFS repository name from an unpacked image path.
+
+    :param cvmfs_path: Path starting with ``/cvmfs/``, e.g.
+        ``/cvmfs/unpacked.cern.ch/registry.hub.docker.com/library/python:3.9``.
+    :returns: Repository name, e.g. ``unpacked.cern.ch``.
+    :raises ValueError: If the path does not start with ``/cvmfs/`` or has no
+        valid repository component.
+    """
+    if not cvmfs_path.startswith("/cvmfs/"):
+        raise ValueError(f"Path does not start with /cvmfs/: {cvmfs_path}")
+    # /cvmfs/<repository>/...
+    parts = cvmfs_path.split("/")
+    # parts: ['', 'cvmfs', '<repository>', ...]
+    if not CVMFS_REPOSITORY_NAME_PATTERN.fullmatch(parts[2]):
+        raise ValueError(f"Cannot extract CVMFS repository from path: {cvmfs_path}")
+    return parts[2]
 
 
 def get_shared_volume(workflow_workspace):
