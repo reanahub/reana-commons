@@ -10,8 +10,57 @@
 
 from typing import Dict, Iterable, Iterator, List
 
-from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+from reana_commons.config import (
+    REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE,
+    SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE,
+)
 from reana_commons.errors import REANAValidationError
+
+
+def is_dynamic_image(image) -> bool:
+    """Return whether an image reference is only resolved once a job runs.
+
+    A Snakemake ``container:`` directive may be a callable or a
+    wildcard-templated string, which Snakemake expands per job from that job's
+    wildcards. The value recorded on the step is then a template, not an image
+    reference: it cannot be pulled, inspected, or compared against the vetted
+    images allowlist. Callables are recorded as
+    ``SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE`` by the Snakemake loader, so both
+    forms are recognised by their braces.
+
+    :param image: Image reference taken from a loaded specification.
+    :returns: ``True`` when the reference cannot be resolved ahead of the run.
+    """
+    return not isinstance(image, str) or "{" in image
+
+
+def describe_dynamic_image(image) -> str:
+    """Return a user-facing description of a dynamic container image.
+
+    :param image: Image reference for which :func:`is_dynamic_image` holds.
+    :returns: A phrase naming the image, or saying that a function sets it
+        when there is no name to show.
+    """
+    if not isinstance(image, str) or image == SNAKEMAKE_DYNAMIC_CONTAINER_IMAGE:
+        return "a container image set by a function"
+    return "container image '{}'".format(image)
+
+
+def iter_dynamic_images(reana_yaml: Dict) -> Iterator[str]:
+    """Yield the distinct Snakemake container images resolved per job.
+
+    :param reana_yaml: Parsed REANA specification dictionary.
+    :yields: Each dynamic image (see :func:`is_dynamic_image`) once.
+    """
+    if reana_yaml["workflow"]["type"] != "snakemake":
+        return
+    specification = reana_yaml["workflow"].get("specification") or {}
+    seen = set()
+    for step in specification.get("steps", []):
+        image = step.get("environment", "")
+        if is_dynamic_image(image) and str(image) not in seen:
+            seen.add(str(image))
+            yield image
 
 
 def extract_images(reana_yaml: Dict) -> List[str]:
@@ -20,7 +69,9 @@ def extract_images(reana_yaml: Dict) -> List[str]:
     Returns the full image string (``image`` or ``image:tag``) for every step.
     Empty strings are included as-is; callers decide whether to treat them as
     an admin-controlled default (e.g. Snakemake rules without a container
-    directive produce ``""`` from the workflow loader).
+    directive produce ``""`` from the workflow loader). Dynamic Snakemake
+    containers (see :func:`is_dynamic_image`) are returned unchanged too, so
+    that :func:`validate_images` keeps rejecting what it cannot vet.
 
     :param reana_yaml: Parsed REANA specification dictionary.
     :returns: List of image strings, one per step/requirement.
@@ -57,6 +108,10 @@ def iter_image_environments(
     order, allowing bounded consumers to stop without materialising the whole
     workflow. At most one deduplication key is retained per yielded record.
 
+    Snakemake containers resolved per job (see :func:`is_dynamic_image`) are
+    omitted: the consumers of these records pull and inspect images or warn
+    about their tags, none of which a template supports.
+
     :param reana_yaml: Parsed REANA specification dictionary.
     :param runtime_uid: Default workflow runtime UID.
     :param runtime_gid: Workflow runtime GID.
@@ -75,6 +130,11 @@ def iter_image_environments(
             for step in specification.get("steps", []):
                 image = step.get("environment", "")
                 if workflow_type == "snakemake":
+                    if is_dynamic_image(image):
+                        # Not a usable reference: pulling it would fail and a
+                        # tag warning about it would be meaningless. Image
+                        # vetting still sees it through extract_images().
+                        continue
                     image = image or REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
                 yield image, step.get("kubernetes_uid")
         elif workflow_type == "yadage":
@@ -213,4 +273,11 @@ def validate_images(reana_yaml: Dict, enabled: bool, allowlist: Iterable[str]) -
     allowed_images = set(allowlist)
     for image in extract_images(reana_yaml):
         if image and image not in allowed_images:
+            if is_dynamic_image(image):
+                raise REANAValidationError(
+                    "Cannot check {} against the allowed images, because it is "
+                    "chosen per job. Use a fixed image name instead.".format(
+                        describe_dynamic_image(image)
+                    )
+                )
             raise REANAValidationError(f"Image not allowed: {image}")

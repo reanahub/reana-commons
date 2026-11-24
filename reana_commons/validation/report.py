@@ -31,7 +31,11 @@ from jsonschema import ValidationError
 from reana_commons.errors import REANAValidationError
 from reana_commons.validation.compute_backends import build_compute_backends_validator
 from reana_commons.validation.dask import validate_dask_limits
-from reana_commons.validation.images import validate_images
+from reana_commons.validation.images import (
+    describe_dynamic_image,
+    iter_dynamic_images,
+    validate_images,
+)
 from reana_commons.validation.operational_options import validate_operational_options
 from reana_commons.validation.parameters import build_parameters_validator
 from reana_commons.validation.utils import (
@@ -242,14 +246,24 @@ def validate_serialized_spec(reana_yaml: Dict, policy: Dict) -> Dict:
     _check(report, "input_path", validate_inputs, reana_yaml)
 
     # 7. Container images (vetted allowlist)
+    vetting_enabled = policy.get("vetted_images_enabled", False)
     _check(
         report,
         "image_not_allowed",
         validate_images,
         reana_yaml,
-        enabled=policy.get("vetted_images_enabled", False),
+        enabled=vetting_enabled,
         allowlist=policy.get("vetted_images_allowlist") or [],
     )
+    # Images chosen per job are skipped by the environment checks, so say so.
+    # With vetting enabled they are already reported as errors above.
+    if not vetting_enabled:
+        for image in iter_dynamic_images(reana_yaml):
+            report.add_warning(
+                "dynamic_image",
+                "Cannot pull or check {} before the workflow runs, because it "
+                "is chosen per job.".format(describe_dynamic_image(image)),
+            )
 
     # 8. Dask limits (skipped when no dask policy is provided)
     dask_config = policy.get("dask_config")
