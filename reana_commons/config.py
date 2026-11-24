@@ -619,7 +619,7 @@ only accept the retired client-serialized JSON protocol, and a client cannot
 learn that from a version string. Shared here so the server and the Python
 client can never disagree on the spelling."""
 
-REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "docker.io/snakemake/snakemake:v9.27.0"
+REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE = "docker.io/snakemake/snakemake:v9.27.2"
 """Snakemake default job environment image."""
 
 REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP = float(

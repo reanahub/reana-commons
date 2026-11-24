@@ -46,7 +46,7 @@ extras_require = {
     "snakemake": [
         "snakemake==7.32.4 ; python_version<'3.11'",
         "pulp>=2.7.0,<2.8.0 ; python_version<'3.11'",
-        "snakemake==9.27.0 ; python_version>='3.11'",
+        "snakemake==9.27.2 ; python_version>='3.11'",
     ],
     "snakemake-kubernetes": [
         "snakemake-executor-plugin-kubernetes>=0.5.1 ; python_version>='3.11'",
