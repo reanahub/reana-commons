@@ -342,3 +342,100 @@ def test_snakemake_load_invalid_workflow(tmpdir):
 
     with pytest.raises(REANAValidationError, match="invalid"):
         snakemake_load(Path(snakefile.strpath))
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "python make_hist.py",
+        "echo done > {output}",
+        "echo done > {output.hist}",
+    ],
+)
+def test_snakemake_named_outputs_are_not_reported_as_unused(command):
+    """Test that named outputs do not have to be referenced by name in command."""
+    assert not _snakemake_parameter_warnings(
+        [
+            {
+                "name": "histogram",
+                "outputs": {"hist": "hist.txt", "log": "histogram.log"},
+                "commands": [command],
+            }
+        ]
+    )
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "echo {params} > {output}",
+        "echo {params:q} > {output}",
+        "echo {params!r} > {output}",
+    ],
+)
+def test_snakemake_bulk_params_are_not_reported_as_unused(command):
+    """Test that bulk {params} placeholder marks all step parameters as used."""
+    assert not _snakemake_parameter_warnings(
+        [
+            {
+                "name": "run",
+                "params": {"bins": 50, "method": "ll"},
+                "outputs": {"hist": "hist.txt"},
+                "commands": [command],
+            }
+        ]
+    )
+
+
+def test_snakemake_rules_without_commands_are_not_reported_as_unused():
+    """Test that rules without a shell command report no unused names."""
+    assert not _snakemake_parameter_warnings(
+        [
+            {
+                "name": "fit",
+                "inputs": {"data": "data.csv"},
+                "params": {"bins": 50},
+                "outputs": {"fit": "fit.txt"},
+                "commands": [],
+            }
+        ]
+    )
+
+
+def test_snakemake_bulk_params_still_reports_undefined_parameter():
+    """Test that undefined parameters are reported even when {params} is used."""
+    assert _snakemake_parameter_warnings(
+        [
+            {
+                "name": "run",
+                "params": {"bins": 50},
+                "outputs": {"hist": "hist.txt"},
+                "commands": ["echo {params} {params.missing} > {output}"],
+            }
+        ]
+    ) == [
+        'Snakemake parameter "params.missing" found on step "run" is not'
+        " defined in input parameters."
+    ]
+
+
+def test_snakemake_loaded_rule_without_shell_command_validation(tmpdir):
+    """Test validation of loaded rules with run or script directives."""
+    snakefile = tmpdir.join("Snakefile")
+    snakefile.write("""
+rule all:
+    input:
+        "output.txt"
+
+rule run_step:
+    output:
+        result="output.txt"
+    params:
+        bins=50,
+        method="likelihood"
+    run:
+        with open(output.result, "w") as f:
+            pass
+""")
+    metadata = snakemake_load(Path(snakefile.strpath), workdir=Path(tmpdir.strpath))
+    assert not _snakemake_parameter_warnings(metadata["steps"])
