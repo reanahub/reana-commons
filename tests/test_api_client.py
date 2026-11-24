@@ -10,7 +10,9 @@
 
 import io
 import json
+import socket
 import sys
+import threading
 from types import SimpleNamespace
 from unittest import mock
 
@@ -21,13 +23,16 @@ else:
 
 import pytest
 from bravado.client import SwaggerClient
+from bravado.exception import BravadoTimeoutError
 from bravado.testing.response_mocks import IncomingResponseMock
 from bravado_core.response import unmarshal_response
 
 from reana_commons.api_client import (
     BaseAPIClient,
     JobControllerAPIClient,
+    JobControllerRequestsClient,
     StreamingMultipartBody,
+    StreamingRequestsClient,
 )
 
 
@@ -264,6 +269,120 @@ def test_submit_forwards_kubernetes_uid(kubernetes_uid, expected_in_spec):
         assert job_spec["kubernetes_uid"] == kubernetes_uid
     else:
         assert "kubernetes_uid" not in job_spec
+
+
+@pytest.fixture
+def silent_job_controller():
+    """Start a server that accepts connections but never answers."""
+    server = socket.socket()
+    server.bind(("127.0.0.1", 0))
+    server.listen()
+    connections = []
+
+    def accept():
+        while True:
+            try:
+                connections.append(server.accept()[0])
+            except OSError:
+                return
+
+    threading.Thread(target=accept, daemon=True).start()
+    yield "http://127.0.0.1:{}".format(server.getsockname()[1]), connections
+    server.close()
+    for connection in connections:
+        connection.close()
+
+
+@pytest.fixture
+def fast_job_controller_timeouts(monkeypatch):
+    """Use short job-controller timeouts and no sleep between retries."""
+    monkeypatch.setattr(
+        "reana_commons.api_client.REANA_JOB_CONTROLLER_REQUEST_TIMEOUT", 0.2
+    )
+    monkeypatch.setattr(
+        "reana_commons.api_client.REANA_JOB_CONTROLLER_STATUS_CHECK_RETRIES", 2
+    )
+    sleep = mock.Mock()
+    monkeypatch.setattr("reana_commons.api_client.time.sleep", sleep)
+    return sleep
+
+
+def test_job_controller_status_check_fails_after_retries(
+    silent_job_controller, fast_job_controller_timeouts
+):
+    """A job controller that never answers must not block a status check."""
+    url, connections = silent_job_controller
+    client = JobControllerAPIClient("reana-job-controller", server_url=url)
+
+    with pytest.raises(TimeoutError, match="after 3 attempts. Error: .*timed out"):
+        client.check_status("job-1")
+    assert len(connections) == 3
+    assert fast_job_controller_timeouts.call_count == 2
+
+
+def test_job_controller_submission_is_not_retried(
+    silent_job_controller, fast_job_controller_timeouts
+):
+    """A timed-out submission must not be sent again: the job can be running."""
+    url, connections = silent_job_controller
+    client = JobControllerAPIClient("reana-job-controller", server_url=url)
+
+    with pytest.raises(BravadoTimeoutError):
+        client.submit(image="busybox", cmd="ls")
+    assert len(connections) == 1
+
+
+def test_job_controller_direct_bravado_calls_time_out(
+    silent_job_controller, fast_job_controller_timeouts
+):
+    """Calls that bypass the client methods, e.g. job deletion, also time out."""
+    url, _ = silent_job_controller
+    client = JobControllerAPIClient("reana-job-controller", server_url=url)
+
+    with pytest.raises(BravadoTimeoutError):
+        client._client.jobs.delete_job(job_id="job-1").result()
+
+
+def test_job_controller_status_check_recovers_after_transient_timeout(
+    fast_job_controller_timeouts,
+):
+    """A status check that times out once must return the next answer."""
+    client = _make_client()
+    status = SimpleNamespace(status="running")
+    client._client.jobs.get_job.return_value.result.side_effect = [
+        BravadoTimeoutError("Read timed out."),
+        (status, mock.Mock(status_code=200)),
+    ]
+
+    assert client.check_status("job-1") is status
+    assert client._client.jobs.get_job.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "request_params,expected_timeout",
+    [({}, 0.2), ({"timeout": 5}, 5), ({"timeout": None}, None)],
+)
+def test_job_controller_transport_keeps_per_call_timeout(
+    request_params, expected_timeout, fast_job_controller_timeouts
+):
+    """The default timeout must not replace a timeout set by the caller."""
+    with mock.patch.object(StreamingRequestsClient, "request") as request:
+        JobControllerRequestsClient().request(dict(request_params, url="u"))
+    assert request.call_args.args[0]["timeout"] == expected_timeout
+
+
+@pytest.mark.parametrize(
+    "service,transport",
+    [
+        ("reana-job-controller", JobControllerRequestsClient),
+        ("reana-server", StreamingRequestsClient),
+        ("reana-workflow-controller", StreamingRequestsClient),
+    ],
+)
+def test_only_job_controller_client_has_default_timeout(service, transport):
+    """The clients of other services must keep their transport."""
+    client = BaseAPIClient(service, server_url="http://localhost")
+    assert type(client._client.swagger_spec.http_client) is transport
 
 
 def test_streaming_multipart_body_never_reads_a_file_without_a_bound():

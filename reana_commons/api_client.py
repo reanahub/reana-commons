@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 import threading
+import time
 import traceback
 import uuid
 from collections.abc import Mapping
@@ -25,12 +26,19 @@ if sys.version_info >= (3, 9):
 else:
     from importlib_resources import files
 from bravado.exception import (
+    BravadoConnectionError,
+    BravadoTimeoutError,
     HTTPBadRequest,
     HTTPError,
     HTTPInternalServerError,
     HTTPNotFound,
 )
-from reana_commons.config import OPENAPI_SPECS
+from reana_commons.config import (
+    OPENAPI_SPECS,
+    REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP,
+    REANA_JOB_CONTROLLER_REQUEST_TIMEOUT,
+    REANA_JOB_CONTROLLER_STATUS_CHECK_RETRIES,
+)
 from reana_commons.errors import (
     MissingAPIClientConfiguration,
     REANAJobControllerSubmissionError,
@@ -166,6 +174,25 @@ class StreamingRequestsClient(RequestsClient):
         )
 
 
+class JobControllerRequestsClient(StreamingRequestsClient):
+    """Bravado transport that limits the wait for the job controller.
+
+    Without a timeout, a workflow engine waits forever for a job controller
+    that accepted a request but does not answer it.
+    """
+
+    def request(self, request_params, operation=None, request_config=None):
+        """Use the default timeout for requests that do not set their own."""
+        if "timeout" not in request_params:
+            request_params = dict(request_params)
+            request_params["timeout"] = REANA_JOB_CONTROLLER_REQUEST_TIMEOUT
+        return super().request(
+            request_params,
+            operation=operation,
+            request_config=request_config,
+        )
+
+
 class BaseAPIClient(object):
     """REANA API client code."""
 
@@ -196,9 +223,13 @@ class BaseAPIClient(object):
                     # _client) construct a BaseAPIClient on every attribute
                     # access, so parsing it unconditionally here defeated
                     # the point of this cache.
+                    if service == "reana-job-controller":
+                        http_client = JobControllerRequestsClient(ssl_verify=ssl_verify)
+                    else:
+                        http_client = StreamingRequestsClient(ssl_verify=ssl_verify)
                     client = SwaggerClient.from_spec(
                         self._get_spec(spec_file),
-                        http_client=StreamingRequestsClient(ssl_verify=ssl_verify),
+                        http_client=http_client,
                         config={"also_return_response": True},
                     )
                     client.swagger_spec.api_url = server_url
@@ -415,8 +446,34 @@ class JobControllerAPIClient(BaseAPIClient):
             raise e
 
     def check_status(self, job_id):
-        """Check status of a job."""
-        response, http_response = self._client.jobs.get_job(job_id=job_id).result()
+        """Check status of a job.
+
+        A status check does not change the job, so a check that cannot reach
+        the job controller is retried. Job submissions are never retried,
+        because the job controller can already have started the job.
+        """
+        for attempt in range(REANA_JOB_CONTROLLER_STATUS_CHECK_RETRIES + 1):
+            try:
+                response, http_response = self._client.jobs.get_job(
+                    job_id=job_id
+                ).result()
+                break
+            except (BravadoConnectionError, BravadoTimeoutError) as e:
+                # Bravado errors have no message, the requests error has it.
+                error = e.__context__ or e
+                if attempt == REANA_JOB_CONTROLLER_STATUS_CHECK_RETRIES:
+                    raise TimeoutError(
+                        "The job controller did not answer the status check of "
+                        "job {} after {} attempts. Error: {}".format(
+                            job_id, attempt + 1, error
+                        )
+                    ) from e
+                logging.warning(
+                    "Status check of job {} failed, retrying. Error: {}".format(
+                        job_id, error
+                    )
+                )
+                time.sleep(REANA_JOB_CONTROLLER_CONNECTION_CHECK_SLEEP)
         if http_response.status_code == 404:
             raise HTTPNotFound(
                 "The given job ID was not found. Error: {}".format(http_response.data)
