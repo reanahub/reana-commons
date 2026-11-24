@@ -24,10 +24,11 @@ parsing them.
 """
 
 import json
-from typing import Dict, List
+from typing import Dict, Iterator, List
 
 from jsonschema import ValidationError
 
+from reana_commons.config import SNAKEMAKE_DYNAMIC_VALUE
 from reana_commons.errors import REANAValidationError
 from reana_commons.validation.compute_backends import build_compute_backends_validator
 from reana_commons.validation.dask import validate_dask_limits
@@ -46,6 +47,12 @@ from reana_commons.validation.utils import (
 
 MAX_VALIDATION_REPORT_ENTRIES = 100
 REPORT_TRUNCATED_CODE = "report_truncated"
+SNAKEMAKE_REANA_RESOURCES = (
+    "compute_backend",
+    "kubernetes_memory_limit",
+    "kubernetes_uid",
+)
+"""Resources that the Snakemake loader records for each rule."""
 
 
 def _entry(code: str, message, path: str = "") -> Dict:
@@ -148,6 +155,42 @@ def _validate_input_path_budget(reana_yaml: Dict) -> None:
         )
 
 
+def _dynamic_resource_warnings(reana_yaml: Dict) -> Iterator[str]:
+    """Yield a warning for each REANA resource that Snakemake rules set per job.
+
+    The loader records a resource that a function sets as
+    ``SNAKEMAKE_DYNAMIC_VALUE``. Such a resource has no value to check before
+    the workflow runs. One warning is given per resource, so that a workflow
+    with many such rules does not fill the report.
+
+    :param reana_yaml: Serialized REANA specification of a Snakemake workflow.
+    :yields: Warning messages that name the resource and a rule that sets it.
+    """
+    specification = reana_yaml["workflow"].get("specification") or {}
+    steps = specification.get("steps", [])
+    for resource in SNAKEMAKE_REANA_RESOURCES:
+        rules = [
+            step.get("name", str(idx))
+            for idx, step in enumerate(steps)
+            if step.get(resource) == SNAKEMAKE_DYNAMIC_VALUE
+        ]
+        if not rules:
+            continue
+        others = len(rules) - 1
+        if others == 0:
+            subject = 'Rule "{}" sets'.format(rules[0])
+        elif others == 1:
+            subject = 'Rule "{}" and 1 other rule set'.format(rules[0])
+        else:
+            subject = 'Rule "{}" and {} other rules set'.format(rules[0], others)
+        yield (
+            '{} "{}" with a function. REANA does not check this value during '
+            "validation. REANA checks it when each job starts.".format(
+                subject, resource
+            )
+        )
+
+
 def validate_serialized_spec(reana_yaml: Dict, policy: Dict) -> Dict:
     """Validate an already-serialized REANA specification.
 
@@ -226,6 +269,11 @@ def validate_serialized_spec(reana_yaml: Dict, policy: Dict) -> Dict:
             reana_yaml, policy.get("supported_backends") or []
         ).validate(),
     )
+
+    # Resources that a function sets have no value to check above, so say so.
+    if workflow_type == "snakemake":
+        for warning in _dynamic_resource_warnings(reana_yaml):
+            report.add_warning("dynamic_resource", warning)
 
     # 5. Workspace root path
     root_path = reana_yaml.get("workspace", {}).get("root_path")

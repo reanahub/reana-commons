@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of REANA.
-# Copyright (C) 2022 CERN.
+# Copyright (C) 2022, 2026 CERN.
 #
 # REANA is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -10,6 +10,7 @@
 
 from typing import Dict, List, Optional
 
+from reana_commons.config import SNAKEMAKE_DYNAMIC_VALUE
 from reana_commons.errors import REANAValidationError
 
 
@@ -162,6 +163,10 @@ class ComputeBackendValidatorSnakemake(ComputeBackendValidatorBase):
         """Validate compute backends in REANA Snakemake workflow."""
         for idx, step in enumerate(self.workflow_steps):
             backend = step.get("compute_backend")
+            if backend == SNAKEMAKE_DYNAMIC_VALUE:
+                # A function sets the backend for each job, so there is no
+                # value to check here. The job controller checks it later.
+                continue
             if backend and backend not in self.supported_backends:
                 step_name = step.get("name", str(idx))
                 self.raise_error(backend, step_name)

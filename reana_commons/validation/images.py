@@ -10,7 +10,10 @@
 
 from typing import Dict, Iterable, Iterator, List
 
-from reana_commons.config import REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
+from reana_commons.config import (
+    REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE,
+    SNAKEMAKE_DYNAMIC_VALUE,
+)
 from reana_commons.errors import REANAValidationError
 
 
@@ -57,6 +60,10 @@ def iter_image_environments(
     order, allowing bounded consumers to stop without materialising the whole
     workflow. At most one deduplication key is retained per yielded record.
 
+    A Snakemake step whose ``kubernetes_uid`` is set by a function (see
+    ``SNAKEMAKE_DYNAMIC_VALUE``) is omitted, because its effective UID is not
+    known before the job runs.
+
     :param reana_yaml: Parsed REANA specification dictionary.
     :param runtime_uid: Default workflow runtime UID.
     :param runtime_gid: Workflow runtime GID.
@@ -75,6 +82,8 @@ def iter_image_environments(
             for step in specification.get("steps", []):
                 image = step.get("environment", "")
                 if workflow_type == "snakemake":
+                    if step.get("kubernetes_uid") == SNAKEMAKE_DYNAMIC_VALUE:
+                        continue
                     image = image or REANA_DEFAULT_SNAKEMAKE_ENV_IMAGE
                 yield image, step.get("kubernetes_uid")
         elif workflow_type == "yadage":
