@@ -30,7 +30,7 @@ extras_require = {
         "pytest-cov>=3.0.0,<4.0",
     ],
     "kubernetes": [
-        "kubernetes>=23.6.0,<37.0.0",  # 37 changed model classes
+        "kubernetes>=23.6.0",
         "google-auth<2.46.0; python_version<'3.9'",
     ],
     "yadage": [
