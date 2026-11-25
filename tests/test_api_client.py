@@ -68,10 +68,10 @@ def test_submit_forwards_kubernetes_uid(kubernetes_uid, expected_in_spec):
 
 @pytest.mark.parametrize(
     "c4p_gpu_count",
-    [0, "0"],
+    ["0"],
 )
-def test_submit_forwards_c4p_gpu_count_zero(c4p_gpu_count):
-    """Preserve zero GPU requests so the job controller can validate them."""
+def test_submit_forwards_c4p_gpu_count_string_zero(c4p_gpu_count):
+    """Preserve string zero GPU requests so the job controller can validate them."""
     client = _make_client()
     client.submit(
         image="busybox",
@@ -82,6 +82,24 @@ def test_submit_forwards_c4p_gpu_count_zero(c4p_gpu_count):
     job_spec = client._client.jobs.create_job.call_args.kwargs["job"]
 
     assert job_spec["c4p_gpu_count"] == c4p_gpu_count
+
+
+@pytest.mark.parametrize(
+    "c4p_gpu_count",
+    [None, ""],
+)
+def test_submit_omits_unset_c4p_gpu_count(c4p_gpu_count):
+    """Omit unset GPU requests from the submitted job specifications."""
+    client = _make_client()
+    client.submit(
+        image="busybox",
+        cmd="ls",
+        c4p_gpu_count=c4p_gpu_count,
+    )
+
+    job_spec = client._client.jobs.create_job.call_args.kwargs["job"]
+
+    assert "c4p_gpu_count" not in job_spec
 
 
 def test_streaming_multipart_body_never_reads_a_file_without_a_bound():
